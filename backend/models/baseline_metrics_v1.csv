@@ -1,0 +1,10 @@
+target,model_name,model_path,val_precision,val_recall,val_f1,val_accuracy,val_avg_latency_ms_per_sample,val_positive_samples,val_total_samples,test_precision,test_recall,test_f1,test_accuracy,test_avg_latency_ms_per_sample,test_positive_samples,test_total_samples
+has_off_by_one,logistic_regression,C:\Hello\Tutorials\code-coach\backend\models\has_off_by_one__logistic_regression.joblib,0.0,0.0,0.0,1.0,0.15214997498939434,0,6,1.0,1.0,1.0,1.0,0.20110001787543297,1,4
+has_off_by_one,random_forest,C:\Hello\Tutorials\code-coach\backend\models\has_off_by_one__random_forest.joblib,0.0,0.0,0.0,1.0,1.81940000038594,0,6,1.0,1.0,1.0,1.0,1.9173999899066985,1,4
+has_off_by_one,svm,C:\Hello\Tutorials\code-coach\backend\models\has_off_by_one__svm.joblib,0.0,0.0,0.0,1.0,0.14773333289970955,0,6,1.0,1.0,1.0,1.0,0.2062499988824129,1,4
+has_incorrect_conditional,logistic_regression,C:\Hello\Tutorials\code-coach\backend\models\has_incorrect_conditional__logistic_regression.joblib,1.0,1.0,1.0,1.0,0.2250666730105877,1,6,1.0,1.0,1.0,1.0,0.2040500403381884,1,4
+has_incorrect_conditional,random_forest,C:\Hello\Tutorials\code-coach\backend\models\has_incorrect_conditional__random_forest.joblib,1.0,1.0,1.0,1.0,1.8851500159750383,1,6,1.0,1.0,1.0,1.0,2.032924967352301,1,4
+has_incorrect_conditional,svm,C:\Hello\Tutorials\code-coach\backend\models\has_incorrect_conditional__svm.joblib,0.0,0.0,0.0,0.8333333333333334,0.12635001136610904,1,6,1.0,1.0,1.0,1.0,0.4193250206299126,1,4
+has_array_length_index_misuse,logistic_regression,C:\Hello\Tutorials\code-coach\backend\models\has_array_length_index_misuse__logistic_regression.joblib,1.0,1.0,1.0,1.0,0.15031666650126377,2,6,0.0,0.0,0.0,1.0,0.2018249942921102,0,4
+has_array_length_index_misuse,random_forest,C:\Hello\Tutorials\code-coach\backend\models\has_array_length_index_misuse__random_forest.joblib,1.0,1.0,1.0,1.0,1.4250000240281224,2,6,0.0,0.0,0.0,1.0,2.3244250332936645,0,4
+has_array_length_index_misuse,svm,C:\Hello\Tutorials\code-coach\backend\models\has_array_length_index_misuse__svm.joblib,0.6666666666666666,1.0,0.8,0.8333333333333334,0.31946669332683086,2,6,0.0,0.0,0.0,1.0,0.2469249884597957,0,4
