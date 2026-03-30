@@ -2,10 +2,11 @@ package data.ml.raw_snippets.incorrect_conditional_operator.buggy;
 
 public class IncorrectConditionalBug001 {
     public static void main(String[] args) {
-        int x = 5;
+        boolean isAdmin = false;
+        String role = "ADMIN";
 
-        if (x = 10) {
-            System.out.println("x is 10");
+        if (isAdmin = role.equals("ADMIN")) {
+            System.out.println("Access granted");
         }
     }
 }
