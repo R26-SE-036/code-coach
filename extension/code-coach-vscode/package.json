@@ -1,0 +1,58 @@
+{
+  "name": "code-coach-vscode",
+  "displayName": "code-coach-vscode",
+  "description": "Beginner-friendly Java coding hints",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:java",
+    "onCommand:code-coach-vscode.start",
+    "onCommand:code-coach-vscode.analyzeCurrentFile",
+    "onCommand:code-coach-vscode.previousHint",
+    "onCommand:code-coach-vscode.nextHint"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "code-coach-vscode.start",
+        "title": "Code Coach: Start"
+      },
+      {
+        "command": "code-coach-vscode.analyzeCurrentFile",
+        "title": "Code Coach: Analyze Current File"
+      },
+      {
+        "command": "code-coach-vscode.previousHint",
+        "title": "Code Coach: Previous Hint"
+      },
+      {
+        "command": "code-coach-vscode.nextHint",
+        "title": "Code Coach: Next Hint"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.110.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}
