@@ -1,0 +1,11 @@
+package data.ml.raw_snippets.array_length_index_misuse.buggy;
+
+public class ArrayIndexBug009 {
+    public static void main(String[] args) {
+        boolean[] flags = { true, false, true };
+
+        if (flags[flags.length]) {
+            System.out.println("Last flag is true");
+        }
+    }
+}

@@ -35,3 +35,36 @@ array_index_bug_005,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIn
 array_index_fix_005,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix005.java,java,NO_ISSUE,1,0,0,0,pair_017,fixed,manual_curated,grades.length - 1 stored as valid last index
 array_index_bug_006,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug006.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_018,buggy,manual_curated,direct string array access with letters.length
 array_index_fix_006,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix006.java,java,NO_ISSUE,1,0,0,0,pair_018,fixed,manual_curated,string array access corrected with letters.length - 1
+off_by_one_bug_007,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug007.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_019,buggy,manual_curated,sum loop uses <= prices.length
+off_by_one_fix_007,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix007.java,java,NO_ISSUE,1,0,0,0,pair_019,fixed,manual_curated,sum loop corrected with < prices.length
+off_by_one_bug_008,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug008.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_020,buggy,manual_curated,print loop uses <= colors.length
+off_by_one_fix_008,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix008.java,java,NO_ISSUE,1,0,0,0,pair_020,fixed,manual_curated,print loop corrected with < colors.length
+off_by_one_bug_009,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug009.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_021,buggy,manual_curated,copy loop uses <= source.length
+off_by_one_fix_009,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix009.java,java,NO_ISSUE,1,0,0,0,pair_021,fixed,manual_curated,copy loop corrected with < source.length
+off_by_one_bug_010,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug010.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_022,buggy,manual_curated,max loop uses <= temps.length
+off_by_one_fix_010,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix010.java,java,NO_ISSUE,1,0,0,0,pair_022,fixed,manual_curated,max loop corrected with < temps.length
+
+incorrect_cond_bug_007,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug007.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_023,buggy,manual_curated,assignment in if using age check
+incorrect_cond_fix_007,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix007.java,java,NO_ISSUE,1,0,0,0,pair_023,fixed,manual_curated,age check assigned before if
+incorrect_cond_bug_008,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug008.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_024,buggy,manual_curated,assignment in if using startsWith
+incorrect_cond_fix_008,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix008.java,java,NO_ISSUE,1,0,0,0,pair_024,fixed,manual_curated,startsWith result assigned before if
+incorrect_cond_bug_009,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug009.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_025,buggy,manual_curated,assignment in if using zero task check
+incorrect_cond_fix_009,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix009.java,java,NO_ISSUE,1,0,0,0,pair_025,fixed,manual_curated,zero task check assigned before if
+incorrect_cond_bug_010,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug010.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_026,buggy,manual_curated,assignment in if using equality comparison
+incorrect_cond_fix_010,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix010.java,java,NO_ISSUE,1,0,0,0,pair_026,fixed,manual_curated,equality result assigned before if
+
+array_index_bug_007,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug007.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_027,buggy,manual_curated,direct nums.length used as index
+array_index_fix_007,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix007.java,java,NO_ISSUE,1,0,0,0,pair_027,fixed,manual_curated,nums.length - 1 used as last valid index
+array_index_bug_008,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_028,buggy,manual_curated,stored letters.length used directly as index
+array_index_fix_008,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix008.java,java,NO_ISSUE,1,0,0,0,pair_028,fixed,manual_curated,stored letters.length - 1 used as valid index
+array_index_bug_009,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug009.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_029,buggy,manual_curated,boolean array indexed with flags.length
+array_index_fix_009,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix009.java,java,NO_ISSUE,1,0,0,0,pair_029,fixed,manual_curated,boolean array indexed with flags.length - 1
+array_index_bug_010,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug010.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_030,buggy,manual_curated,ages.length used directly as index
+array_index_fix_010,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix010.java,java,NO_ISSUE,1,0,0,0,pair_030,fixed,manual_curated,ages.length - 1 used as valid index
+
+clean_001,data/ml/raw_snippets/clean/Clean001.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid loop and last-index access
+clean_002,data/ml/raw_snippets/clean/Clean002.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid while loop and comparisons
+clean_003,data/ml/raw_snippets/clean/Clean003.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid role check without assignment in condition
+clean_004,data/ml/raw_snippets/clean/Clean004.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid indexed access with midpoint
+clean_005,data/ml/raw_snippets/clean/Clean005.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,enhanced for loop clean example
+clean_006,data/ml/raw_snippets/clean/Clean006.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,nested loops with safe boundaries
