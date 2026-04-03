@@ -20,6 +20,10 @@ TRAIN_RATIO = 0.70
 VAL_RATIO = 0.15
 TEST_RATIO = 0.15
 
+assert abs(TRAIN_RATIO + VAL_RATIO + TEST_RATIO - 1.0) < 1e-9, (
+    f"Split ratios must sum to 1.0, got {TRAIN_RATIO + VAL_RATIO + TEST_RATIO}"
+)
+
 TARGET_COLUMNS = [
     "has_off_by_one",
     "has_incorrect_conditional",
@@ -98,10 +102,16 @@ def _allocate_unit_counts(total_units: int) -> Tuple[int, int, int]:
     if total_units == 2:
         return 1, 0, 1
 
-    train_count = max(1, round(total_units * TRAIN_RATIO))
-    val_count = max(1, round(total_units * VAL_RATIO))
-    test_count = total_units - train_count - val_count
+    if total_units == 3:
+        return 1, 1, 1
 
+    # Use floor for both train and val; remainder goes to test.
+    # This avoids double-rounding errors that consistently shortchange test.
+    train_count = max(1, int(total_units * TRAIN_RATIO))
+    val_count   = max(1, int(total_units * VAL_RATIO))
+    test_count  = total_units - train_count - val_count
+
+    # If rounding left test empty, donate one unit from the largest split.
     while test_count < 1:
         if train_count >= val_count and train_count > 1:
             train_count -= 1
