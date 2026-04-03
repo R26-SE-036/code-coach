@@ -1,4 +1,3 @@
-package data.ml.raw_snippets.clean;
 
 public class Clean002 {
     public static void main(String[] args) {

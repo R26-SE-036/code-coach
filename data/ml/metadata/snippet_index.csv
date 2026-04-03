@@ -1,63 +1,63 @@
 snippet_id,file_path,language,primary_label,is_clean,has_off_by_one,has_incorrect_conditional,has_array_length_index_misuse,pair_group,pair_role,source_type,notes
-off_by_one_bug_001,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug001.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_001,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_001,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug001.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_001,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_001,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix001.java,java,NO_ISSUE,1,0,0,0,pair_001,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_002,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug002.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_002,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_002,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug002.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_002,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_002,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix002.java,java,NO_ISSUE,1,0,0,0,pair_002,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_003,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug003.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_003,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_003,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug003.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_003,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_003,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix003.java,java,NO_ISSUE,1,0,0,0,pair_003,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_004,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug004.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_004,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_004,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug004.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_004,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_004,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix004.java,java,NO_ISSUE,1,0,0,0,pair_004,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_005,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug005.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_005,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_005,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug005.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_005,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_005,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix005.java,java,NO_ISSUE,1,0,0,0,pair_005,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_006,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_006,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_006,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_006,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_006,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix006.java,java,NO_ISSUE,1,0,0,0,pair_006,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_007,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug007.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_007,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_007,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug007.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_007,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_007,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix007.java,java,NO_ISSUE,1,0,0,0,pair_007,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_008,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug008.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_008,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_008,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug008.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_008,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_008,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix008.java,java,NO_ISSUE,1,0,0,0,pair_008,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_009,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug009.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_009,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_009,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug009.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_009,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_009,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix009.java,java,NO_ISSUE,1,0,0,0,pair_009,fixed,manual_curated, corrected with < length boundary
-off_by_one_bug_010,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug010.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_010,buggy,manual_curated,loop uses <= array/string length boundary (off-by-one)
+off_by_one_bug_010,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug010.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_010,buggy,manual_curated, starts from .length instead of .length - 1
 off_by_one_fix_010,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix010.java,java,NO_ISSUE,1,0,0,0,pair_010,fixed,manual_curated, corrected with < length boundary
 off_by_one_bug_011,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug011.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_011,buggy,manual_curated,reverseProcess starts from .length instead of .length - 1
 off_by_one_fix_011,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix011.java,java,NO_ISSUE,1,0,0,0,pair_011,fixed,manual_curated,reverseProcess corrected with < length boundary
 off_by_one_bug_012,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug012.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_012,buggy,manual_curated,checkBounds uses <= array/string length boundary (off-by-one)
 off_by_one_fix_012,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix012.java,java,NO_ISSUE,1,0,0,0,pair_012,fixed,manual_curated,checkBounds corrected with < length boundary
-off_by_one_bug_013,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug013.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_013,buggy,manual_curated,iterateRows uses <= array/string length boundary (off-by-one)
+off_by_one_bug_013,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug013.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_013,buggy,manual_curated,iterateRows starts from .length instead of .length - 1
 off_by_one_fix_013,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix013.java,java,NO_ISSUE,1,0,0,0,pair_013,fixed,manual_curated,iterateRows corrected with < length boundary
 off_by_one_bug_014,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug014.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_014,buggy,manual_curated,iterateCols uses <= array/string length boundary (off-by-one)
 off_by_one_fix_014,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix014.java,java,NO_ISSUE,1,0,0,0,pair_014,fixed,manual_curated,iterateCols corrected with < length boundary
-off_by_one_bug_015,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug015.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_015,buggy,manual_curated,skipByTwo uses <= array/string length boundary (off-by-one)
+off_by_one_bug_015,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug015.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_015,buggy,manual_curated,skipByTwo starts from .length instead of .length - 1
 off_by_one_fix_015,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix015.java,java,NO_ISSUE,1,0,0,0,pair_015,fixed,manual_curated,skipByTwo corrected with < length boundary
-off_by_one_bug_016,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug016.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_016,buggy,manual_curated,findMin uses <= array/string length boundary (off-by-one)
+off_by_one_bug_016,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug016.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_016,buggy,manual_curated,findMin starts from .length instead of .length - 1
 off_by_one_fix_016,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix016.java,java,NO_ISSUE,1,0,0,0,pair_016,fixed,manual_curated,findMin corrected with < length boundary
-off_by_one_bug_017,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug017.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_017,buggy,manual_curated,doubleValues uses <= array/string length boundary (off-by-one)
+off_by_one_bug_017,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug017.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_017,buggy,manual_curated,doubleValues starts from .length instead of .length - 1
 off_by_one_fix_017,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix017.java,java,NO_ISSUE,1,0,0,0,pair_017,fixed,manual_curated,doubleValues corrected with < length boundary
-off_by_one_bug_018,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug018.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_018,buggy,manual_curated,contains uses <= array/string length boundary (off-by-one)
+off_by_one_bug_018,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug018.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_018,buggy,manual_curated,contains starts from .length instead of .length - 1
 off_by_one_fix_018,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix018.java,java,NO_ISSUE,1,0,0,0,pair_018,fixed,manual_curated,contains corrected with < length boundary
-off_by_one_bug_019,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug019.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_019,buggy,manual_curated,countPositive uses <= array/string length boundary (off-by-one)
+off_by_one_bug_019,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug019.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_019,buggy,manual_curated,countPositive starts from .length instead of .length - 1
 off_by_one_fix_019,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix019.java,java,NO_ISSUE,1,0,0,0,pair_019,fixed,manual_curated,countPositive corrected with < length boundary
-off_by_one_bug_020,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug020.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_020,buggy,manual_curated,fillZero uses <= array/string length boundary (off-by-one)
+off_by_one_bug_020,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug020.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_020,buggy,manual_curated,fillZero starts from .length instead of .length - 1
 off_by_one_fix_020,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix020.java,java,NO_ISSUE,1,0,0,0,pair_020,fixed,manual_curated,fillZero corrected with < length boundary
-off_by_one_bug_021,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug021.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_021,buggy,manual_curated,product uses <= array/string length boundary (off-by-one)
+off_by_one_bug_021,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug021.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_021,buggy,manual_curated,product starts from .length instead of .length - 1
 off_by_one_fix_021,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix021.java,java,NO_ISSUE,1,0,0,0,pair_021,fixed,manual_curated,product corrected with < length boundary
-off_by_one_bug_022,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug022.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_022,buggy,manual_curated,buildString uses <= array/string length boundary (off-by-one)
+off_by_one_bug_022,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug022.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_022,buggy,manual_curated,buildString starts from .length instead of .length - 1
 off_by_one_fix_022,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix022.java,java,NO_ISSUE,1,0,0,0,pair_022,fixed,manual_curated,buildString corrected with < length boundary
-off_by_one_bug_023,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug023.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_023,buggy,manual_curated,shiftRight uses <= array/string length boundary (off-by-one)
+off_by_one_bug_023,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug023.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_023,buggy,manual_curated,shiftRight starts from .length instead of .length - 1
 off_by_one_fix_023,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix023.java,java,NO_ISSUE,1,0,0,0,pair_023,fixed,manual_curated,shiftRight corrected with < length boundary
-off_by_one_bug_024,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug024.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_024,buggy,manual_curated,average uses <= array/string length boundary (off-by-one)
+off_by_one_bug_024,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug024.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_024,buggy,manual_curated,average starts from .length instead of .length - 1
 off_by_one_fix_024,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix024.java,java,NO_ISSUE,1,0,0,0,pair_024,fixed,manual_curated,average corrected with < length boundary
-off_by_one_bug_025,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug025.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_025,buggy,manual_curated,printEven uses <= array/string length boundary (off-by-one)
+off_by_one_bug_025,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug025.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_025,buggy,manual_curated,printEven starts from .length instead of .length - 1
 off_by_one_fix_025,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix025.java,java,NO_ISSUE,1,0,0,0,pair_025,fixed,manual_curated,printEven corrected with < length boundary
-off_by_one_bug_026,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug026.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_026,buggy,manual_curated,cloneArray uses <= array/string length boundary (off-by-one)
+off_by_one_bug_026,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug026.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_026,buggy,manual_curated,cloneArray starts from .length instead of .length - 1
 off_by_one_fix_026,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix026.java,java,NO_ISSUE,1,0,0,0,pair_026,fixed,manual_curated,cloneArray corrected with < length boundary
-off_by_one_bug_027,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug027.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_027,buggy,manual_curated,negateAll uses <= array/string length boundary (off-by-one)
+off_by_one_bug_027,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug027.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_027,buggy,manual_curated,negateAll starts from .length instead of .length - 1
 off_by_one_fix_027,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix027.java,java,NO_ISSUE,1,0,0,0,pair_027,fixed,manual_curated,negateAll corrected with < length boundary
-off_by_one_bug_028,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug028.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_028,buggy,manual_curated,countEven uses <= array/string length boundary (off-by-one)
+off_by_one_bug_028,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug028.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_028,buggy,manual_curated,countEven starts from .length instead of .length - 1
 off_by_one_fix_028,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix028.java,java,NO_ISSUE,1,0,0,0,pair_028,fixed,manual_curated,countEven corrected with < length boundary
-off_by_one_bug_029,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug029.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_029,buggy,manual_curated,incrementAll uses <= array/string length boundary (off-by-one)
+off_by_one_bug_029,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug029.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_029,buggy,manual_curated,incrementAll starts from .length instead of .length - 1
 off_by_one_fix_029,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix029.java,java,NO_ISSUE,1,0,0,0,pair_029,fixed,manual_curated,incrementAll corrected with < length boundary
-off_by_one_bug_030,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug030.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_030,buggy,manual_curated,lastIndex uses <= array/string length boundary (off-by-one)
+off_by_one_bug_030,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug030.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_030,buggy,manual_curated,lastIndex starts from .length instead of .length - 1
 off_by_one_fix_030,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix030.java,java,NO_ISSUE,1,0,0,0,pair_030,fixed,manual_curated,lastIndex corrected with < length boundary
 incorrect_cond_bug_001,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug001.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_031,buggy,manual_curated, uses assignment (=) instead of equality (==) in condition
 incorrect_cond_fix_001,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix001.java,java,NO_ISSUE,1,0,0,0,pair_031,fixed,manual_curated, uses == for comparison correctly
@@ -87,7 +87,7 @@ incorrect_cond_bug_013,data/ml/raw_snippets/incorrect_conditional_operator/buggy
 incorrect_cond_fix_013,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix013.java,java,NO_ISSUE,1,0,0,0,pair_043,fixed,manual_curated,processItem uses == for comparison correctly
 incorrect_cond_bug_014,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug014.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_044,buggy,manual_curated,validate uses assignment (=) instead of equality (==) in condition
 incorrect_cond_fix_014,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix014.java,java,NO_ISSUE,1,0,0,0,pair_044,fixed,manual_curated,validate uses == for comparison correctly
-incorrect_cond_bug_015,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug015.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_045,buggy,manual_curated,classify has incorrect conditional operator bug
+incorrect_cond_bug_015,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug015.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_045,buggy,manual_curated,classify uses assignment (=) instead of equality (==) in condition
 incorrect_cond_fix_015,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix015.java,java,NO_ISSUE,1,0,0,0,pair_045,fixed,manual_curated,classify uses == for comparison correctly
 incorrect_cond_bug_016,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug016.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_046,buggy,manual_curated,checkTemperature uses assignment (=) instead of equality (==) in condition
 incorrect_cond_fix_016,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix016.java,java,NO_ISSUE,1,0,0,0,pair_046,fixed,manual_curated,checkTemperature uses == for comparison correctly
@@ -123,17 +123,17 @@ array_index_bug_001,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIn
 array_index_fix_001,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix001.java,java,NO_ISSUE,1,0,0,0,pair_061,fixed,manual_curated, corrected with .length - 1 as last valid index
 array_index_bug_002,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug002.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_062,buggy,manual_curated,accesses names[names.length] directly (out of bounds)
 array_index_fix_002,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix002.java,java,NO_ISSUE,1,0,0,0,pair_062,fixed,manual_curated, corrected with .length - 1 as last valid index
-array_index_bug_003,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug003.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_063,buggy,manual_curated, uses .length directly as array index
+array_index_bug_003,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug003.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_063,buggy,manual_curated,accesses values[values.length] directly (out of bounds)
 array_index_fix_003,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix003.java,java,NO_ISSUE,1,0,0,0,pair_063,fixed,manual_curated, corrected with .length - 1 as last valid index
 array_index_bug_004,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug004.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_064,buggy,manual_curated,accesses numbers[numbers.length] directly (out of bounds)
 array_index_fix_004,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix004.java,java,NO_ISSUE,1,0,0,0,pair_064,fixed,manual_curated, corrected with .length - 1 as last valid index
-array_index_bug_005,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug005.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_065,buggy,manual_curated, uses .length directly as array index
+array_index_bug_005,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug005.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_065,buggy,manual_curated,accesses grades[grades.length] directly (out of bounds)
 array_index_fix_005,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix005.java,java,NO_ISSUE,1,0,0,0,pair_065,fixed,manual_curated, corrected with .length - 1 as last valid index
 array_index_bug_006,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug006.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_066,buggy,manual_curated,accesses letters[letters.length] directly (out of bounds)
 array_index_fix_006,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix006.java,java,NO_ISSUE,1,0,0,0,pair_066,fixed,manual_curated, corrected with .length - 1 as last valid index
 array_index_bug_007,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug007.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_067,buggy,manual_curated,accesses nums[nums.length] directly (out of bounds)
 array_index_fix_007,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix007.java,java,NO_ISSUE,1,0,0,0,pair_067,fixed,manual_curated, corrected with .length - 1 as last valid index
-array_index_bug_008,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_068,buggy,manual_curated, uses .length directly as array index
+array_index_bug_008,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_068,buggy,manual_curated,accesses letters[letters.length] directly (out of bounds)
 array_index_fix_008,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix008.java,java,NO_ISSUE,1,0,0,0,pair_068,fixed,manual_curated, corrected with .length - 1 as last valid index
 array_index_bug_009,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug009.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_069,buggy,manual_curated,accesses flags[flags.length] directly (out of bounds)
 array_index_fix_009,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix009.java,java,NO_ISSUE,1,0,0,0,pair_069,fixed,manual_curated, corrected with .length - 1 as last valid index
@@ -151,7 +151,7 @@ array_index_bug_020,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIn
 array_index_fix_020,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix020.java,java,NO_ISSUE,1,0,0,0,pair_075,fixed,manual_curated,printTail corrected with .length - 1 as last valid index
 array_index_bug_021,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug021.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_076,buggy,manual_curated,accesses scores[scores.length] directly (out of bounds)
 array_index_fix_021,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix021.java,java,NO_ISSUE,1,0,0,0,pair_076,fixed,manual_curated,isLastPositive corrected with .length - 1 as last valid index
-array_index_bug_022,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug022.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_077,buggy,manual_curated,getRightEdge uses .length directly as array index
+array_index_bug_022,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug022.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_077,buggy,manual_curated,accesses array[array.length] directly (out of bounds)
 array_index_fix_022,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix022.java,java,NO_ISSUE,1,0,0,0,pair_077,fixed,manual_curated,getRightEdge corrected with .length - 1 as last valid index
 array_index_bug_023,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug023.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_078,buggy,manual_curated,accesses table[table.length] directly (out of bounds)
 array_index_fix_023,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix023.java,java,NO_ISSUE,1,0,0,0,pair_078,fixed,manual_curated,getBottomRow corrected with .length - 1 as last valid index
@@ -180,3 +180,22 @@ clean_008,data/ml/raw_snippets/clean/Clean008.java,java,NO_ISSUE,1,0,0,0,,clean,
 clean_009,data/ml/raw_snippets/clean/Clean009.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean009
 clean_010,data/ml/raw_snippets/clean/Clean010.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean010
 clean_011,data/ml/raw_snippets/clean/Clean011.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean011
+clean_012,data/ml/raw_snippets/clean/Clean012.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean012
+clean_013,data/ml/raw_snippets/clean/Clean013.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean013
+clean_014,data/ml/raw_snippets/clean/Clean014.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean014
+clean_015,data/ml/raw_snippets/clean/Clean015.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean015
+clean_016,data/ml/raw_snippets/clean/Clean016.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean016
+clean_017,data/ml/raw_snippets/clean/Clean017.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean017
+clean_018,data/ml/raw_snippets/clean/Clean018.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean018
+clean_019,data/ml/raw_snippets/clean/Clean019.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean019
+clean_020,data/ml/raw_snippets/clean/Clean020.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean020
+clean_021,data/ml/raw_snippets/clean/Clean021.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean021
+clean_022,data/ml/raw_snippets/clean/Clean022.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean022
+clean_023,data/ml/raw_snippets/clean/Clean023.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean023
+clean_024,data/ml/raw_snippets/clean/Clean024.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean024
+clean_025,data/ml/raw_snippets/clean/Clean025.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean025
+clean_026,data/ml/raw_snippets/clean/Clean026.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean026
+clean_027,data/ml/raw_snippets/clean/Clean027.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean027
+clean_028,data/ml/raw_snippets/clean/Clean028.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean028
+clean_029,data/ml/raw_snippets/clean/Clean029.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean029
+clean_030,data/ml/raw_snippets/clean/Clean030.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,clean snippet Clean030
