@@ -13,7 +13,7 @@ from app.parser_utils import parse_java_code_safe
 
 MIN_FILE_COMPLETENESS = 0.35
 
-LOCATORS: Dict[str, Callable[[ParseResult], Optional[DetectionResult]]] = {
+LOCATORS: Dict[str, Callable[[ParseResult], Optional[DetectionResult]]] = {L
     "OFF_BY_ONE_LOOP_BOUNDARY": locate_off_by_one_loop_boundary,
     "INCORRECT_CONDITIONAL_OPERATOR": locate_incorrect_conditional_operator,
     "ARRAY_LENGTH_INDEX_MISUSE": locate_array_length_index_misuse,
