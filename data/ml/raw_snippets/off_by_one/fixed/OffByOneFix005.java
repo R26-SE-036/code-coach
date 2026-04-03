@@ -1,3 +1,5 @@
+package data.ml.raw_snippets.off_by_one.fixed;
+
 public class OffByOneFix005 {
     public static void main(String[] args) {
         char[] word = { 'J', 'A', 'V', 'A' };

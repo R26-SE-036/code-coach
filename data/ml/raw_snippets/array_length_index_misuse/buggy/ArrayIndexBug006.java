@@ -1,4 +1,3 @@
-package data.ml.raw_snippets.array_length_index_misuse.buggy;
 
 public class ArrayIndexBug006 {
     public static void main(String[] args) {

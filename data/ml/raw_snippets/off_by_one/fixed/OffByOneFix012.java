@@ -1,7 +1,9 @@
+package data.ml.raw_snippets.off_by_one.fixed;
+
 public class OffByOneFix012 {
     public void checkBounds(int[] right) {
         int left = 0;
-        while(left < right.length) {
+        while (left < right.length) {
             left++;
         }
     }

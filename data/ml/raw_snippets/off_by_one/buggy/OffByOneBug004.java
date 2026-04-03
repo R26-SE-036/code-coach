@@ -1,3 +1,5 @@
+package data.ml.raw_snippets.off_by_one.buggy;
+
 public class OffByOneBug004 {
     public static void main(String[] args) {
         int[] data = { 4, 5, 6 };

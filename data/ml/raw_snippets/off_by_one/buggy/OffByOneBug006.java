@@ -1,3 +1,5 @@
+package data.ml.raw_snippets.off_by_one.buggy;
+
 public class OffByOneBug006 {
     public static void main(String[] args) {
         int[] marks = { 65, 70, 80, 90 };

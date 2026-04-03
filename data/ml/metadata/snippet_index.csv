@@ -5,36 +5,12 @@ off_by_one_bug_002,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug002.java,jav
 off_by_one_fix_002,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix002.java,java,NO_ISSUE,1,0,0,0,pair_002,fixed,manual_curated,corrected loop boundary
 off_by_one_bug_003,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug003.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_003,buggy,manual_curated,sum loop with <= values.length
 off_by_one_fix_003,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix003.java,java,NO_ISSUE,1,0,0,0,pair_003,fixed,manual_curated,corrected sum loop
-incorrect_cond_bug_001,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug001.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_004,buggy,manual_curated,assignment used in if condition
-incorrect_cond_fix_001,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix001.java,java,NO_ISSUE,1,0,0,0,pair_004,fixed,manual_curated,uses == instead of =
-incorrect_cond_bug_002,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug002.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_005,buggy,manual_curated,boolean assignment inside condition
-incorrect_cond_fix_002,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix002.java,java,NO_ISSUE,1,0,0,0,pair_005,fixed,manual_curated,boolean comparison form
-incorrect_cond_bug_003,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug003.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_006,buggy,manual_curated,score assignment in condition
-incorrect_cond_fix_003,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix003.java,java,NO_ISSUE,1,0,0,0,pair_006,fixed,manual_curated,score comparison in condition
-array_index_bug_001,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug001.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_007,buggy,manual_curated,arr[arr.length] misuse
-array_index_fix_001,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix001.java,java,NO_ISSUE,1,0,0,0,pair_007,fixed,manual_curated,arr[arr.length - 1] correction
-array_index_bug_002,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug002.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_008,buggy,manual_curated,names[names.length] misuse
-array_index_fix_002,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix002.java,java,NO_ISSUE,1,0,0,0,pair_008,fixed,manual_curated,names[names.length - 1] correction
-array_index_bug_003,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug003.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_009,buggy,manual_curated,direct use of values.length as index
-array_index_fix_003,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix003.java,java,NO_ISSUE,1,0,0,0,pair_009,fixed,manual_curated,corrected last valid index
 off_by_one_bug_004,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug004.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_010,buggy,manual_curated,copy loop uses <= data.length
 off_by_one_fix_004,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix004.java,java,NO_ISSUE,1,0,0,0,pair_010,fixed,manual_curated,copy loop corrected with < data.length
 off_by_one_bug_005,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug005.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_011,buggy,manual_curated,character loop uses <= word.length
 off_by_one_fix_005,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix005.java,java,NO_ISSUE,1,0,0,0,pair_011,fixed,manual_curated,character loop corrected with < word.length
 off_by_one_bug_006,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_012,buggy,manual_curated,search loop uses <= marks.length
 off_by_one_fix_006,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix006.java,java,NO_ISSUE,1,0,0,0,pair_012,fixed,manual_curated,search loop corrected with < marks.length
-incorrect_cond_bug_004,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug004.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_013,buggy,manual_curated,boolean assignment inside if using score comparison
-incorrect_cond_fix_004,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix004.java,java,NO_ISSUE,1,0,0,0,pair_013,fixed,manual_curated,boolean assigned before if condition
-incorrect_cond_bug_005,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug005.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_014,buggy,manual_curated,boolean assignment inside if using role check
-incorrect_cond_fix_005,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix005.java,java,NO_ISSUE,1,0,0,0,pair_014,fixed,manual_curated,role check assigned before if condition
-incorrect_cond_bug_006,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug006.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_015,buggy,manual_curated,boolean assignment inside if using parity check
-incorrect_cond_fix_006,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix006.java,java,NO_ISSUE,1,0,0,0,pair_015,fixed,manual_curated,parity check assigned before if condition
-array_index_bug_004,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug004.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_016,buggy,manual_curated,direct last value access uses numbers.length
-array_index_fix_004,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix004.java,java,NO_ISSUE,1,0,0,0,pair_016,fixed,manual_curated,last value access corrected with numbers.length - 1
-array_index_bug_005,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug005.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_017,buggy,manual_curated,grades.length stored then used directly as index
-array_index_fix_005,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix005.java,java,NO_ISSUE,1,0,0,0,pair_017,fixed,manual_curated,grades.length - 1 stored as valid last index
-array_index_bug_006,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug006.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_018,buggy,manual_curated,direct string array access with letters.length
-array_index_fix_006,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix006.java,java,NO_ISSUE,1,0,0,0,pair_018,fixed,manual_curated,string array access corrected with letters.length - 1
 off_by_one_bug_007,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug007.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_019,buggy,manual_curated,sum loop uses <= prices.length
 off_by_one_fix_007,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix007.java,java,NO_ISSUE,1,0,0,0,pair_019,fixed,manual_curated,sum loop corrected with < prices.length
 off_by_one_bug_008,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug008.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_020,buggy,manual_curated,print loop uses <= colors.length
@@ -43,7 +19,58 @@ off_by_one_bug_009,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug009.java,jav
 off_by_one_fix_009,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix009.java,java,NO_ISSUE,1,0,0,0,pair_021,fixed,manual_curated,copy loop corrected with < source.length
 off_by_one_bug_010,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug010.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_022,buggy,manual_curated,max loop uses <= temps.length
 off_by_one_fix_010,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix010.java,java,NO_ISSUE,1,0,0,0,pair_022,fixed,manual_curated,max loop corrected with < temps.length
-
+off_by_one_bug_011,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug011.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_031,buggy,manual_curated,reverse iteration from arr.length instead of length - 1
+off_by_one_fix_011,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix011.java,java,NO_ISSUE,1,0,0,0,pair_031,fixed,manual_curated,fixed: reverse iteration from arr.length instead of length - 1
+off_by_one_bug_012,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug012.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_032,buggy,manual_curated,while loop boundary condition using <=
+off_by_one_fix_012,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix012.java,java,NO_ISSUE,1,0,0,0,pair_032,fixed,manual_curated,fixed: while loop boundary condition using <=
+off_by_one_bug_013,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug013.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_033,buggy,manual_curated,2d array row iteration using <=
+off_by_one_fix_013,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix013.java,java,NO_ISSUE,1,0,0,0,pair_033,fixed,manual_curated,fixed: 2d array row iteration using <=
+off_by_one_bug_014,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug014.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_034,buggy,manual_curated,2d array col iteration using <=
+off_by_one_fix_014,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix014.java,java,NO_ISSUE,1,0,0,0,pair_034,fixed,manual_curated,fixed: 2d array col iteration using <=
+off_by_one_bug_015,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug015.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_035,buggy,manual_curated,skip by 2 iteration using <=
+off_by_one_fix_015,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix015.java,java,NO_ISSUE,1,0,0,0,pair_035,fixed,manual_curated,fixed: skip by 2 iteration using <=
+off_by_one_bug_016,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug016.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_061,buggy,manual_curated,findMin loop uses <= arr.length
+off_by_one_fix_016,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix016.java,java,NO_ISSUE,1,0,0,0,pair_061,fixed,manual_curated,findMin loop corrected with < arr.length
+off_by_one_bug_017,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug017.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_062,buggy,manual_curated,doubleValues loop uses <= arr.length
+off_by_one_fix_017,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix017.java,java,NO_ISSUE,1,0,0,0,pair_062,fixed,manual_curated,doubleValues loop corrected with < arr.length
+off_by_one_bug_018,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug018.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_063,buggy,manual_curated,contains loop uses <= arr.length
+off_by_one_fix_018,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix018.java,java,NO_ISSUE,1,0,0,0,pair_063,fixed,manual_curated,contains loop corrected with < arr.length
+off_by_one_bug_019,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug019.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_064,buggy,manual_curated,countPositive loop uses <= nums.length
+off_by_one_fix_019,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix019.java,java,NO_ISSUE,1,0,0,0,pair_064,fixed,manual_curated,countPositive loop corrected with < nums.length
+off_by_one_bug_020,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug020.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_065,buggy,manual_curated,fillZero loop uses <= arr.length
+off_by_one_fix_020,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix020.java,java,NO_ISSUE,1,0,0,0,pair_065,fixed,manual_curated,fillZero loop corrected with < arr.length
+off_by_one_bug_021,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug021.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_066,buggy,manual_curated,product loop uses <= factors.length
+off_by_one_fix_021,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix021.java,java,NO_ISSUE,1,0,0,0,pair_066,fixed,manual_curated,product loop corrected with < factors.length
+off_by_one_bug_022,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug022.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_067,buggy,manual_curated,buildString loop uses <= words.length
+off_by_one_fix_022,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix022.java,java,NO_ISSUE,1,0,0,0,pair_067,fixed,manual_curated,buildString loop corrected with < words.length
+off_by_one_bug_023,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug023.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_068,buggy,manual_curated,shiftRight loop boundary causes out-of-bounds write
+off_by_one_fix_023,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix023.java,java,NO_ISSUE,1,0,0,0,pair_068,fixed,manual_curated,shiftRight loop corrected with < arr.length - 1
+off_by_one_bug_024,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug024.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_069,buggy,manual_curated,average loop uses <= scores.length
+off_by_one_fix_024,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix024.java,java,NO_ISSUE,1,0,0,0,pair_069,fixed,manual_curated,average loop corrected with < scores.length
+off_by_one_bug_025,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug025.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_070,buggy,manual_curated,printEven step-2 loop uses <= arr.length
+off_by_one_fix_025,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix025.java,java,NO_ISSUE,1,0,0,0,pair_070,fixed,manual_curated,printEven loop corrected with < arr.length
+off_by_one_bug_026,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug026.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_071,buggy,manual_curated,cloneArray loop uses <= src.length
+off_by_one_fix_026,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix026.java,java,NO_ISSUE,1,0,0,0,pair_071,fixed,manual_curated,cloneArray loop corrected with < src.length
+off_by_one_bug_027,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug027.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_072,buggy,manual_curated,negateAll loop uses <= arr.length
+off_by_one_fix_027,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix027.java,java,NO_ISSUE,1,0,0,0,pair_072,fixed,manual_curated,negateAll loop corrected with < arr.length
+off_by_one_bug_028,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug028.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_073,buggy,manual_curated,countEven loop uses <= arr.length
+off_by_one_fix_028,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix028.java,java,NO_ISSUE,1,0,0,0,pair_073,fixed,manual_curated,countEven loop corrected with < arr.length
+off_by_one_bug_029,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug029.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_074,buggy,manual_curated,incrementAll loop uses <= arr.length
+off_by_one_fix_029,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix029.java,java,NO_ISSUE,1,0,0,0,pair_074,fixed,manual_curated,incrementAll loop corrected with < arr.length
+off_by_one_bug_030,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug030.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_075,buggy,manual_curated,lastIndex loop uses <= arr.length
+off_by_one_fix_030,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix030.java,java,NO_ISSUE,1,0,0,0,pair_075,fixed,manual_curated,lastIndex loop corrected with < arr.length
+incorrect_cond_bug_001,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug001.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_004,buggy,manual_curated,assignment used in if condition
+incorrect_cond_fix_001,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix001.java,java,NO_ISSUE,1,0,0,0,pair_004,fixed,manual_curated,uses == instead of =
+incorrect_cond_bug_002,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug002.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_005,buggy,manual_curated,boolean assignment inside condition
+incorrect_cond_fix_002,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix002.java,java,NO_ISSUE,1,0,0,0,pair_005,fixed,manual_curated,boolean comparison form
+incorrect_cond_bug_003,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug003.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_006,buggy,manual_curated,score assignment in condition
+incorrect_cond_fix_003,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix003.java,java,NO_ISSUE,1,0,0,0,pair_006,fixed,manual_curated,score comparison in condition
+incorrect_cond_bug_004,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug004.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_013,buggy,manual_curated,boolean assignment inside if using score comparison
+incorrect_cond_fix_004,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix004.java,java,NO_ISSUE,1,0,0,0,pair_013,fixed,manual_curated,boolean assigned before if condition
+incorrect_cond_bug_005,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug005.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_014,buggy,manual_curated,boolean assignment inside if using role check
+incorrect_cond_fix_005,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix005.java,java,NO_ISSUE,1,0,0,0,pair_014,fixed,manual_curated,role check assigned before if condition
+incorrect_cond_bug_006,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug006.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_015,buggy,manual_curated,boolean assignment inside if using parity check
+incorrect_cond_fix_006,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix006.java,java,NO_ISSUE,1,0,0,0,pair_015,fixed,manual_curated,parity check assigned before if condition
 incorrect_cond_bug_007,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug007.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_023,buggy,manual_curated,assignment in if using age check
 incorrect_cond_fix_007,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix007.java,java,NO_ISSUE,1,0,0,0,pair_023,fixed,manual_curated,age check assigned before if
 incorrect_cond_bug_008,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug008.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_024,buggy,manual_curated,assignment in if using startsWith
@@ -52,31 +79,6 @@ incorrect_cond_bug_009,data/ml/raw_snippets/incorrect_conditional_operator/buggy
 incorrect_cond_fix_009,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix009.java,java,NO_ISSUE,1,0,0,0,pair_025,fixed,manual_curated,zero task check assigned before if
 incorrect_cond_bug_010,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug010.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_026,buggy,manual_curated,assignment in if using equality comparison
 incorrect_cond_fix_010,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalFix010.java,java,NO_ISSUE,1,0,0,0,pair_026,fixed,manual_curated,equality result assigned before if
-
-array_index_bug_007,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug007.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_027,buggy,manual_curated,direct nums.length used as index
-array_index_fix_007,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix007.java,java,NO_ISSUE,1,0,0,0,pair_027,fixed,manual_curated,nums.length - 1 used as last valid index
-array_index_bug_008,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_028,buggy,manual_curated,stored letters.length used directly as index
-array_index_fix_008,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix008.java,java,NO_ISSUE,1,0,0,0,pair_028,fixed,manual_curated,stored letters.length - 1 used as valid index
-array_index_bug_009,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug009.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_029,buggy,manual_curated,boolean array indexed with flags.length
-array_index_fix_009,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix009.java,java,NO_ISSUE,1,0,0,0,pair_029,fixed,manual_curated,boolean array indexed with flags.length - 1
-array_index_bug_010,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug010.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_030,buggy,manual_curated,ages.length used directly as index
-array_index_fix_010,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix010.java,java,NO_ISSUE,1,0,0,0,pair_030,fixed,manual_curated,ages.length - 1 used as valid index
-
-clean_001,data/ml/raw_snippets/clean/Clean001.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid loop and last-index access
-clean_002,data/ml/raw_snippets/clean/Clean002.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid while loop and comparisons
-clean_003,data/ml/raw_snippets/clean/Clean003.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid role check without assignment in condition
-clean_004,data/ml/raw_snippets/clean/Clean004.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid indexed access with midpoint
-clean_005,data/ml/raw_snippets/clean/Clean005.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,enhanced for loop clean example
-clean_006,data/ml/raw_snippets/clean/Clean006.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,nested loops with safe boundariesoff_by_bug_011,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug011.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_031,buggy,manual_curated,reverse iteration from arr.length instead of length - 1
-off_by_fix_011,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix011.java,java,NO_ISSUE,1,0,0,0,pair_031,fixed,manual_curated,fixed: reverse iteration from arr.length instead of length - 1
-off_by_bug_012,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug012.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_032,buggy,manual_curated,while loop boundary condition using <=
-off_by_fix_012,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix012.java,java,NO_ISSUE,1,0,0,0,pair_032,fixed,manual_curated,fixed: while loop boundary condition using <=
-off_by_bug_013,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug013.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_033,buggy,manual_curated,2d array row iteration using <=
-off_by_fix_013,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix013.java,java,NO_ISSUE,1,0,0,0,pair_033,fixed,manual_curated,fixed: 2d array row iteration using <=
-off_by_bug_014,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug014.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_034,buggy,manual_curated,2d array col iteration using <=
-off_by_fix_014,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix014.java,java,NO_ISSUE,1,0,0,0,pair_034,fixed,manual_curated,fixed: 2d array col iteration using <=
-off_by_bug_015,data/ml/raw_snippets/off_by_one/buggy/OffByOneBug015.java,java,OFF_BY_ONE_LOOP_BOUNDARY,0,1,0,0,pair_035,buggy,manual_curated,skip by 2 iteration using <=
-off_by_fix_015,data/ml/raw_snippets/off_by_one/fixed/OffByOneFix015.java,java,NO_ISSUE,1,0,0,0,pair_035,fixed,manual_curated,fixed: skip by 2 iteration using <=
 incorrect_cond_bug_011,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug011.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_036,buggy,manual_curated,assignment inside while condition instead of equality
 incorrect_cond_fix_011,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix011.java,java,NO_ISSUE,1,0,0,0,pair_036,fixed,manual_curated,fixed: assignment inside while condition instead of equality
 incorrect_cond_bug_012,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug012.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_037,buggy,manual_curated,assignment of integer 0 inside if condition
@@ -87,6 +89,56 @@ incorrect_cond_bug_014,data/ml/raw_snippets/incorrect_conditional_operator/buggy
 incorrect_cond_fix_014,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix014.java,java,NO_ISSUE,1,0,0,0,pair_039,fixed,manual_curated,fixed: assignment operator mixed in logical && expression
 incorrect_cond_bug_015,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug015.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_040,buggy,manual_curated,ternary condition with assignment instead of equality
 incorrect_cond_fix_015,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix015.java,java,NO_ISSUE,1,0,0,0,pair_040,fixed,manual_curated,fixed: ternary condition with assignment instead of equality
+incorrect_cond_bug_016,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug016.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_076,buggy,manual_curated,assignment in if using temperature check
+incorrect_cond_fix_016,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix016.java,java,NO_ISSUE,1,0,0,0,pair_076,fixed,manual_curated,temperature check assigned before if
+incorrect_cond_bug_017,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug017.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_077,buggy,manual_curated,assignment in if using balance check
+incorrect_cond_fix_017,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix017.java,java,NO_ISSUE,1,0,0,0,pair_077,fixed,manual_curated,balance check assigned before if
+incorrect_cond_bug_018,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug018.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_078,buggy,manual_curated,assignment in if using equals check for permission
+incorrect_cond_fix_018,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix018.java,java,NO_ISSUE,1,0,0,0,pair_078,fixed,manual_curated,permission check assigned before if
+incorrect_cond_bug_019,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug019.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_079,buggy,manual_curated,assignment in if using capacity check
+incorrect_cond_fix_019,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix019.java,java,NO_ISSUE,1,0,0,0,pair_079,fixed,manual_curated,capacity check assigned before if
+incorrect_cond_bug_020,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug020.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_080,buggy,manual_curated,assignment in if using retry count check
+incorrect_cond_fix_020,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix020.java,java,NO_ISSUE,1,0,0,0,pair_080,fixed,manual_curated,retry count check assigned before if
+incorrect_cond_bug_021,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug021.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_081,buggy,manual_curated,assignment in if using divisibility check
+incorrect_cond_fix_021,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix021.java,java,NO_ISSUE,1,0,0,0,pair_081,fixed,manual_curated,divisibility check assigned before if
+incorrect_cond_bug_022,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug022.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_082,buggy,manual_curated,assignment in if using string length check
+incorrect_cond_fix_022,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix022.java,java,NO_ISSUE,1,0,0,0,pair_082,fixed,manual_curated,string length check assigned before if
+incorrect_cond_bug_023,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug023.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_083,buggy,manual_curated,assignment in if inside loop for primality test
+incorrect_cond_fix_023,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix023.java,java,NO_ISSUE,1,0,0,0,pair_083,fixed,manual_curated,primality test uses direct boolean comparison
+incorrect_cond_bug_024,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug024.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_084,buggy,manual_curated,assignment in if using boolean array element
+incorrect_cond_fix_024,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix024.java,java,NO_ISSUE,1,0,0,0,pair_084,fixed,manual_curated,boolean array element stored then checked
+incorrect_cond_bug_025,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug025.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_085,buggy,manual_curated,assignment in if using points threshold
+incorrect_cond_fix_025,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix025.java,java,NO_ISSUE,1,0,0,0,pair_085,fixed,manual_curated,points threshold check assigned before if
+incorrect_cond_bug_026,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug026.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_086,buggy,manual_curated,assignment in if using elapsed time check
+incorrect_cond_fix_026,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix026.java,java,NO_ISSUE,1,0,0,0,pair_086,fixed,manual_curated,elapsed time check assigned before if
+incorrect_cond_bug_027,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug027.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_087,buggy,manual_curated,assignment in if using startsWith https check
+incorrect_cond_fix_027,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix027.java,java,NO_ISSUE,1,0,0,0,pair_087,fixed,manual_curated,startsWith check assigned before if
+incorrect_cond_bug_028,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug028.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_088,buggy,manual_curated,assignment in if using parity of sum
+incorrect_cond_fix_028,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix028.java,java,NO_ISSUE,1,0,0,0,pair_088,fixed,manual_curated,parity of sum assigned before if
+incorrect_cond_bug_029,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug029.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_089,buggy,manual_curated,assignment in if using stock availability check
+incorrect_cond_fix_029,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix029.java,java,NO_ISSUE,1,0,0,0,pair_089,fixed,manual_curated,stock check assigned before if
+incorrect_cond_bug_030,data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalOperatorBug030.java,java,INCORRECT_CONDITIONAL_OPERATOR,0,0,1,0,pair_090,buggy,manual_curated,assignment in if using equalsIgnoreCase
+incorrect_cond_fix_030,data/ml/raw_snippets/incorrect_conditional_operator/fixed/IncorrectConditionalOperatorFix030.java,java,NO_ISSUE,1,0,0,0,pair_090,fixed,manual_curated,equalsIgnoreCase check assigned before if
+array_index_bug_001,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug001.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_007,buggy,manual_curated,arr[arr.length] misuse
+array_index_fix_001,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix001.java,java,NO_ISSUE,1,0,0,0,pair_007,fixed,manual_curated,arr[arr.length - 1] correction
+array_index_bug_002,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug002.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_008,buggy,manual_curated,names[names.length] misuse
+array_index_fix_002,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix002.java,java,NO_ISSUE,1,0,0,0,pair_008,fixed,manual_curated,names[names.length - 1] correction
+array_index_bug_003,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug003.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_009,buggy,manual_curated,direct use of values.length as index
+array_index_fix_003,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix003.java,java,NO_ISSUE,1,0,0,0,pair_009,fixed,manual_curated,corrected last valid index
+array_index_bug_004,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug004.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_016,buggy,manual_curated,direct last value access uses numbers.length
+array_index_fix_004,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix004.java,java,NO_ISSUE,1,0,0,0,pair_016,fixed,manual_curated,last value access corrected with numbers.length - 1
+array_index_bug_005,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug005.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_017,buggy,manual_curated,grades.length stored then used directly as index
+array_index_fix_005,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix005.java,java,NO_ISSUE,1,0,0,0,pair_017,fixed,manual_curated,grades.length - 1 stored as valid last index
+array_index_bug_006,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug006.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_018,buggy,manual_curated,direct string array access with letters.length
+array_index_fix_006,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix006.java,java,NO_ISSUE,1,0,0,0,pair_018,fixed,manual_curated,string array access corrected with letters.length - 1
+array_index_bug_007,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug007.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_027,buggy,manual_curated,direct nums.length used as index
+array_index_fix_007,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix007.java,java,NO_ISSUE,1,0,0,0,pair_027,fixed,manual_curated,nums.length - 1 used as last valid index
+array_index_bug_008,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_028,buggy,manual_curated,stored letters.length used directly as index
+array_index_fix_008,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix008.java,java,NO_ISSUE,1,0,0,0,pair_028,fixed,manual_curated,stored letters.length - 1 used as valid index
+array_index_bug_009,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug009.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_029,buggy,manual_curated,boolean array indexed with flags.length
+array_index_fix_009,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix009.java,java,NO_ISSUE,1,0,0,0,pair_029,fixed,manual_curated,boolean array indexed with flags.length - 1
+array_index_bug_010,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug010.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_030,buggy,manual_curated,ages.length used directly as index
+array_index_fix_010,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix010.java,java,NO_ISSUE,1,0,0,0,pair_030,fixed,manual_curated,ages.length - 1 used as valid index
 array_index_bug_011,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayLengthIndexMisuseBug011.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_041,buggy,manual_curated,accessing end of dynamically combined array length directly
 array_index_fix_011,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayLengthIndexMisuseFix011.java,java,NO_ISSUE,1,0,0,0,pair_041,fixed,manual_curated,fixed: accessing end of dynamically combined array length directly
 array_index_bug_012,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayLengthIndexMisuseBug012.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_042,buggy,manual_curated,accessing matrix.length as row index
@@ -97,6 +149,42 @@ array_index_bug_014,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayLe
 array_index_fix_014,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayLengthIndexMisuseFix014.java,java,NO_ISSUE,1,0,0,0,pair_044,fixed,manual_curated,fixed: direct out of bounds in return addition expression
 array_index_bug_015,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayLengthIndexMisuseBug015.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_045,buggy,manual_curated,swapping first and last elements uses arr.length directly
 array_index_fix_015,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayLengthIndexMisuseFix015.java,java,NO_ISSUE,1,0,0,0,pair_045,fixed,manual_curated,fixed: swapping first and last elements uses arr.length directly
+array_index_bug_016,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug016.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_046,buggy,manual_curated,reading last value from copied array using copy.length directly
+array_index_fix_016,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix016.java,java,NO_ISSUE,1,0,0,0,pair_046,fixed,manual_curated,fixed: reading last value from copied array using copy.length directly
+array_index_bug_017,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug017.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_047,buggy,manual_curated,assigning last element using marks.length directly
+array_index_fix_017,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix017.java,java,NO_ISSUE,1,0,0,0,pair_047,fixed,manual_curated,fixed: assigning last element using marks.length directly
+array_index_bug_018,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug018.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_048,buggy,manual_curated,writing to last element using values.length directly
+array_index_fix_018,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix018.java,java,NO_ISSUE,1,0,0,0,pair_048,fixed,manual_curated,fixed: writing to last element using values.length directly
+array_index_bug_019,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug019.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_049,buggy,manual_curated,using nums.length directly inside arithmetic return expression
+array_index_fix_019,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix019.java,java,NO_ISSUE,1,0,0,0,pair_049,fixed,manual_curated,fixed: using nums.length directly inside arithmetic return expression
+array_index_bug_020,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug020.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_050,buggy,manual_curated,printing tail element using data.length directly
+array_index_fix_020,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix020.java,java,NO_ISSUE,1,0,0,0,pair_050,fixed,manual_curated,fixed: printing tail element using data.length directly
+array_index_bug_021,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug021.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_051,buggy,manual_curated,comparison against last element using scores.length directly
+array_index_fix_021,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix021.java,java,NO_ISSUE,1,0,0,0,pair_051,fixed,manual_curated,fixed: comparison against last element using scores.length directly
+array_index_bug_022,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug022.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_052,buggy,manual_curated,2d array column access using grid[0].length directly
+array_index_fix_022,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix022.java,java,NO_ISSUE,1,0,0,0,pair_052,fixed,manual_curated,fixed: 2d array column access using grid[0].length directly
+array_index_bug_023,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug023.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_053,buggy,manual_curated,2d array row access using table.length directly
+array_index_fix_023,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix023.java,java,NO_ISSUE,1,0,0,0,pair_053,fixed,manual_curated,fixed: 2d array row access using table.length directly
+array_index_bug_024,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug024.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_054,buggy,manual_curated,reading array.length index into temp variable before arithmetic
+array_index_fix_024,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix024.java,java,NO_ISSUE,1,0,0,0,pair_054,fixed,manual_curated,fixed: reading array.length index into temp variable before arithmetic
+array_index_bug_025,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug025.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_055,buggy,manual_curated,boolean array write using flags.length directly
+array_index_fix_025,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix025.java,java,NO_ISSUE,1,0,0,0,pair_055,fixed,manual_curated,fixed: boolean array write using flags.length directly
+array_index_bug_026,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug026.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_056,buggy,manual_curated,assignment to last slot using totals.length directly
+array_index_fix_026,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix026.java,java,NO_ISSUE,1,0,0,0,pair_056,fixed,manual_curated,fixed: assignment to last slot using totals.length directly
+array_index_bug_027,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug027.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_057,buggy,manual_curated,using queue.length directly before later conditional logic
+array_index_fix_027,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix027.java,java,NO_ISSUE,1,0,0,0,pair_057,fixed,manual_curated,fixed: using queue.length directly before later conditional logic
+array_index_bug_028,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug028.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_058,buggy,manual_curated,method call argument uses nums.length directly as index
+array_index_fix_028,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix028.java,java,NO_ISSUE,1,0,0,0,pair_058,fixed,manual_curated,fixed: method call argument uses nums.length directly as index
+array_index_bug_029,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug029.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_059,buggy,manual_curated,ternary expression uses arr.length directly as last index
+array_index_fix_029,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix029.java,java,NO_ISSUE,1,0,0,0,pair_059,fixed,manual_curated,fixed: ternary expression uses arr.length directly as last index
+array_index_bug_030,data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug030.java,java,ARRAY_LENGTH_INDEX_MISUSE,0,0,0,1,pair_060,buggy,manual_curated,string array last element access using words.length directly
+array_index_fix_030,data/ml/raw_snippets/array_length_index_misuse/fixed/ArrayIndexFix030.java,java,NO_ISSUE,1,0,0,0,pair_060,fixed,manual_curated,fixed: string array last element access using words.length directly
+clean_001,data/ml/raw_snippets/clean/Clean001.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid loop and last-index access
+clean_002,data/ml/raw_snippets/clean/Clean002.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid while loop and comparisons
+clean_003,data/ml/raw_snippets/clean/Clean003.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid role check without assignment in condition
+clean_004,data/ml/raw_snippets/clean/Clean004.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,valid indexed access with midpoint
+clean_005,data/ml/raw_snippets/clean/Clean005.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,enhanced for loop clean example
+clean_006,data/ml/raw_snippets/clean/Clean006.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,nested loops with safe boundaries
 clean_007,data/ml/raw_snippets/clean/Clean007.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,standard while loop with variables limit
 clean_008,data/ml/raw_snippets/clean/Clean008.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,enhanced for loop calculating sum without indices
 clean_009,data/ml/raw_snippets/clean/Clean009.java,java,NO_ISSUE,1,0,0,0,,clean,manual_curated,proper equality check against boolean true

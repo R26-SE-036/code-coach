@@ -1,3 +1,5 @@
+package data.ml.raw_snippets.off_by_one.buggy;
+
 public class OffByOneBug014 {
     public void iterateCols(int[][] matrix) {
         for (int c = 0; c <= matrix[0].length; c++) {
