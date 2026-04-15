@@ -1,6 +1,10 @@
+from datetime import datetime, timezone
+from time import perf_counter
+
 from fastapi import FastAPI
 
 from app.analyzer import analyze_code
+from app.evaluation_logger import log_analysis_event
 from app.models import AnalyzeRequest, AnalyzeResponse
 from app.parser_utils import parse_java_code
 
@@ -19,14 +23,19 @@ def health():
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(payload: AnalyzeRequest):
+    started_at = perf_counter()
     diagnostics = []
 
     if payload.language.lower() == "java":
         diagnostics = analyze_code(payload.code)
 
+    log_analysis_event(payload, diagnostics)
+
     return AnalyzeResponse(
         status="ok",
         message="Analysis completed.",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        analysis_duration_ms=round((perf_counter() - started_at) * 1000, 2),
         diagnostics=diagnostics,
     )
 

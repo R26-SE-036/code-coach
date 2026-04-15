@@ -1,0 +1,29 @@
+{
+  "OFF_BY_ONE_LOOP_BOUNDARY": {
+    "concept_tag": "loop_boundaries",
+    "explanation_key": "loop_index_exceeds_array_limit",
+    "hints": {
+      "concept": "Think about what the last valid index of an array should be.",
+      "guidance": "An array with length n usually has valid indexes from 0 up to n - 1.",
+      "targeted": "Check whether this loop condition should stop before the array length instead of including the length value."
+    }
+  },
+  "INCORRECT_CONDITIONAL_OPERATOR": {
+    "concept_tag": "conditional_logic",
+    "explanation_key": "assignment_used_in_condition",
+    "hints": {
+      "concept": "A condition should normally check a value rather than change it.",
+      "guidance": "Look at the operator inside this condition and decide whether it is comparing two values.",
+      "targeted": "Check whether the condition uses assignment where a comparison was intended."
+    }
+  },
+  "ARRAY_LENGTH_INDEX_MISUSE": {
+    "concept_tag": "array_indexing",
+    "explanation_key": "array_length_used_as_index",
+    "hints": {
+      "concept": "Array length tells you how many items exist, not the last valid position.",
+      "guidance": "Compare the number of elements with the final usable index.",
+      "targeted": "Check whether the array length is being used directly as an index."
+    }
+  }
+}

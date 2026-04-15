@@ -7,7 +7,9 @@ type HintSet = {
 };
 
 type DiagnosticItem = {
+  diagnostic_id: string;
   error_type: string;
+  severity: string;
   line: number;
   column: number;
   confidence: number;
@@ -15,12 +17,18 @@ type DiagnosticItem = {
   code_context: string;
   concept_tag: string;
   explanation_key: string;
+  status: string;
+  detection_engine: string;
+  ml_probability?: number;
+  locator_confidence?: number;
   hints: HintSet;
 };
 
 type AnalyzeResponse = {
   status: string;
   message: string;
+  timestamp: string;
+  analysis_duration_ms: number;
   diagnostics: DiagnosticItem[];
 };
 
@@ -38,7 +46,23 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  const lastDiagnosticsByUri = new Map<string, DiagnosticItem[]>();
+  const activeHintIndexByUri = new Map<string, number>();
   const debounceDelayMs = 900;
+  const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  function getBackendUrl(): string {
+    return vscode.workspace
+      .getConfiguration("codeCoach")
+      .get<string>("backendUrl", "http://127.0.0.1:8000")
+      .replace(/\/$/, "");
+  }
+
+  function isEvaluationLoggingEnabled(): boolean {
+    return vscode.workspace
+      .getConfiguration("codeCoach")
+      .get<boolean>("enableEvaluationLogging", false);
+  }
 
   function isSupportedDocument(document: vscode.TextDocument): boolean {
     return document.languageId === "java";
@@ -67,6 +91,8 @@ export function activate(context: vscode.ExtensionContext) {
   function clearFeedbackForDocument(document: vscode.TextDocument) {
     clearTimerForUri(document.uri);
     diagnosticCollection.delete(document.uri);
+    lastDiagnosticsByUri.delete(document.uri.toString());
+    activeHintIndexByUri.delete(document.uri.toString());
 
     const activeEditor = vscode.window.activeTextEditor;
     if (
@@ -101,10 +127,26 @@ export function activate(context: vscode.ExtensionContext) {
     return new vscode.Range(lineIndex, startChar, lineIndex, line.text.length);
   }
 
+  function severityFromDiagnostic(
+    diagnostic: DiagnosticItem,
+  ): vscode.DiagnosticSeverity {
+    switch (diagnostic.severity) {
+      case "error":
+        return vscode.DiagnosticSeverity.Error;
+      case "information":
+        return vscode.DiagnosticSeverity.Information;
+      case "hint":
+        return vscode.DiagnosticSeverity.Hint;
+      default:
+        return vscode.DiagnosticSeverity.Warning;
+    }
+  }
+
   function applyEditorFeedback(
     editor: vscode.TextEditor,
     backendDiagnostics: DiagnosticItem[],
   ) {
+    const uriKey = editor.document.uri.toString();
     const vscodeDiagnostics: vscode.Diagnostic[] = [];
     const decorationOptions: vscode.DecorationOptions[] = [];
 
@@ -114,11 +156,11 @@ export function activate(context: vscode.ExtensionContext) {
       const diagnostic = new vscode.Diagnostic(
         range,
         `${item.message} Hint: ${item.hints.concept}`,
-        vscode.DiagnosticSeverity.Warning,
+        severityFromDiagnostic(item),
       );
 
       diagnostic.source = "Code Coach";
-      diagnostic.code = item.error_type;
+      diagnostic.code = item.diagnostic_id;
 
       vscodeDiagnostics.push(diagnostic);
 
@@ -127,6 +169,11 @@ export function activate(context: vscode.ExtensionContext) {
         hoverMessage: new vscode.MarkdownString(
           `**${item.error_type}**\n\n` +
           `${item.message}\n\n` +
+          `**Diagnostic ID:** ${item.diagnostic_id}\n\n` +
+          `**Severity:** ${item.severity}\n\n` +
+          `**Engine:** ${item.detection_engine}\n\n` +
+          `**ML probability:** ${item.ml_probability ?? "n/a"}\n\n` +
+          `**Locator confidence:** ${item.locator_confidence ?? "n/a"}\n\n` +
           `**Concept tag:** ${item.concept_tag}\n\n` +
           `**Explanation key:** ${item.explanation_key}\n\n` +
           `**Code context:** \`${item.code_context}\`\n\n` +
@@ -138,6 +185,8 @@ export function activate(context: vscode.ExtensionContext) {
       });
     }
 
+    lastDiagnosticsByUri.set(uriKey, backendDiagnostics);
+    activeHintIndexByUri.set(uriKey, 0);
     diagnosticCollection.set(editor.document.uri, vscodeDiagnostics);
     editor.setDecorations(warningDecorationType, decorationOptions);
   }
@@ -178,9 +227,11 @@ export function activate(context: vscode.ExtensionContext) {
       const payload = {
         language: "java",
         code,
+        session_id: sessionId,
+        enable_logging: isEvaluationLoggingEnabled(),
       };
 
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
+      const response = await fetch(`${getBackendUrl()}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,6 +251,10 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine("=== Code Coach Analysis Result ===");
         outputChannel.appendLine(`Status: ${result.status}`);
         outputChannel.appendLine(`Message: ${result.message}`);
+        outputChannel.appendLine(`Timestamp: ${result.timestamp}`);
+        outputChannel.appendLine(
+          `Analysis time: ${result.analysis_duration_ms} ms`,
+        );
         outputChannel.appendLine("");
       }
 
@@ -219,7 +274,14 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (options.showOutput) {
         for (const diagnostic of result.diagnostics) {
+          outputChannel.appendLine(`Diagnostic : ${diagnostic.diagnostic_id}`);
           outputChannel.appendLine(`Error Type : ${diagnostic.error_type}`);
+          outputChannel.appendLine(`Severity   : ${diagnostic.severity}`);
+          outputChannel.appendLine(`Engine     : ${diagnostic.detection_engine}`);
+          outputChannel.appendLine(`ML Prob.   : ${diagnostic.ml_probability ?? "n/a"}`);
+          outputChannel.appendLine(
+            `Locator   : ${diagnostic.locator_confidence ?? "n/a"}`,
+          );
           outputChannel.appendLine(`Line       : ${diagnostic.line}`);
           outputChannel.appendLine(`Column     : ${diagnostic.column}`);
           outputChannel.appendLine(`Confidence : ${diagnostic.confidence}`);
@@ -286,6 +348,37 @@ export function activate(context: vscode.ExtensionContext) {
     debounceTimers.set(document.uri.toString(), timer);
   }
 
+  function showHintForActiveEditor(direction: 1 | -1) {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor || !isSupportedDocument(editor.document)) {
+      vscode.window.showInformationMessage("Code Coach: Open a Java file first.");
+      return;
+    }
+
+    const uriKey = editor.document.uri.toString();
+    const diagnostics = lastDiagnosticsByUri.get(uriKey) ?? [];
+
+    if (diagnostics.length === 0) {
+      vscode.window.showInformationMessage("Code Coach: No active hints.");
+      return;
+    }
+
+    const currentIndex = activeHintIndexByUri.get(uriKey) ?? 0;
+    const nextIndex =
+      (currentIndex + direction + diagnostics.length) % diagnostics.length;
+    const diagnostic = diagnostics[nextIndex];
+    const range = createRangeFromDiagnostic(editor.document, diagnostic);
+
+    activeHintIndexByUri.set(uriKey, nextIndex);
+    editor.selection = new vscode.Selection(range.start, range.start);
+    editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+
+    vscode.window.showInformationMessage(
+      `Code Coach hint ${nextIndex + 1}/${diagnostics.length}: ${diagnostic.hints.guidance}`,
+    );
+  }
+
   const startCommand = vscode.commands.registerCommand(
     "code-coach-vscode.start",
     () => {
@@ -311,6 +404,20 @@ export function activate(context: vscode.ExtensionContext) {
         showPopup: true,
         showOutput: true,
       });
+    },
+  );
+
+  const previousHintCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.previousHint",
+    () => {
+      showHintForActiveEditor(-1);
+    },
+  );
+
+  const nextHintCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.nextHint",
+    () => {
+      showHintForActiveEditor(1);
     },
   );
 
@@ -359,6 +466,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     startCommand,
     analyzeCommand,
+    previousHintCommand,
+    nextHintCommand,
     outputChannel,
     diagnosticCollection,
     warningDecorationType,

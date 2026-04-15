@@ -1,164 +1,160 @@
-# Code Coach 🧑‍🏫
+# Code Coach
 
-Code Coach is a beginner-focused programming support tool designed to help new developers identify and fix common coding mistakes in real-time. It currently provides intelligent, pattern-based hints for Java code.
+Code Coach is a beginner-focused programming support tool for Java learners. It runs as a VS Code extension backed by a local FastAPI service, detects selected beginner mistakes without executing the program, and turns diagnostics into scaffolded hints that help students self-correct.
 
-## 🌟 Features
+The current research prototype intentionally focuses on three error types:
 
-- **Beginner-Friendly Diagnostics:** Code Coach identifies common logical and syntax errors that beginners often make, such as:
-  - **Off-By-One Loop Boundaries:** Detects loops using `<= array.length` instead of `< array.length`.
-  - **Incorrect Conditional Operators:** Warns when assignments (`=`) are used instead of equality checks (`==`) within `if` or `while` conditions.
-  - **Array Length Index Misuse:** Highlights out-of-bounds risks when using `array[array.length]` instead of `array.length - 1`.
-- **VS Code Integration:** Seamlessly integrated into VS Code, allowing you to trigger analysis with a simple command.
-- **AST-Based Analysis:** Powered by a robust Python backend that parses code into an Abstract Syntax Tree (AST) for accurate error detection.
-- **Machine Learning Pipeline:** An end-to-end ML pipeline extracts AST-based features from Java snippets and trains baseline classifiers (Logistic Regression, Random Forest, SVM) to detect common bug patterns.
+- `OFF_BY_ONE_LOOP_BOUNDARY`
+- `INCORRECT_CONDITIONAL_OPERATOR`
+- `ARRAY_LENGTH_INDEX_MISUSE`
 
-## 📁 Project Structure
+## Detection Pipeline
 
-This project follows a client-server architecture:
+Code Coach now uses an ML-led hybrid pipeline:
 
-- `extension/` - The VS Code extension (TypeScript), which provides the user interface and sends code to the backend.
-- `backend/` - The Python backend (FastAPI), which parses Java code and generates diagnostics.
-  - `app/feature_extractor.py` - Extracts AST-based numeric features from Java source code.
-  - `app/detectors/` - Rule-based detectors for off-by-one errors, incorrect conditionals, and array index misuse.
-  - `app/dev_tools/` - Developer scripts for the ML pipeline (see below).
-  - `models/` - Trained `.joblib` model files and a metrics summary CSV.
-- `data/ml/` - ML datasets and splits.
-  - `raw_snippets/` - Raw Java code snippets used for training.
-  - `metadata/snippet_index.csv` - Index of all snippets with labels.
-  - `extracted/` - Feature CSVs extracted from snippets.
-  - `splits/` - Train / val / test split CSVs.
-- `shared/` - Shared schemas and examples across the project.
-- `knowledge_base/` - Hint rules and concept mappings.
-- `logs/` - System logs.
-- `docs/` - Project notes and screenshots.
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (for the VS Code extension)
-- [Python 3.8+](https://www.python.org/) (for the backend)
-- [Visual Studio Code](https://code.visualstudio.com/)
-
-### 1. Backend Setup
-
-The backend handles the code parsing and diagnostic generation using FastAPI.
-
-1. Navigate to the `backend` directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment (recommended):
-   ```bash
-   python -m venv .venv
-   ```
-   **On Windows:**
-   ```bash
-   .venv\Scripts\activate
-   ```
-   **On macOS/Linux:**
-   ```bash
-   source .venv/bin/activate
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Start the FastAPI server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-   The backend will start on `http://localhost:8000`.
-
-### 2. Extension Setup
-
-The VS Code extension communicates with the locally running backend.
-
-1. Open a new terminal and navigate to the extension directory:
-   ```bash
-   cd extension/code-coach-vscode
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Open the `extension/code-coach-vscode` folder in VS Code.
-4. Press `F5` to start debugging. This will open a new Extension Development Host window.
-
-## 💻 Usage
-
-1. In the Extension Development Host window, open any Java file (`.java`).
-2. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-3. Run **"Code Coach: Analyze Current File"**.
-4. Review the beginner-friendly hints provided for common coding errors.
-
-## 🧪 ML Pipeline (Dev Tools)
-
-The ML pipeline trains baseline classifiers to detect bug patterns using AST-derived numeric features. All scripts are run from the `backend/` directory.
-
-### Pipeline Overview
-
-```
-raw_snippets/ + snippet_index.csv
-        ↓
-  build_dataset   →  data/ml/extracted/features_v1.csv
-                      (+ per-bug binary CSVs)
-        ↓
-  split_dataset   →  data/ml/splits/  (train / val / test)
-        ↓
-  train_baselines →  backend/models/*.joblib
-                     backend/models/baseline_metrics_v1.csv
+```text
+Java code
+  -> Tree-sitter AST parsing
+  -> AST feature extraction
+  -> scikit-learn classifiers predict the 3 target error types
+  -> AST locators find line/column only for ML-positive predictions
+  -> hint engine returns beginner-friendly feedback
 ```
 
-### Step 1 — Build the Feature Dataset
+The ML engine decides whether a target error type is likely present. The AST locator does not independently create diagnostics; it only finds the exact source location after the ML model crosses its confidence threshold.
 
-Extracts AST-based features for every snippet listed in `snippet_index.csv` and writes the master feature CSV and three per-bug binary datasets.
+Diagnostics include:
+
+- `detection_engine`
+- `ml_probability`
+- `locator_confidence`
+- `diagnostic_id`
+- `severity`
+- `confidence`
+- `concept_tag`
+- `explanation_key`
+- tiered hints
+
+## Features
+
+- Real-time VS Code feedback for Java files using debounced editor-change analysis.
+- Local FastAPI backend with Tree-sitter Java parsing.
+- ML-gated detection for the three current research categories.
+- AST-based line/column localization after ML detection.
+- Beginner-friendly hint levels:
+  - Concept hint
+  - Guidance hint
+  - Targeted hint
+- Optional local anonymized evaluation logging for research use.
+
+## Current Error Categories
+
+| # | Error type | What it catches |
+|---|---|---|
+| 1 | `OFF_BY_ONE_LOOP_BOUNDARY` | Loop conditions that include `array.length` as a valid index boundary. |
+| 2 | `INCORRECT_CONDITIONAL_OPERATOR` | Assignment used inside `if` or `while` conditions. |
+| 3 | `ARRAY_LENGTH_INDEX_MISUSE` | Direct use of `array.length` as an array index. |
+
+## Project Structure
+
+- `extension/code-coach-vscode/` - VS Code extension written in TypeScript.
+- `backend/` - Python FastAPI backend.
+  - `app/main.py` - API entry point.
+  - `app/analyzer.py` - ML-led analysis pipeline.
+  - `app/ml_engine.py` - scikit-learn model loading and prediction.
+  - `app/feature_extractor.py` - AST-based feature extraction.
+  - `app/issue_locators.py` - AST line/column locators for the 3 target errors.
+  - `app/hint_engine.py` - Diagnostic-to-hint mapping.
+  - `app/evaluation_logger.py` - Optional anonymized local logging.
+  - `app/dev_tools/` - ML dataset, split, and baseline training scripts.
+  - `models/` - Trained baseline `.joblib` models and metrics.
+- `knowledge_base/code_coach_errors.json` - Concept tags, explanation keys, and tiered hint templates for the 3 target errors.
+- `data/ml/` - Curated Java snippets, extracted features, splits, and metadata.
+- `docs/proposal_traceability.md` - Requirement-by-requirement comparison with the proposal.
+- `logs/` - Runtime evaluation logs when explicitly enabled.
+
+## Backend Setup
+
+From the `backend` directory:
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+The backend starts at `http://127.0.0.1:8000`.
+
+Useful endpoints:
+
+- `GET /health`
+- `POST /analyze`
+- `POST /debug-ast`
+
+## Extension Setup
+
+From `extension/code-coach-vscode`:
+
+```bash
+npm install
+npm run compile
+```
+
+Open `extension/code-coach-vscode` in VS Code and press `F5` to launch an Extension Development Host.
+
+Commands:
+
+- `Code Coach: Start`
+- `Code Coach: Analyze Current File`
+- `Code Coach: Previous Hint`
+- `Code Coach: Next Hint`
+
+Settings:
+
+- `codeCoach.backendUrl` - local backend URL, default `http://127.0.0.1:8000`.
+- `codeCoach.enableEvaluationLogging` - sends anonymized diagnostic events to the local backend when enabled.
+
+## ML Pipeline
+
+The ML pipeline trains baseline classifiers for the three current categories:
+
+- `has_off_by_one`
+- `has_incorrect_conditional`
+- `has_array_length_index_misuse`
+
+Run from the `backend` directory:
 
 ```bash
 py -m app.dev_tools.build_dataset
-```
-
-**Outputs:**
-- `data/ml/extracted/features_v1.csv` — master feature table (all labels)
-- `data/ml/extracted/off_by_one_binary_v1.csv`
-- `data/ml/extracted/incorrect_conditional_binary_v1.csv`
-- `data/ml/extracted/array_length_index_binary_v1.csv`
-
-### Step 2 — Split the Dataset
-
-Splits the master feature table into train / val / test sets (70 / 15 / 15 split). Paired snippets (buggy + clean pairs) are kept together to prevent data leakage.
-
-```bash
 py -m app.dev_tools.split_dataset
-```
-
-**Outputs:**
-- `data/ml/splits/train_v1.csv`
-- `data/ml/splits/val_v1.csv`
-- `data/ml/splits/test_v1.csv`
-
-### Step 3 — Train Baseline Models
-
-Trains three classifiers (Logistic Regression, Random Forest, SVM) for each of the three bug targets and saves them as `.joblib` files alongside a metrics summary.
-
-```bash
 py -m app.dev_tools.train_baselines
 ```
 
-**Trained targets:**
+Current outputs:
 
-| Target | Description |
-|---|---|
-| `has_off_by_one` | Off-by-one loop boundary errors |
-| `has_incorrect_conditional` | Assignment used instead of equality check |
-| `has_array_length_index_misuse` | Array accessed at `array.length` index |
+- `data/ml/extracted/features_v1.csv`
+- `data/ml/splits/train_v1.csv`
+- `data/ml/splits/val_v1.csv`
+- `data/ml/splits/test_v1.csv`
+- `backend/models/*.joblib`
+- `backend/models/baseline_metrics_v1.csv`
 
-**Outputs:**
-- `backend/models/<target>__<model>.joblib` — 9 model files (3 targets × 3 models)
-- `backend/models/baseline_metrics_v1.csv` — val & test precision / recall / F1 / accuracy per model
+## Verification
 
-## 🛠️ Technologies Used
+Backend regression tests:
 
-- **Frontend:** TypeScript, VS Code Extension API
-- **Backend:** Python, FastAPI, Pydantic, Tree-sitter (for AST parsing)
-- **ML:** scikit-learn (Logistic Regression, Random Forest, SVM), pandas, joblib
+```bash
+cd backend
+python -m unittest discover -s tests
+```
+
+Extension checks:
+
+```bash
+cd extension/code-coach-vscode
+npm run compile
+npm run lint
+```
+
+## Proposal Status
+
+See `docs/proposal_traceability.md` for the detailed comparison between the proposal requirements and the current implementation. The main remaining academic work is improving and evaluating the dataset/model quality for these three categories, benchmarking response time and resource usage, expert hint review, novice user testing, and comparison against compiler/linter feedback.

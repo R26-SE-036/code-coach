@@ -7,6 +7,9 @@ from pydantic import BaseModel
 class AnalyzeRequest(BaseModel):
     language: str
     code: str
+    student_id: Optional[str] = None
+    session_id: Optional[str] = None
+    enable_logging: bool = False
 
 
 class HintSet(BaseModel):
@@ -20,12 +23,18 @@ class DetectionResult(BaseModel):
     line: int
     column: int
     confidence: float
+    severity: str = "warning"
     message: str
     code_context: str
+    detection_engine: str = "ml_gated_ast_locator"
+    ml_probability: Optional[float] = None
+    locator_confidence: Optional[float] = None
 
 
 class Diagnostic(BaseModel):
+    diagnostic_id: str
     error_type: str
+    severity: str
     line: int
     column: int
     confidence: float
@@ -33,12 +42,18 @@ class Diagnostic(BaseModel):
     code_context: str
     concept_tag: str
     explanation_key: str
+    status: str
+    detection_engine: str
+    ml_probability: Optional[float] = None
+    locator_confidence: Optional[float] = None
     hints: HintSet
 
 
 class AnalyzeResponse(BaseModel):
     status: str
     message: str
+    timestamp: str
+    analysis_duration_ms: float
     diagnostics: List[Diagnostic]
 
 

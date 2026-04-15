@@ -18,6 +18,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Code Coach",
+      "properties": {
+        "codeCoach.backendUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8000",
+          "description": "Local Code Coach backend URL."
+        },
+        "codeCoach.enableEvaluationLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send anonymized diagnostic events to the local backend for research evaluation logging."
+        }
+      }
+    },
     "commands": [
       {
         "command": "code-coach-vscode.start",
