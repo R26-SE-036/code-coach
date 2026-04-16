@@ -14,6 +14,12 @@ from app.models import (
     ErrorTypeSummaryView,
 )
 
+HINT_EVENT_TYPES = {
+    "hint_shown",
+    "hint_level_requested",
+    "hint_navigation_used",
+}
+
 
 def build_learning_event_document(
     user_id: str,
@@ -116,13 +122,91 @@ def _safe_last_seen(document: dict[str, Any]) -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _safe_event_time(document: dict[str, Any]) -> datetime:
+    candidate = document.get("occurredAt") or document.get("createdAt")
+    if isinstance(candidate, datetime):
+        return candidate
+    return datetime.now(timezone.utc)
+
+
+def _hint_dependency_level_for_score(score: float) -> str:
+    if score >= 0.75:
+        return "high"
+    if score >= 0.4:
+        return "medium"
+    return "low"
+
+
+def _calculate_hint_dependency_score(
+    *,
+    repeat_count: int,
+    hint_shown_count: int,
+    hint_request_count: int,
+    hint_navigation_count: int,
+) -> float:
+    if repeat_count <= 0:
+        return 0.0
+
+    weighted_support = (
+        hint_shown_count * 1.0
+        + hint_request_count * 1.5
+        + hint_navigation_count * 1.2
+    )
+    score = weighted_support / max(4.0, repeat_count * 3.5)
+    return round(min(0.99, score), 2)
+
+
+def _build_hint_usage_by_concept(
+    learning_events: Iterable[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    hint_usage: dict[str, dict[str, Any]] = defaultdict(
+        lambda: {
+            "hint_event_count": 0,
+            "hint_shown_count": 0,
+            "hint_request_count": 0,
+            "hint_navigation_count": 0,
+            "last_hint_at": None,
+        },
+    )
+
+    for document in learning_events:
+        if document.get("component") != "code_coach":
+            continue
+
+        event_type = document.get("eventType")
+        if event_type not in HINT_EVENT_TYPES:
+            continue
+
+        concept_tag = document.get("conceptTag")
+        if not concept_tag:
+            continue
+
+        bucket = hint_usage[concept_tag]
+        bucket["hint_event_count"] += 1
+        if event_type == "hint_shown":
+            bucket["hint_shown_count"] += 1
+        elif event_type == "hint_level_requested":
+            bucket["hint_request_count"] += 1
+        elif event_type == "hint_navigation_used":
+            bucket["hint_navigation_count"] += 1
+
+        event_time = _safe_event_time(document)
+        last_hint_at = bucket["last_hint_at"]
+        if last_hint_at is None or event_time > last_hint_at:
+            bucket["last_hint_at"] = event_time
+
+    return hint_usage
+
+
 def build_diagnostic_summary(
     user_id: str,
     diagnostics: Iterable[dict[str, Any]],
+    learning_events: Iterable[dict[str, Any]],
     *,
     limit: int = 5,
 ) -> DiagnosticSummaryResponse:
     diagnostic_list = list(diagnostics)
+    hint_usage = _build_hint_usage_by_concept(learning_events)
     error_stats: dict[str, dict[str, Any]] = defaultdict(
         lambda: {
             "count": 0,
@@ -174,6 +258,25 @@ def build_diagnostic_summary(
                 repeat_count=values["repeat_count"],
                 unresolved_count=values["unresolved_count"],
                 last_seen_at=values["last_seen_at"],
+                hint_event_count=hint_usage.get(concept_tag, {}).get("hint_event_count", 0),
+                hint_shown_count=hint_usage.get(concept_tag, {}).get("hint_shown_count", 0),
+                hint_request_count=hint_usage.get(concept_tag, {}).get("hint_request_count", 0),
+                hint_navigation_count=hint_usage.get(concept_tag, {}).get("hint_navigation_count", 0),
+                hint_dependency_score=_calculate_hint_dependency_score(
+                    repeat_count=values["repeat_count"],
+                    hint_shown_count=hint_usage.get(concept_tag, {}).get("hint_shown_count", 0),
+                    hint_request_count=hint_usage.get(concept_tag, {}).get("hint_request_count", 0),
+                    hint_navigation_count=hint_usage.get(concept_tag, {}).get("hint_navigation_count", 0),
+                ),
+                hint_dependency_level=_hint_dependency_level_for_score(
+                    _calculate_hint_dependency_score(
+                        repeat_count=values["repeat_count"],
+                        hint_shown_count=hint_usage.get(concept_tag, {}).get("hint_shown_count", 0),
+                        hint_request_count=hint_usage.get(concept_tag, {}).get("hint_request_count", 0),
+                        hint_navigation_count=hint_usage.get(concept_tag, {}).get("hint_navigation_count", 0),
+                    )
+                ),
+                last_hint_at=hint_usage.get(concept_tag, {}).get("last_hint_at"),
             )
             for concept_tag, values in concept_stats.items()
         ),
@@ -185,6 +288,12 @@ def build_diagnostic_summary(
         status="ok",
         user_id=user_id,
         total_diagnostics=len(diagnostic_list),
+        total_hint_events=sum(
+            bucket["hint_event_count"] for bucket in hint_usage.values()
+        ),
+        concepts_with_hint_usage=sum(
+            1 for bucket in hint_usage.values() if bucket["hint_event_count"] > 0
+        ),
         top_error_types=top_error_types,
         top_concepts=top_concepts,
     )
@@ -195,11 +304,13 @@ def _calculate_struggle_score(
     repeat_count: int,
     active_count: int,
     unique_learning_sessions: int,
+    hint_dependency_score: float,
 ) -> float:
     score = 0.0
     score += min(0.45, repeat_count * 0.18)
     score += min(0.35, active_count * 0.18)
     score += min(0.12, max(0, unique_learning_sessions - 1) * 0.06)
+    score += min(0.2, hint_dependency_score * 0.2)
     if repeat_count >= 3:
         score += 0.08
     if active_count >= 2:
@@ -226,10 +337,12 @@ def _recommended_action_for_level(level: str) -> str:
 def build_concept_struggles(
     user_id: str,
     diagnostics: Iterable[dict[str, Any]],
+    learning_events: Iterable[dict[str, Any]],
     *,
     limit: int = 10,
 ) -> ConceptStruggleResponse:
     diagnostic_list = list(diagnostics)
+    hint_usage = _build_hint_usage_by_concept(learning_events)
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for document in diagnostic_list:
@@ -248,11 +361,22 @@ def build_concept_struggles(
         dominant_error_type = Counter(
             item["errorType"] for item in concept_documents
         ).most_common(1)[0][0]
+        concept_hint_usage = hint_usage.get(concept_tag, {})
+        hint_dependency_score = _calculate_hint_dependency_score(
+            repeat_count=repeat_count,
+            hint_shown_count=concept_hint_usage.get("hint_shown_count", 0),
+            hint_request_count=concept_hint_usage.get("hint_request_count", 0),
+            hint_navigation_count=concept_hint_usage.get("hint_navigation_count", 0),
+        )
+        hint_dependency_level = _hint_dependency_level_for_score(
+            hint_dependency_score,
+        )
 
         struggle_score = _calculate_struggle_score(
             repeat_count=repeat_count,
             active_count=active_count,
             unique_learning_sessions=unique_learning_sessions,
+            hint_dependency_score=hint_dependency_score,
         )
         struggle_level = _struggle_level_for_score(struggle_score)
 
@@ -265,6 +389,13 @@ def build_concept_struggles(
                 resolved_count=resolved_count,
                 unique_learning_sessions=unique_learning_sessions,
                 last_seen_at=last_seen_at,
+                hint_event_count=concept_hint_usage.get("hint_event_count", 0),
+                hint_shown_count=concept_hint_usage.get("hint_shown_count", 0),
+                hint_request_count=concept_hint_usage.get("hint_request_count", 0),
+                hint_navigation_count=concept_hint_usage.get("hint_navigation_count", 0),
+                hint_dependency_score=hint_dependency_score,
+                hint_dependency_level=hint_dependency_level,
+                last_hint_at=concept_hint_usage.get("last_hint_at"),
                 struggle_score=struggle_score,
                 struggle_level=struggle_level,
                 recommended_action=_recommended_action_for_level(struggle_level),

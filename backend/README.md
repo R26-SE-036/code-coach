@@ -59,6 +59,7 @@ The backend is now grouped into a few focused packages:
 
 - `POST /api/v1/events`
 - `GET /api/v1/events/me`
+- `GET /api/v1/remediation/me/triggers`
 - `GET /api/v1/users/me/diagnostic-summary`
 - `GET /api/v1/users/me/concept-struggles`
 
@@ -73,3 +74,15 @@ Current Code Coach hint interaction events sent from the VS Code extension:
 - `hint_shown`
 - `hint_navigation_used`
 - `hint_level_requested`
+
+The user summary endpoints now also include hint-dependence signals such as:
+
+- `total_hint_events`
+- `concepts_with_hint_usage`
+- per-concept `hint_event_count`
+- per-concept `hint_dependency_score`
+- per-concept `hint_dependency_level`
+
+Code Coach now also creates automatic remediation triggers when a concept reaches a high struggle state. Those triggers are stored for the authenticated user and exposed through:
+
+- `GET /api/v1/remediation/me/triggers`

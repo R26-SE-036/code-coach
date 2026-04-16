@@ -12,6 +12,7 @@ from app.models import (
     LearningEventView,
 )
 from app.services.learning_signal_service import build_learning_event_document
+from app.services.remediation_service import sync_code_coach_remediation_triggers
 
 router = APIRouter(prefix="/api/v1/events", tags=["events"])
 
@@ -60,6 +61,12 @@ def create_learning_event(
         payload=payload.payload,
     )
     storage.create_learning_events([document])
+    if component == "code_coach":
+        sync_code_coach_remediation_triggers(
+            storage,
+            user_id=auth.user_id,
+            learning_session_id=payload.learning_session_id,
+        )
     return LearningEventCreateResponse(
         status="ok",
         message="Learning event recorded.",

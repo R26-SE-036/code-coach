@@ -116,6 +116,8 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(200, summary_response.status_code)
         summary_payload = summary_response.json()
         self.assertEqual(1, summary_payload["total_diagnostics"])
+        self.assertEqual(0, summary_payload["total_hint_events"])
+        self.assertEqual(0, summary_payload["concepts_with_hint_usage"])
         self.assertEqual(
             "ARRAY_LENGTH_INDEX_MISUSE",
             summary_payload["top_error_types"][0]["error_type"],
@@ -124,6 +126,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
             "array_indexing",
             summary_payload["top_concepts"][0]["concept_tag"],
         )
+        self.assertEqual(0, summary_payload["top_concepts"][0]["hint_event_count"])
 
         self.analyze_code(
             access_token,
@@ -177,6 +180,58 @@ class Phase2LearningSignalTests(unittest.TestCase):
             struggles_payload["struggles"][0]["recommended_action"],
         )
 
+        triggers_response = self.client.get(
+            "/api/v1/remediation/me/triggers",
+            params={"status": "active", "trigger_source": "code_coach"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, triggers_response.status_code)
+        triggers_payload = triggers_response.json()
+        self.assertEqual(1, triggers_payload["total"])
+        self.assertEqual(
+            "array_indexing",
+            triggers_payload["triggers"][0]["concept_tag"],
+        )
+        self.assertEqual(
+            "ARRAY_LENGTH_INDEX_MISUSE",
+            triggers_payload["triggers"][0]["error_type"],
+        )
+        self.assertEqual(
+            "trigger_study_guider",
+            triggers_payload["triggers"][0]["recommended_action"],
+        )
+
+        signal_events_response = self.client.get(
+            "/api/v1/events/me",
+            params={"event_type": "struggle_signal_created"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, signal_events_response.status_code)
+        self.assertEqual(1, signal_events_response.json()["total"])
+
+        extra_session_id = self.create_learning_session(access_token, "arrays_lab_04")
+        self.analyze_code(
+            access_token,
+            extra_session_id,
+            "class A{void m(){int[] a={1,2}; int x=a[a.length];}}",
+        )
+
+        triggers_response_after_repeat = self.client.get(
+            "/api/v1/remediation/me/triggers",
+            params={"status": "active", "trigger_source": "code_coach"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, triggers_response_after_repeat.status_code)
+        self.assertEqual(1, triggers_response_after_repeat.json()["total"])
+
+        signal_events_after_repeat = self.client.get(
+            "/api/v1/events/me",
+            params={"event_type": "struggle_signal_created"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, signal_events_after_repeat.status_code)
+        self.assertEqual(1, signal_events_after_repeat.json()["total"])
+
     def test_hint_interaction_events_can_be_recorded_and_filtered(self) -> None:
         auth_payload = self.register_user(
             email="hints@example.com",
@@ -228,6 +283,84 @@ class Phase2LearningSignalTests(unittest.TestCase):
         )
         self.assertEqual(200, all_events_response.status_code)
         self.assertEqual(2, all_events_response.json()["total"])
+
+        summary_response = self.client.get(
+            "/api/v1/users/me/diagnostic-summary",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, summary_response.status_code)
+        summary_payload = summary_response.json()
+        self.assertEqual(0, summary_payload["total_diagnostics"])
+        self.assertEqual(2, summary_payload["total_hint_events"])
+        self.assertEqual(1, summary_payload["concepts_with_hint_usage"])
+
+    def test_summary_and_struggles_include_hint_dependency_signals(self) -> None:
+        auth_payload = self.register_user(
+            email="dependency@example.com",
+            student_number="it22990006",
+        )
+        access_token = auth_payload["tokens"]["access_token"]
+        learning_session_id = self.create_learning_session(access_token, "arrays_lab_06")
+
+        self.analyze_code(
+            access_token,
+            learning_session_id,
+            "class A{void m(){int[] a={1,2}; int x=a[a.length];}}",
+        )
+        self.create_learning_event(
+            access_token,
+            learning_session_id,
+            event_type="hint_shown",
+            concept_tag="array_indexing",
+            payload={
+                "diagnostic_id": "cc_test_003",
+                "hint_level": "concept",
+            },
+        )
+        self.create_learning_event(
+            access_token,
+            learning_session_id,
+            event_type="hint_level_requested",
+            concept_tag="array_indexing",
+            payload={
+                "diagnostic_id": "cc_test_003",
+                "hint_level": "guidance",
+            },
+        )
+        self.create_learning_event(
+            access_token,
+            learning_session_id,
+            event_type="hint_navigation_used",
+            concept_tag="array_indexing",
+            payload={
+                "diagnostic_id": "cc_test_003",
+                "direction": "next",
+            },
+        )
+
+        summary_response = self.client.get(
+            "/api/v1/users/me/diagnostic-summary",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, summary_response.status_code)
+        top_concept = summary_response.json()["top_concepts"][0]
+        self.assertEqual("array_indexing", top_concept["concept_tag"])
+        self.assertEqual(3, top_concept["hint_event_count"])
+        self.assertEqual(1, top_concept["hint_shown_count"])
+        self.assertEqual(1, top_concept["hint_request_count"])
+        self.assertEqual(1, top_concept["hint_navigation_count"])
+        self.assertGreater(top_concept["hint_dependency_score"], 0)
+        self.assertIn(top_concept["hint_dependency_level"], {"medium", "high"})
+
+        struggles_response = self.client.get(
+            "/api/v1/users/me/concept-struggles",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, struggles_response.status_code)
+        struggle = struggles_response.json()["struggles"][0]
+        self.assertEqual(3, struggle["hint_event_count"])
+        self.assertGreater(struggle["hint_dependency_score"], 0)
+        self.assertIn(struggle["hint_dependency_level"], {"medium", "high"})
 
     def test_hint_interaction_event_rejects_another_users_session(self) -> None:
         first_user_auth = self.register_user(

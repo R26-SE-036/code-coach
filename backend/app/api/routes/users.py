@@ -25,9 +25,14 @@ def get_my_diagnostic_summary(
         auth.user_id,
         limit=sample_size,
     )
+    learning_events = storage.list_learning_events_for_user(
+        auth.user_id,
+        limit=sample_size,
+    )
     return build_diagnostic_summary(
         auth.user_id,
         diagnostics,
+        learning_events,
         limit=limit,
     )
 
@@ -43,8 +48,13 @@ def get_my_concept_struggles(
         auth.user_id,
         limit=sample_size,
     )
+    learning_events = storage.list_learning_events_for_user(
+        auth.user_id,
+        limit=sample_size,
+    )
     return build_concept_struggles(
         auth.user_id,
         diagnostics,
+        learning_events,
         limit=limit,
     )

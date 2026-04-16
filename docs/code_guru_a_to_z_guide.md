@@ -1175,6 +1175,7 @@ Important route groups:
 - `/api/v1/diagnostics`
 - `/api/v1/code-coach/analyze`
 - `/api/v1/events`
+- `/api/v1/remediation/me/triggers`
 - `/api/v1/users/me/diagnostic-summary`
 - `/api/v1/users/me/concept-struggles`
 
@@ -1322,6 +1323,8 @@ From the current implementation, these things are already real:
 - Code Coach now emits `code_diagnostic_detected` and `diagnostic_resolved` learning events
 - the VS Code extension now records hint interaction events such as `hint_shown`, `hint_navigation_used`, and `hint_level_requested`
 - diagnostic summary and concept struggle endpoints now exist for downstream components
+- those summary endpoints now include hint-dependence signals, so other components can see not only repeated errors but also how much support the student needed
+- Code Coach now automatically creates remediation triggers and `struggle_signal_created` events when a concept reaches a high struggle state
 - the full extension flow has already been tested end to end
 
 That means you already have the **foundation** of the bigger Code Guru system.

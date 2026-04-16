@@ -13,6 +13,7 @@ from app.services.code_coach_service import (
 )
 from app.services.evaluation_logger import log_analysis_event
 from app.services.learning_signal_service import build_code_coach_learning_events
+from app.services.remediation_service import sync_code_coach_remediation_triggers
 
 router = APIRouter(prefix="/api/v1/code-coach", tags=["code-coach"])
 
@@ -61,6 +62,11 @@ def analyze_for_authenticated_user(
     )
     if learning_events:
         storage.create_learning_events(learning_events)
+    sync_code_coach_remediation_triggers(
+        storage,
+        user_id=auth.user_id,
+        learning_session_id=learning_session_id,
+    )
     storage.touch_learning_session(learning_session_id)
     log_analysis_event(
         payload,

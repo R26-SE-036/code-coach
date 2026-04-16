@@ -233,12 +233,21 @@ class ConceptSummaryView(BaseModel):
     repeat_count: int
     unresolved_count: int
     last_seen_at: datetime
+    hint_event_count: int = 0
+    hint_shown_count: int = 0
+    hint_request_count: int = 0
+    hint_navigation_count: int = 0
+    hint_dependency_score: float = 0.0
+    hint_dependency_level: str = "low"
+    last_hint_at: Optional[datetime] = None
 
 
 class DiagnosticSummaryResponse(BaseModel):
     status: str
     user_id: str
     total_diagnostics: int
+    total_hint_events: int = 0
+    concepts_with_hint_usage: int = 0
     top_error_types: List[ErrorTypeSummaryView]
     top_concepts: List[ConceptSummaryView]
 
@@ -251,6 +260,13 @@ class ConceptStruggleView(BaseModel):
     resolved_count: int
     unique_learning_sessions: int
     last_seen_at: datetime
+    hint_event_count: int = 0
+    hint_shown_count: int = 0
+    hint_request_count: int = 0
+    hint_navigation_count: int = 0
+    hint_dependency_score: float = 0.0
+    hint_dependency_level: str = "low"
+    last_hint_at: Optional[datetime] = None
     struggle_score: float
     struggle_level: str
     recommended_action: str
@@ -261,6 +277,36 @@ class ConceptStruggleResponse(BaseModel):
     user_id: str
     total_concepts: int
     struggles: List[ConceptStruggleView]
+
+
+class RemediationTriggerView(BaseModel):
+    trigger_id: str
+    user_id: str
+    learning_session_id: str
+    trigger_source: str
+    concept_tag: str
+    error_type: str
+    reason: str
+    struggle_level: str
+    recommended_action: str
+    repeat_count: int
+    active_count: int
+    resolved_count: int
+    unique_learning_sessions: int
+    struggle_score: float
+    hint_dependency_score: float = 0.0
+    hint_dependency_level: str = "low"
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: Optional[datetime] = None
+
+
+class RemediationTriggerListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    triggers: List[RemediationTriggerView]
 
 
 @dataclass

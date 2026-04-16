@@ -43,6 +43,7 @@ class InMemoryStorage:
         self.learning_sessions: dict[str, dict[str, Any]] = {}
         self.code_diagnostics: dict[str, dict[str, Any]] = {}
         self.learning_events: dict[str, dict[str, Any]] = {}
+        self.remediation_triggers: dict[str, dict[str, Any]] = {}
 
     def create_indexes(self) -> None:
         return None
@@ -263,6 +264,47 @@ class InMemoryStorage:
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
 
+    def upsert_remediation_trigger(
+        self,
+        document: dict[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        for stored in self.remediation_triggers.values():
+            if (
+                stored["userId"] == document["userId"]
+                and stored["triggerSource"] == document["triggerSource"]
+                and stored["conceptTag"] == document["conceptTag"]
+                and stored["errorType"] == document["errorType"]
+                and stored["status"] == "active"
+            ):
+                preserved_trigger_id = stored["triggerId"]
+                preserved_created_at = stored["createdAt"]
+                stored.update(deepcopy(document))
+                stored["triggerId"] = preserved_trigger_id
+                stored["createdAt"] = preserved_created_at
+                return (_copy_document(stored) or {}, False)
+
+        stored = deepcopy(document)
+        self.remediation_triggers[stored["triggerId"]] = stored
+        return (_copy_document(stored) or {}, True)
+
+    def list_remediation_triggers_for_user(
+        self,
+        user_id: str,
+        *,
+        status: Optional[str] = None,
+        trigger_source: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        documents = [
+            _copy_document(document)
+            for document in self.remediation_triggers.values()
+            if document["userId"] == user_id
+            and (status is None or document["status"] == status)
+            and (trigger_source is None or document["triggerSource"] == trigger_source)
+        ]
+        documents = [item for item in documents if item is not None]
+        return _sort_by_created_desc(documents)[:limit]
+
 
 class MongoStorage:
     def __init__(self, mongo_uri: str, database_name: str) -> None:
@@ -323,6 +365,16 @@ class MongoStorage:
         )
         self.db.learningEvents.create_index(
             [("eventType", ASCENDING), ("createdAt", DESCENDING)],
+        )
+        self.db.remediationTriggers.create_index(
+            [("triggerId", ASCENDING)],
+            unique=True,
+        )
+        self.db.remediationTriggers.create_index(
+            [("userId", ASCENDING), ("status", ASCENDING), ("createdAt", DESCENDING)],
+        )
+        self.db.remediationTriggers.create_index(
+            [("userId", ASCENDING), ("triggerSource", ASCENDING), ("conceptTag", ASCENDING), ("errorType", ASCENDING), ("status", ASCENDING)],
         )
 
     def create_user(self, document: dict[str, Any]) -> dict[str, Any]:
@@ -588,6 +640,63 @@ class MongoStorage:
             query["eventType"] = event_type
 
         cursor = self.db.learningEvents.find(
+            query,
+            sort=[("createdAt", DESCENDING)],
+            limit=limit,
+        )
+        return [_copy_document(document) or {} for document in cursor]
+
+    def upsert_remediation_trigger(
+        self,
+        document: dict[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        existing = self.db.remediationTriggers.find_one(
+            {
+                "userId": document["userId"],
+                "triggerSource": document["triggerSource"],
+                "conceptTag": document["conceptTag"],
+                "errorType": document["errorType"],
+                "status": "active",
+            }
+        )
+
+        if existing is not None:
+            trigger_id = existing["triggerId"]
+            created_at = existing["createdAt"]
+            update_document = deepcopy(document)
+            update_document.pop("triggerId", None)
+            update_document.pop("createdAt", None)
+            self.db.remediationTriggers.update_one(
+                {"triggerId": trigger_id},
+                {
+                    "$set": update_document,
+                    "$setOnInsert": {
+                        "triggerId": trigger_id,
+                        "createdAt": created_at,
+                    },
+                },
+            )
+            stored = self.db.remediationTriggers.find_one({"triggerId": trigger_id})
+            return (_copy_document(stored) or {}, False)
+
+        self.db.remediationTriggers.insert_one(deepcopy(document))
+        return (_copy_document(document) or {}, True)
+
+    def list_remediation_triggers_for_user(
+        self,
+        user_id: str,
+        *,
+        status: Optional[str] = None,
+        trigger_source: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        query: dict[str, Any] = {"userId": user_id}
+        if status is not None:
+            query["status"] = status
+        if trigger_source is not None:
+            query["triggerSource"] = trigger_source
+
+        cursor = self.db.remediationTriggers.find(
             query,
             sort=[("createdAt", DESCENDING)],
             limit=limit,

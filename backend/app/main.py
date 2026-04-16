@@ -9,6 +9,7 @@ from app.api.routes.code_coach import router as code_coach_router
 from app.api.routes.diagnostics import router as diagnostics_router
 from app.api.routes.events import router as events_router
 from app.api.routes.learning_sessions import router as learning_session_router
+from app.api.routes.remediation import router as remediation_router
 from app.api.routes.users import router as users_router
 from app.db.storage import build_storage
 from app.services.code_coach_service import build_analyze_response, run_analysis
@@ -40,6 +41,7 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(code_coach_router)
     app.include_router(diagnostics_router)
     app.include_router(events_router)
+    app.include_router(remediation_router)
     app.include_router(users_router)
 
 
