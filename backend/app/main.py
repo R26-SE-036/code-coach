@@ -1,54 +1,77 @@
-from datetime import datetime, timezone
-from time import perf_counter
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.analyzer import analyze_code
+from app.code_coach_service import build_analyze_response, run_analysis
 from app.evaluation_logger import log_analysis_event
 from app.models import AnalyzeRequest, AnalyzeResponse
 from app.parser_utils import parse_java_code
-
-app = FastAPI(title="Code Coach Backend")
-
-
-@app.get("/")
-def root():
-    return {"message": "Code Coach backend is running"}
+from app.routes_auth import router as auth_router
+from app.routes_code_coach import router as code_coach_router
+from app.routes_learning_sessions import router as learning_session_router
+from app.storage import build_storage
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+def create_app(*, storage=None) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(lifespan_app: FastAPI):
+        if storage is not None:
+            lifespan_app.state.storage = storage
+        elif getattr(lifespan_app.state, "storage", None) is None:
+            lifespan_app.state.storage = build_storage()
+
+        try:
+            yield
+        finally:
+            current_storage = getattr(lifespan_app.state, "storage", None)
+            close = getattr(current_storage, "close", None)
+            if callable(close):
+                close()
+
+    app = FastAPI(title="Code Coach Backend", lifespan=lifespan)
+    if storage is not None:
+        app.state.storage = storage
+
+    app.include_router(auth_router)
+    app.include_router(learning_session_router)
+    app.include_router(code_coach_router)
 
 
-@app.post("/analyze", response_model=AnalyzeResponse)
-def analyze(payload: AnalyzeRequest):
-    started_at = perf_counter()
-    diagnostics = []
-
-    if payload.language.lower() == "java":
-        diagnostics = analyze_code(payload.code)
-
-    log_analysis_event(payload, diagnostics)
-
-    return AnalyzeResponse(
-        status="ok",
-        message="Analysis completed.",
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        analysis_duration_ms=round((perf_counter() - started_at) * 1000, 2),
-        diagnostics=diagnostics,
-    )
+    @app.get("/")
+    def root():
+        return {"message": "Code Coach backend is running"}
 
 
-@app.post("/debug-ast")
-def debug_ast(payload: AnalyzeRequest):
-    if payload.language.lower() != "java":
-        return {"status": "unsupported_language"}
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
 
-    tree, _ = parse_java_code(payload.code)
 
-    return {
-        "status": "ok",
-        "root_type": tree.root_node.type,
-        "tree": str(tree.root_node),
-    }
+    @app.post("/analyze", response_model=AnalyzeResponse)
+    def analyze(payload: AnalyzeRequest):
+        diagnostics, analysis_duration_ms = run_analysis(payload)
+        log_analysis_event(payload, diagnostics)
+        return build_analyze_response(
+            diagnostics,
+            analysis_duration_ms,
+            learning_session_id=payload.resolved_session_id,
+        )
+
+
+    @app.post("/debug-ast")
+    def debug_ast(payload: AnalyzeRequest):
+        if payload.language.lower() != "java":
+            return {"status": "unsupported_language"}
+
+        tree, _ = parse_java_code(payload.code)
+
+        return {
+            "status": "ok",
+            "root_type": tree.root_node.type,
+            "tree": str(tree.root_node),
+        }
+
+    return app
+
+
+app = create_app()

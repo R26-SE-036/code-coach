@@ -1,15 +1,25 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class AnalyzeRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
     language: str
     code: str
-    student_id: Optional[str] = None
     session_id: Optional[str] = None
+    learning_session_id: Optional[str] = Field(
+        default=None,
+        alias="learningSessionId",
+    )
     enable_logging: bool = False
+
+    @property
+    def resolved_session_id(self) -> Optional[str]:
+        return self.learning_session_id or self.session_id
 
 
 class HintSet(BaseModel):
@@ -54,7 +64,93 @@ class AnalyzeResponse(BaseModel):
     message: str
     timestamp: str
     analysis_duration_ms: float
+    learning_session_id: Optional[str] = None
     diagnostics: List[Diagnostic]
+
+
+class RegisterRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    student_number: str = Field(min_length=4, max_length=40)
+    password: str = Field(min_length=8, max_length=128)
+    client_name: str = Field(default="code-coach-vscode", min_length=2, max_length=80)
+
+
+class LoginRequest(BaseModel):
+    identifier: str = Field(min_length=3, max_length=120)
+    password: str = Field(min_length=8, max_length=128)
+    client_name: str = Field(default="code-coach-vscode", min_length=2, max_length=80)
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=16, max_length=256)
+
+
+class AuthUser(BaseModel):
+    user_id: str
+    full_name: str
+    email: EmailStr
+    student_number: str
+    role: str
+    status: str
+    created_at: datetime
+
+
+class AuthSessionView(BaseModel):
+    auth_session_id: str
+    client_name: str
+    status: str
+    created_at: datetime
+    last_seen_at: datetime
+    expires_at: datetime
+
+
+class TokenBundle(BaseModel):
+    token_type: str = "Bearer"
+    access_token: str
+    refresh_token: str
+    expires_in: int
+
+
+class AuthResponse(BaseModel):
+    status: str
+    message: str
+    user: AuthUser
+    auth_session: AuthSessionView
+    tokens: TokenBundle
+
+
+class MeResponse(BaseModel):
+    status: str
+    user: AuthUser
+    auth_session: AuthSessionView
+
+
+class StatusResponse(BaseModel):
+    status: str
+    message: str
+
+
+class LearningSessionCreateRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    source_component: str = Field(default="code_coach", min_length=2, max_length=64)
+    language: str = Field(default="java", min_length=2, max_length=32)
+    task_id: Optional[str] = Field(default=None, max_length=120)
+
+
+class LearningSessionResponse(BaseModel):
+    status: str
+    message: str
+    learning_session_id: str
+    user_id: str
+    source_component: str
+    language: str
+    task_id: Optional[str] = None
+    learning_session_status: str
+    started_at: datetime
+    last_analysis_at: Optional[datetime] = None
+    reused_existing: bool = False
 
 
 @dataclass

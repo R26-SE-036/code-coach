@@ -12,6 +12,9 @@
   "activationEvents": [
     "onLanguage:java",
     "onCommand:code-coach-vscode.start",
+    "onCommand:code-coach-vscode.signIn",
+    "onCommand:code-coach-vscode.createAccount",
+    "onCommand:code-coach-vscode.signOut",
     "onCommand:code-coach-vscode.analyzeCurrentFile",
     "onCommand:code-coach-vscode.previousHint",
     "onCommand:code-coach-vscode.nextHint"
@@ -37,6 +40,18 @@
       {
         "command": "code-coach-vscode.start",
         "title": "Code Coach: Start"
+      },
+      {
+        "command": "code-coach-vscode.signIn",
+        "title": "Code Coach: Sign In"
+      },
+      {
+        "command": "code-coach-vscode.createAccount",
+        "title": "Code Coach: Create Account"
+      },
+      {
+        "command": "code-coach-vscode.signOut",
+        "title": "Code Coach: Sign Out"
       },
       {
         "command": "code-coach-vscode.analyzeCurrentFile",

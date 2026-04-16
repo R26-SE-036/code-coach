@@ -20,17 +20,22 @@ def _hash_identifier(value: Optional[str]) -> Optional[str]:
 
 def _context_hash(diagnostic: Diagnostic) -> str:
     return hashlib.sha256(diagnostic.code_context.encode("utf-8")).hexdigest()[:16]
-
-
-def log_analysis_event(payload: AnalyzeRequest, diagnostics: list[Diagnostic]) -> None:
+def log_analysis_event(
+    payload: AnalyzeRequest,
+    diagnostics: list[Diagnostic],
+    *,
+    user_id: Optional[str] = None,
+    learning_session_id: Optional[str] = None,
+) -> None:
     if not payload.enable_logging:
         return
 
     LOGS_DIR.mkdir(exist_ok=True)
+    resolved_session_id = learning_session_id or payload.resolved_session_id
     event = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "student_hash": _hash_identifier(payload.student_id),
-        "session_hash": _hash_identifier(payload.session_id),
+        "user_hash": _hash_identifier(user_id),
+        "learning_session_hash": _hash_identifier(resolved_session_id),
         "language": payload.language,
         "diagnostic_count": len(diagnostics),
         "diagnostics": [
