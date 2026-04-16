@@ -29,6 +29,21 @@ Student logs in
 -> the API can later query those saved diagnostics per user and per session
 ```
 
+## Chosen Authentication Strategy
+
+The agreed Phase 1 authentication strategy is:
+
+- **full login UI + JWT from the start**
+
+This means:
+
+- the system will not rely on a manual token paste flow as the primary path
+- the VS Code extension must provide a real login experience
+- protected API requests must use backend-issued JWTs
+- session ownership and user identity must always come from validated tokens
+
+This decision is better aligned with the long-term platform architecture because all later components also depend on reliable user identity.
+
 ## Why This Phase Comes First
 
 Without this phase:
@@ -47,9 +62,11 @@ This phase creates the minimum shared learning identity layer.
 ### 1. Authentication
 
 - basic student login
+- login UI from the start
 - JWT token generation and validation
 - authenticated user resolution on backend requests
 - role support for at least `student`
+- token expiry and refresh handling
 
 ### 2. Learning Session Management
 
@@ -180,6 +197,7 @@ Suggested document:
   "authSessionId": "auth_001",
   "userId": "usr_001",
   "clientType": "vscode",
+  "refreshTokenHash": "<hashed refresh token>",
   "issuedAt": "2026-04-16T10:05:00Z",
   "expiresAt": "2026-04-16T11:05:00Z",
   "lastSeenAt": "2026-04-16T10:25:00Z",
@@ -400,8 +418,9 @@ Optional filters:
 2. implement password hashing
 3. implement login endpoint
 4. implement JWT creation and validation
-5. implement `/auth/me`
-6. add auth dependency for protected routes
+5. implement refresh-token or short-session re-auth strategy
+6. implement `/auth/me`
+7. add auth dependency for protected routes
 
 ### Task Group B: MongoDB Access Layer
 
@@ -436,30 +455,37 @@ No implementation yet, but these changes will be needed later.
 
 ### Minimum extension responsibilities
 
-1. login flow or token input flow
+1. show a real login UI
 2. store JWT securely for the session
-3. request or reuse a `learningSessionId`
-4. send JWT and `learningSessionId` with analyze requests
-5. handle auth expiration gracefully
+3. store refresh state or support forced re-login
+4. request or reuse a `learningSessionId`
+5. send JWT and `learningSessionId` with analyze requests
+6. handle auth expiration gracefully
+7. support logout
 
-### Temporary prototype option
+### Recommended extension login UX
 
-If full login UI is too large for the first pass, a temporary bootstrap option is acceptable:
+Recommended first version:
 
-- manual token paste in extension setting
-- session created after first successful authenticated call
+1. user opens `Code Coach: Sign In`
+2. extension prompts for email
+3. extension prompts for password using a secure input box
+4. extension calls `POST /api/v1/auth/login`
+5. extension stores the JWT in VS Code secret storage
+6. extension confirms the logged-in user with `GET /api/v1/auth/me`
 
-This is acceptable for a prototype, but real login is the cleaner final path.
+Later improvements can move this into a dedicated webview login form, but an input-box driven login flow is sufficient for Phase 1 if it is real authentication end to end.
 
 ## Acceptance Criteria
 
 Phase 1 is complete when all of these are true:
 
 1. a student can authenticate successfully
-2. authenticated requests resolve the correct `userId`
-3. a learning session can be created and read back
-4. Code Coach analysis can only persist diagnostics for the session owner
-5. diagnostics are stored in MongoDB with:
+2. the extension provides a real login flow
+3. authenticated requests resolve the correct `userId`
+4. a learning session can be created and read back
+5. Code Coach analysis can only persist diagnostics for the session owner
+6. diagnostics are stored in MongoDB with:
    - `userId`
    - `learningSessionId`
    - `diagnosticId`
@@ -468,8 +494,9 @@ Phase 1 is complete when all of these are true:
    - `confidence`
    - `mlProbability`
    - `locatorConfidence`
-6. saved diagnostics can be queried per user and per session
-7. no MongoDB secret is hardcoded in the repository
+7. saved diagnostics can be queried per user and per session
+8. JWT expiry is handled without leaving the extension in a broken state
+9. no MongoDB secret is hardcoded in the repository
 
 ## Testing Plan For Phase 1
 
@@ -483,6 +510,7 @@ Phase 1 is complete when all of these are true:
 ### Integration Tests
 
 - login -> create session -> analyze -> persisted diagnostics
+- login -> restart extension -> token/session still usable or re-auth requested cleanly
 - unauthorized analyze request is rejected
 - analyze with wrong `learningSessionId` is rejected
 - diagnostics query returns only the correct user's data
@@ -506,6 +534,7 @@ Mitigation:
 
 - implement only student login first
 - keep role logic simple
+- avoid password reset, multi-role admin flows, and OAuth in Phase 1
 
 ### Risk 2: Session duplication
 
@@ -535,10 +564,11 @@ Implement in this order:
 1. MongoDB client and collections
 2. user model and login
 3. JWT protection
-4. learning session endpoints
-5. diagnostic persistence after analyze
-6. read APIs for saved diagnostics
-7. extension auth/session wiring
+4. extension login UI + secret storage
+5. learning session endpoints
+6. diagnostic persistence after analyze
+7. read APIs for saved diagnostics
+8. extension session reuse and logout
 
 ## Deliverables At The End Of Phase 1
 

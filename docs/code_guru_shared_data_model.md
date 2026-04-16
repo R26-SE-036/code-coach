@@ -150,9 +150,10 @@ Tracks login sessions and device/application context.
 | `id` | UUID | primary key |
 | `userId` | UUID | application reference to the user |
 | `clientType` | varchar | `vscode`, `web`, `game_ui` |
+| `refreshTokenHash` | varchar | hashed refresh token or equivalent |
 | `issuedAt` | timestamptz | |
-| `expires_at` | timestamptz | |
-| `last_seen_at` | timestamptz | |
+| `expiresAt` | timestamptz | |
+| `lastSeenAt` | timestamptz | |
 
 ### 3. `learningSessions`
 

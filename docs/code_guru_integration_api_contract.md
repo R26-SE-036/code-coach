@@ -81,10 +81,23 @@ For now, one shared backend or API gateway is enough.
 ```text
 Student logs in
 -> receives JWT access token
+-> receives refresh token or equivalent re-auth session marker
 -> frontend/extension includes token on every request
 -> backend resolves user identity from token
 -> stored records use backend-trusted user id
 ```
+
+### Chosen Auth Mode
+
+The current agreed plan is:
+
+- full login UI + JWT from the start
+
+For Phase 1 this implies:
+
+- no manual token paste as the primary user flow
+- the VS Code extension must support real authentication UI
+- API protection is enforced from the beginning for session creation and analysis routes
 
 ### Required Headers
 
@@ -100,6 +113,7 @@ X-Request-Id: <uuid>
 ```json
 {
   "access_token": "jwt-token",
+  "refresh_token": "refresh-token",
   "token_type": "bearer",
   "expires_in": 3600,
   "user": {
@@ -109,6 +123,15 @@ X-Request-Id: <uuid>
   }
 }
 ```
+
+### Recommended Auth Endpoints For Phase 1
+
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
+
+The minimum implementation can simplify refresh behavior, but the extension should not be designed around one-time tokens only.
 
 ## Shared Request Context
 
