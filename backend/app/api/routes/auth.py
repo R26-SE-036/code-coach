@@ -4,9 +4,9 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.common import generate_prefixed_id, utcnow
-from app.config import get_settings
-from app.dependencies import AuthContext, get_current_auth, get_storage
+from app.core.common import generate_prefixed_id, utcnow
+from app.core.config import get_settings
+from app.core.dependencies import AuthContext, get_current_auth, get_storage
 from app.models import (
     AuthResponse,
     AuthSessionView,
@@ -18,7 +18,7 @@ from app.models import (
     StatusResponse,
     TokenBundle,
 )
-from app.security import (
+from app.core.security import (
     create_access_token,
     create_refresh_token,
     hash_password,

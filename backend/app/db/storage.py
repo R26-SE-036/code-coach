@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from app.config import get_settings
+from app.core.config import get_settings
 from app.models import DiagnosticSyncResult
 
 try:

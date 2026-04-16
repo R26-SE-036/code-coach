@@ -6,7 +6,7 @@ from typing import Optional
 
 from app.models import AnalyzeRequest, Diagnostic
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 LOGS_DIR = PROJECT_ROOT / "logs"
 EVENT_LOG_PATH = LOGS_DIR / "code_coach_events.jsonl"
 

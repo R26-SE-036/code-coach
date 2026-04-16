@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from app.parser_utils import (
+from app.analysis.parser_utils import (
     parse_java_code_safe,
     collect_nodes_by_type,
     get_node_text,

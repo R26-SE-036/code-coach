@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
-from app.common import generate_prefixed_id, utcnow
+from app.core.common import generate_prefixed_id, utcnow
 from app.models import (
     ConceptStruggleResponse,
     ConceptStruggleView,

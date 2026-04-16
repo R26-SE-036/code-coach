@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
-from app.feature_extractor import extract_features
+from app.analysis.feature_extractor import extract_features
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATA_ROOT = PROJECT_ROOT / "data" / "ml"

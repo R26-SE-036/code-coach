@@ -23,6 +23,25 @@ Optional:
 - `ACCESS_TOKEN_TTL_SECONDS` defaults to `3600`
 - `REFRESH_TOKEN_TTL_SECONDS` defaults to `604800`
 
+## Backend Structure
+
+The backend is now grouped into a few focused packages:
+
+- `app/api/routes`
+  - FastAPI route modules such as auth, learning sessions, diagnostics, events, and user summaries
+- `app/core`
+  - cross-cutting backend concerns such as config, security, shared utilities, and request dependencies
+- `app/analysis`
+  - Code Coach analysis pipeline, parser helpers, ML engine, locators, hints, and detectors
+- `app/services`
+  - service-layer logic for analysis responses, learning signals, and evaluation logging
+- `app/db`
+  - persistence and storage access
+- `app/models.py`
+  - shared Pydantic and dataclass models used across the backend
+- `app/main.py`
+  - application entry point and router wiring
+
 ## Phase 1 Endpoints
 
 - `POST /api/v1/auth/register`

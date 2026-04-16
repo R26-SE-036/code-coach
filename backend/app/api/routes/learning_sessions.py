@@ -4,14 +4,14 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.common import generate_prefixed_id, utcnow
-from app.dependencies import AuthContext, get_current_auth, get_storage
+from app.api.routes.diagnostics import _serialize_persisted_diagnostic
+from app.core.common import generate_prefixed_id, utcnow
+from app.core.dependencies import AuthContext, get_current_auth, get_storage
 from app.models import (
     DiagnosticListResponse,
     LearningSessionCreateRequest,
     LearningSessionResponse,
 )
-from app.routes_diagnostics import _serialize_persisted_diagnostic
 
 router = APIRouter(prefix="/api/v1/learning-sessions", tags=["learning-sessions"])
 

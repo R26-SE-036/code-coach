@@ -1,7 +1,7 @@
 from typing import List
 
 from app.models import DetectionCandidate
-from app.parser_utils import collect_nodes_by_type, get_node_text, node_to_span
+from app.analysis.parser_utils import collect_nodes_by_type, get_node_text, node_to_span
 
 
 def detect_off_by_one_loop_boundary(tree, source_bytes: bytes) -> List[DetectionCandidate]:

@@ -1,11 +1,11 @@
 from typing import Dict, List
 
-from app.feature_extractor import extract_features
-from app.hint_engine import build_diagnostic
-from app.issue_locators import TARGET_LOCATORS
-from app.ml_engine import MLPrediction, predict_issue_types
+from app.analysis.feature_extractor import extract_features
+from app.analysis.hint_engine import build_diagnostic
+from app.analysis.issue_locators import TARGET_LOCATORS
+from app.analysis.ml_engine import MLPrediction, predict_issue_types
 from app.models import DetectionResult, Diagnostic, ParseResult
-from app.parser_utils import parse_java_code_safe
+from app.analysis.parser_utils import parse_java_code_safe
 
 MIN_FILE_COMPLETENESS = 0.35
 ML_CONFIDENCE_WEIGHT = 0.8

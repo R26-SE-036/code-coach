@@ -10,7 +10,7 @@ from typing import Any, Optional
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from app.config import get_settings
+from app.core.config import get_settings
 
 _PASSWORD_HASHER = PasswordHasher()
 

@@ -14,7 +14,7 @@ class MLPrediction:
     predicted_positive: bool
 
 
-BACKEND_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
 MODELS_DIR = BACKEND_ROOT / "models"
 
 TARGET_SPECS = {

@@ -43,7 +43,7 @@ EMBEDDED_ERROR_KNOWLEDGE_BASE: dict[str, ErrorKnowledge] = {
     ),
 }
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 KNOWLEDGE_BASE_PATH = PROJECT_ROOT / "knowledge_base" / "code_coach_errors.json"
 
 

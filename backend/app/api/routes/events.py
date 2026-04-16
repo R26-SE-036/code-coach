@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
 
-from app.dependencies import AuthContext, get_current_auth, get_storage
+from app.core.dependencies import AuthContext, get_current_auth, get_storage
 from app.models import LearningEventListResponse, LearningEventView
 
 router = APIRouter(prefix="/api/v1/events", tags=["events"])

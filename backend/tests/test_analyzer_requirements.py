@@ -1,6 +1,6 @@
 import unittest
 
-from app.analyzer import analyze_code
+from app.analysis.analyzer import analyze_code
 
 
 class AnalyzerRequirementTests(unittest.TestCase):

@@ -2,17 +2,17 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.code_coach_service import build_analyze_response, run_analysis
-from app.evaluation_logger import log_analysis_event
+from app.analysis.parser_utils import parse_java_code
 from app.models import AnalyzeRequest, AnalyzeResponse
-from app.parser_utils import parse_java_code
-from app.routes_auth import router as auth_router
-from app.routes_code_coach import router as code_coach_router
-from app.routes_events import router as events_router
-from app.routes_diagnostics import router as diagnostics_router
-from app.routes_learning_sessions import router as learning_session_router
-from app.routes_users import router as users_router
-from app.storage import build_storage
+from app.api.routes.auth import router as auth_router
+from app.api.routes.code_coach import router as code_coach_router
+from app.api.routes.diagnostics import router as diagnostics_router
+from app.api.routes.events import router as events_router
+from app.api.routes.learning_sessions import router as learning_session_router
+from app.api.routes.users import router as users_router
+from app.db.storage import build_storage
+from app.services.code_coach_service import build_analyze_response, run_analysis
+from app.services.evaluation_logger import log_analysis_event
 
 
 def create_app(*, storage=None) -> FastAPI:

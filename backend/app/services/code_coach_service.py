@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Iterable
 
-from app.analyzer import analyze_code
-from app.common import generate_prefixed_id, utcnow
+from app.analysis.analyzer import analyze_code
+from app.core.common import generate_prefixed_id, utcnow
 from app.models import AnalyzeRequest, AnalyzeResponse, Diagnostic
 
 

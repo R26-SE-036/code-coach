@@ -4,15 +4,15 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.code_coach_service import (
+from app.core.dependencies import AuthContext, get_current_auth, get_storage
+from app.models import AnalyzeRequest, AnalyzeResponse
+from app.services.code_coach_service import (
     build_analyze_response,
     build_diagnostic_records,
     run_analysis,
 )
-from app.dependencies import AuthContext, get_current_auth, get_storage
-from app.evaluation_logger import log_analysis_event
-from app.learning_signal_service import build_code_coach_learning_events
-from app.models import AnalyzeRequest, AnalyzeResponse
+from app.services.evaluation_logger import log_analysis_event
+from app.services.learning_signal_service import build_code_coach_learning_events
 
 router = APIRouter(prefix="/api/v1/code-coach", tags=["code-coach"])
 

@@ -4,8 +4,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 
-from app.dependencies import AuthContext, get_current_auth, get_storage
-from app.learning_signal_service import (
+from app.core.dependencies import AuthContext, get_current_auth, get_storage
+from app.services.learning_signal_service import (
     build_concept_struggles,
     build_diagnostic_summary,
 )

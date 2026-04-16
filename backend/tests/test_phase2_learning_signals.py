@@ -3,7 +3,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
-from app.storage import InMemoryStorage
+from app.db.storage import InMemoryStorage
 
 
 class Phase2LearningSignalTests(unittest.TestCase):

@@ -1,7 +1,7 @@
 from typing import List
 
 from app.models import DetectionCandidate
-from app.parser_utils import (
+from app.analysis.parser_utils import (
     collect_nodes_by_type,
     find_first_descendant_by_type,
     get_node_text,

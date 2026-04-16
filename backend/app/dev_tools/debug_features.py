@@ -1,4 +1,4 @@
-from app.feature_extractor import extract_features
+from app.analysis.feature_extractor import extract_features
 
 sample_code = """
 public class Test {
