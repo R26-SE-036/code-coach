@@ -13,15 +13,42 @@ The aim is to standardize:
 
 This is a planning document only. It does not imply that the endpoints already exist.
 
+## Persistence Assumption
+
+The current planning assumption is:
+
+- shared backend state is stored in **MongoDB Atlas**
+- the database name is `code-guru`
+- the application reads the connection string from an environment variable named `MONGODB_URI`
+
+The connection string itself must not be hardcoded into source files, docs, commits, or screenshots.
+
+## Secret Handling
+
+Use this rule from the beginning:
+
+- store the MongoDB Atlas connection string only in environment configuration
+- use `MONGODB_URI` locally and in deployment environments
+- never commit the full URI into the repository
+- avoid pasting the credential into shared documentation
+
+Recommended local configuration pattern:
+
+```text
+MONGODB_URI=<mongodb atlas connection string>
+MONGODB_DB_NAME=code-guru
+```
+
 ## Related Docs
 
 - [Shared Data Model](C:/Hello/Tutorials/code-coach/docs/code_guru_shared_data_model.md)
+- [Phase 1 Implementation Plan](C:/Hello/Tutorials/code-coach/docs/code_guru_phase1_implementation_plan.md)
 - [Code Coach Proposal Traceability](C:/Hello/Tutorials/code-coach/docs/proposal_traceability.md)
 
 ## API Design Principles
 
 1. Every request must resolve to an authenticated user.
-2. Components should communicate through stable APIs and event contracts, not direct table access.
+2. Components should communicate through stable APIs and event contracts, not direct collection access.
 3. Payloads should be explicit enough for logging, analytics, and later microservice separation.
 4. Code Coach should publish diagnostics as structured signals, not just UI messages.
 5. Component-specific payload details should live inside controlled JSON shapes, not ad hoc fields.

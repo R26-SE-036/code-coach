@@ -12,6 +12,7 @@ The current goal is planning only. This document is a design baseline for later 
 ## Related Docs
 
 - [Integration API Contract](C:/Hello/Tutorials/code-coach/docs/code_guru_integration_api_contract.md)
+- [Phase 1 Implementation Plan](C:/Hello/Tutorials/code-coach/docs/code_guru_phase1_implementation_plan.md)
 - [Code Coach Proposal Traceability](C:/Hello/Tutorials/code-coach/docs/proposal_traceability.md)
 
 ## Design Goals
@@ -29,21 +30,42 @@ The shared data model must:
 
 Use a layered storage approach:
 
-- **PostgreSQL** as the primary shared application database.
+- **MongoDB Atlas** as the primary shared application database.
 - **Neo4j** later, only if Study Guider needs a real skill graph implementation.
 
-Why PostgreSQL first:
+Why MongoDB first:
 
-- structured relations fit users, sessions, diagnostics, reviews, and game results
-- easy to query for dashboards and evaluation
-- good for referential integrity
-- easier to defend academically as the main system of record
+- flexible document structure fits heterogeneous data from all four components
+- event payloads, diagnostics, review data, and game records are naturally JSON-like
+- easy to evolve during the prototype stage without repeated schema migrations
+- works well for component event storage and session-centric records
+- suitable for a microservice-style architecture where components may emit slightly different payload shapes
 
 Neo4j should be optional and introduced only for:
 
 - skill knowledge graph
 - concept prerequisite relationships
 - mastery-path reasoning
+
+For the current integration stage, MongoDB Atlas should be treated as the main system of record.
+
+## MongoDB Naming Convention
+
+Use:
+
+- one shared database: `code-guru`
+- plural collection names
+- `ObjectId` for internal `_id`
+- explicit application-level ids such as `userId`, `learningSessionId`, and `diagnosticId` where cross-component references must stay stable
+
+Recommended convention:
+
+```text
+_id                 -> MongoDB internal document id
+userId              -> stable application user id
+learningSessionId   -> stable application session id
+diagnosticId        -> stable Code Coach diagnostic id
+```
 
 ## Data Ownership Principle
 
@@ -82,7 +104,26 @@ erDiagram
     USERS ||--o{ REMEDIATION_TRIGGERS : receives
 ```
 
-## Core Entities
+## Document Modeling Rules
+
+Because MongoDB is document-oriented, the first implementation should prefer:
+
+- **references** for large, growing, or reusable records
+- **embedding** for small snapshots that are always read together
+
+Recommended rule of thumb:
+
+- embed lightweight summary snapshots
+- reference large event histories
+- do not embed unbounded arrays that will grow forever
+
+Examples:
+
+- embed a small `latestDiagnosticSummary` inside a session document if needed
+- store full diagnostics in the `codeDiagnostics` collection
+- store full cross-component events in the `learningEvents` collection
+
+## Core Collections
 
 ### 1. `users`
 
@@ -93,27 +134,27 @@ Suggested fields:
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `student_number` | varchar | nullable for non-students |
-| `full_name` | varchar | |
+| `studentNumber` | varchar | nullable for non-students |
+| `fullName` | varchar | |
 | `email` | varchar | unique |
 | `role` | varchar | `student`, `lecturer`, `admin` |
-| `created_at` | timestamptz | |
+| `createdAt` | timestamptz | |
 | `status` | varchar | `active`, `disabled` |
 
-### 2. `auth_sessions`
+### 2. `authSessions`
 
 Tracks login sessions and device/application context.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK to `users.id` |
-| `client_type` | varchar | `vscode`, `web`, `game_ui` |
-| `issued_at` | timestamptz | |
+| `userId` | UUID | application reference to the user |
+| `clientType` | varchar | `vscode`, `web`, `game_ui` |
+| `issuedAt` | timestamptz | |
 | `expires_at` | timestamptz | |
 | `last_seen_at` | timestamptz | |
 
-### 3. `learning_sessions`
+### 3. `learningSessions`
 
 A single learning attempt context. This is the most important shared entity.
 
@@ -126,73 +167,84 @@ Examples:
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK to `users.id` |
-| `auth_session_id` | UUID | FK to `auth_sessions.id` |
-| `source_component` | varchar | `code_coach`, `gamification`, `collab`, `study_guider` |
-| `task_id` | varchar | assignment or exercise identifier |
-| `course_id` | varchar | optional |
+| `userId` | UUID | application reference to the user |
+| `authSessionId` | UUID | application reference to `authSessions` |
+| `sourceComponent` | varchar | `code_coach`, `gamification`, `collab`, `study_guider` |
+| `taskId` | varchar | assignment or exercise identifier |
+| `courseId` | varchar | optional |
 | `language` | varchar | `java` initially |
-| `started_at` | timestamptz | |
+| `startedAt` | timestamptz | |
 | `ended_at` | timestamptz | nullable |
 | `status` | varchar | `active`, `completed`, `abandoned` |
 
-### 4. `code_diagnostics`
+### 4. `codeDiagnostics`
 
-Main Code Coach persistence table.
+Main Code Coach persistence collection.
 
-This table stores the structured output from Code Coach for the logged-in user.
+This collection stores the structured output from Code Coach for the logged-in user.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK to `users.id` |
-| `learning_session_id` | UUID | FK to `learning_sessions.id` |
-| `diagnostic_id` | varchar | stable Code Coach diagnostic id |
-| `error_type` | varchar | current 3 categories |
-| `concept_tag` | varchar | e.g. `array_indexing` |
-| `explanation_key` | varchar | maps to hint/lesson logic |
+| `userId` | UUID | application reference to the user |
+| `learningSessionId` | UUID | application reference to the session |
+| `diagnosticId` | varchar | stable Code Coach diagnostic id |
+| `errorType` | varchar | current 3 categories |
+| `conceptTag` | varchar | e.g. `array_indexing` |
+| `explanationKey` | varchar | maps to hint/lesson logic |
 | `line` | integer | nullable if not localizable |
 | `column` | integer | nullable if not localizable |
 | `confidence` | numeric | final confidence |
-| `ml_probability` | numeric | ML classifier probability |
-| `locator_confidence` | numeric | AST location confidence |
-| `detection_engine` | varchar | currently `ml_gated_ast_locator` |
+| `mlProbability` | numeric | ML classifier probability |
+| `locatorConfidence` | numeric | AST location confidence |
+| `detectionEngine` | varchar | currently `ml_gated_ast_locator` |
 | `status` | varchar | `active`, `resolved`, `repeated`, `ignored` |
-| `code_context_hash` | varchar | preferred default instead of raw code |
-| `created_at` | timestamptz | |
-| `resolved_at` | timestamptz | nullable |
+| `codeContextHash` | varchar | preferred default instead of raw code |
+| `createdAt` | timestamptz | |
+| `resolvedAt` | timestamptz | nullable |
 
-### 5. `hint_interactions`
+Suggested embedded snapshot inside each diagnostic document:
+
+```json
+{
+  "latestHintState": {
+    "lastLevelShown": "guidance",
+    "lastShownAt": "2026-04-16T10:30:00Z"
+  }
+}
+```
+
+### 5. `hintInteractions`
 
 Tracks how hints were delivered and used.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK |
-| `learning_session_id` | UUID | FK |
-| `diagnostic_record_id` | UUID | FK to `code_diagnostics.id` |
-| `hint_level` | varchar | `concept`, `guidance`, `targeted` |
-| `hint_key` | varchar | optional template key |
-| `shown_at` | timestamptz | |
-| `interaction_type` | varchar | `shown`, `expanded`, `next_hint`, `previous_hint` |
+| `userId` | UUID | application reference |
+| `learningSessionId` | UUID | application reference |
+| `diagnosticRecordId` | UUID | application reference to the stored diagnostic document |
+| `hintLevel` | varchar | `concept`, `guidance`, `targeted` |
+| `hintKey` | varchar | optional template key |
+| `shownAt` | timestamptz | |
+| `interactionType` | varchar | `shown`, `expanded`, `next_hint`, `previous_hint` |
 
-### 6. `learning_events`
+### 6. `learningEvents`
 
-General cross-component event stream table.
+General cross-component event stream collection.
 
-This is the most important integration table because it lets all components publish structured events without directly writing into each other's specialized tables.
+This is the most important integration collection because it lets all components publish structured events without directly writing into each other's specialized collections.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK |
-| `learning_session_id` | UUID | FK |
+| `userId` | UUID | application reference |
+| `learningSessionId` | UUID | application reference |
 | `component` | varchar | emitting component |
-| `event_type` | varchar | standardized event name |
-| `concept_tag` | varchar | nullable |
-| `payload_json` | jsonb | component-specific details |
-| `created_at` | timestamptz | |
+| `eventType` | varchar | standardized event name |
+| `conceptTag` | varchar | nullable |
+| `payload` | object | component-specific details |
+| `createdAt` | timestamptz | |
 
 Recommended initial event types:
 
@@ -209,106 +261,106 @@ Recommended initial event types:
 - `quiz_completed`
 - `mastery_updated`
 
-### 7. `concept_mastery`
+### 7. `conceptMastery`
 
 Stores the latest summary per user per concept.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK |
-| `concept_tag` | varchar | e.g. `loop_boundaries` |
-| `mastery_score` | numeric | 0-1 or 0-100 |
-| `struggle_score` | numeric | summary signal |
-| `last_event_at` | timestamptz | |
-| `last_updated_at` | timestamptz | |
+| `userId` | UUID | application reference |
+| `conceptTag` | varchar | e.g. `loop_boundaries` |
+| `masteryScore` | numeric | 0-1 or 0-100 |
+| `struggleScore` | numeric | summary signal |
+| `lastEventAt` | timestamptz | |
+| `lastUpdatedAt` | timestamptz | |
 
-This should be a summary table, not the raw source of truth. It can be recalculated from events if needed.
+This should be a summary collection, not the raw source of truth. It can be recalculated from events if needed.
 
-### 8. `remediation_triggers`
+### 8. `remediationTriggers`
 
 Used mainly by Student Progress Tracker / Study Guider.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK |
-| `learning_session_id` | UUID | FK |
-| `trigger_source` | varchar | `code_coach`, `gamification`, `collab`, `multi_source` |
-| `concept_tag` | varchar | |
+| `userId` | UUID | application reference |
+| `learningSessionId` | UUID | application reference |
+| `triggerSource` | varchar | `code_coach`, `gamification`, `collab`, `multi_source` |
+| `conceptTag` | varchar | |
 | `reason` | varchar | e.g. `three_consecutive_failures` |
-| `struggle_level` | varchar | `low`, `medium`, `high` |
+| `struggleLevel` | varchar | `low`, `medium`, `high` |
 | `status` | varchar | `open`, `acknowledged`, `completed` |
-| `created_at` | timestamptz | |
+| `createdAt` | timestamptz | |
 
-### 9. `game_sessions`
+### 9. `gameSessions`
 
 Owned by the Adaptive Gamification Engine, but linked to shared users and sessions.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `user_id` | UUID | FK |
-| `learning_session_id` | UUID | FK |
-| `game_type` | varchar | `drag_drop`, `bug_hunt`, `code_trace` |
-| `difficulty_level` | varchar | |
+| `userId` | UUID | application reference |
+| `learningSessionId` | UUID | application reference |
+| `gameType` | varchar | `drag_drop`, `bug_hunt`, `code_trace` |
+| `difficultyLevel` | varchar | |
 | `score` | numeric | |
-| `error_count` | integer | |
-| `attempt_count` | integer | |
-| `hint_usage` | integer | |
-| `time_taken_seconds` | numeric | |
-| `trace_accuracy` | numeric | nullable |
-| `created_at` | timestamptz | |
+| `errorCount` | integer | |
+| `attemptCount` | integer | |
+| `hintUsage` | integer | |
+| `timeTakenSeconds` | numeric | |
+| `traceAccuracy` | numeric | nullable |
+| `createdAt` | timestamptz | |
 
-### 10. `collaboration_sessions`
-
-Owned by Collaborative Studio.
-
-| Field | Type | Notes |
-|---|---|---|
-| `id` | UUID | primary key |
-| `driver_user_id` | UUID | FK |
-| `navigator_user_id` | UUID | FK |
-| `learning_session_id` | UUID | FK |
-| `task_id` | varchar | |
-| `started_at` | timestamptz | |
-| `ended_at` | timestamptz | |
-| `participation_balance_score` | numeric | summary |
-| `communication_quality_score` | numeric | summary |
-
-### 11. `peer_review_submissions`
+### 10. `collaborationSessions`
 
 Owned by Collaborative Studio.
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | primary key |
-| `collaboration_session_id` | UUID | FK |
-| `reviewer_user_id` | UUID | FK |
-| `reviewee_user_id` | UUID | FK |
-| `linked_diagnostic_id` | varchar | optional link to Code Coach diagnostic |
-| `rubric_score` | numeric | |
-| `feedback_quality_score` | numeric | |
-| `submitted_at` | timestamptz | |
+| `driverUserId` | UUID | application reference |
+| `navigatorUserId` | UUID | application reference |
+| `learningSessionId` | UUID | application reference |
+| `taskId` | varchar | |
+| `startedAt` | timestamptz | |
+| `endedAt` | timestamptz | |
+| `participationBalanceScore` | numeric | summary |
+| `communicationQualityScore` | numeric | summary |
+
+### 11. `peerReviewSubmissions`
+
+Owned by Collaborative Studio.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | primary key |
+| `collaborationSessionId` | UUID | application reference |
+| `reviewerUserId` | UUID | application reference |
+| `revieweeUserId` | UUID | application reference |
+| `linkedDiagnosticId` | varchar | optional link to Code Coach diagnostic |
+| `rubricScore` | numeric | |
+| `feedbackQualityScore` | numeric | |
+| `submittedAt` | timestamptz | |
 
 ## Minimum Integration Data Code Coach Must Save
 
 For the first integrated version, Code Coach should persist at least:
 
-- `user_id`
-- `learning_session_id`
-- `diagnostic_id`
-- `error_type`
-- `concept_tag`
-- `explanation_key`
+- `userId`
+- `learningSessionId`
+- `diagnosticId`
+- `errorType`
+- `conceptTag`
+- `explanationKey`
 - `confidence`
-- `ml_probability`
-- `locator_confidence`
+- `mlProbability`
+- `locatorConfidence`
 - `line`
 - `column`
 - `status`
-- `created_at`
-- `resolved_at`
+- `createdAt`
+- `resolvedAt`
 
 This is enough to power:
 
@@ -373,7 +425,7 @@ pair repeatedly hits ARRAY_LENGTH_INDEX_MISUSE
 Recommended defaults:
 
 1. Do not store full raw source code unless evaluation consent exists.
-2. Store `code_context_hash` by default.
+2. Store `codeContextHash` by default.
 3. Separate user identity from exported research datasets.
 4. Use session-scoped identifiers in research reporting.
 5. Keep analysis local or institution-controlled.
@@ -381,14 +433,15 @@ Recommended defaults:
 
 ## Recommended Indexes
 
-Useful early indexes:
+Useful early MongoDB indexes:
 
-- `code_diagnostics(user_id, created_at desc)`
-- `code_diagnostics(user_id, concept_tag, created_at desc)`
-- `code_diagnostics(learning_session_id, created_at desc)`
-- `learning_events(user_id, created_at desc)`
-- `learning_events(component, event_type, created_at desc)`
-- `concept_mastery(user_id, concept_tag)`
+- `codeDiagnostics: { userId: 1, createdAt: -1 }`
+- `codeDiagnostics: { userId: 1, conceptTag: 1, createdAt: -1 }`
+- `codeDiagnostics: { learningSessionId: 1, createdAt: -1 }`
+- `learningEvents: { userId: 1, createdAt: -1 }`
+- `learningEvents: { component: 1, eventType: 1, createdAt: -1 }`
+- `conceptMastery: { userId: 1, conceptTag: 1 }`
+- `learningSessions: { userId: 1, status: 1, startedAt: -1 }`
 
 ## Phased Adoption Plan
 
@@ -400,7 +453,7 @@ Useful early indexes:
 
 ### Phase 2
 
-- introduce shared `learning_events`
+- introduce shared `learningEvents`
 - let gamification and collaboration write normalized events
 
 ### Phase 3
@@ -418,7 +471,7 @@ Useful early indexes:
 These should be agreed as a team before implementation:
 
 1. Will authentication be centralized or component-local with token federation?
-2. What is the exact definition of a `learning_session` across IDE, games, and collaboration?
+2. What is the exact definition of a `learningSession` across IDE, games, and collaboration?
 3. Should raw code ever be stored, and under what consent rules?
-4. Will `concept_mastery` be updated synchronously or via a background job?
+4. Will `conceptMastery` be updated synchronously or via a background job?
 5. Which component owns the final remediation trigger decision when multiple components emit struggle signals?

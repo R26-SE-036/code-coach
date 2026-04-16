@@ -6,6 +6,7 @@ This document compares the March 2026 Code Coach proposal requirements against t
 
 - [Code Guru Shared Data Model](C:/Hello/Tutorials/code-coach/docs/code_guru_shared_data_model.md)
 - [Code Guru Integration API Contract](C:/Hello/Tutorials/code-coach/docs/code_guru_integration_api_contract.md)
+- [Code Guru Phase 1 Implementation Plan](C:/Hello/Tutorials/code-coach/docs/code_guru_phase1_implementation_plan.md)
 
 ## Current Scope
 
