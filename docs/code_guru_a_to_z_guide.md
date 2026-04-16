@@ -779,7 +779,125 @@ Code Coach comes into this component in these sections:
 4. **Collaboration quality support**
 5. **Discussion scaffolding**
 
-### 12.3 What data the Collaborative component needs from Code Coach
+### 12.3 How Code Coach comes from the IDE into the web application
+
+This is an important architecture point.
+
+**Code Coach runs in the IDE, but the Collaborative Studio is a web application.**
+
+That does **not** mean the web application talks directly to VS Code.
+
+Instead, the integration path is:
+
+```text
+VS Code IDE
+-> Code Coach detects issue
+-> Code Coach backend saves diagnostic in MongoDB
+-> Collaborative web app reads the saved diagnostic through shared backend/API
+-> web app uses that data for pair programming and peer review support
+```
+
+So the real connection is:
+
+```text
+IDE -> Backend/API -> MongoDB -> Web App
+```
+
+It is **not**:
+
+```text
+IDE -> Web App directly
+```
+
+This is the best design because:
+
+- the architecture stays clean
+- the web app does not depend on VS Code internals
+- all components use the same trusted backend data
+- all records stay linked to the same logged-in user
+
+### 12.4 Step-by-step workflow from IDE to Collaborative Studio
+
+#### Step 1: Student writes code in the IDE
+
+The student uses VS Code with Code Coach enabled.
+
+Code Coach analyzes the Java file and may detect one of the current target errors.
+
+#### Step 2: Code Coach saves the diagnostic
+
+The backend saves the result in MongoDB under the authenticated user and the learning session.
+
+Important stored fields include:
+
+- `userId`
+- `learningSessionId`
+- `diagnosticId`
+- `errorType`
+- `conceptTag`
+- `line`
+- `column`
+- `status`
+- `confidence`
+- `createdAt`
+
+#### Step 3: Student opens the Collaborative web application
+
+The student logs into the web app using the same shared platform identity.
+
+Because the backend and database are shared, the web app can now fetch:
+
+- recent Code Coach diagnostics for that student
+- unresolved diagnostics
+- repeated concept struggles
+- diagnostics related to the current task
+
+#### Step 4: Collaborative Studio uses Code Coach data
+
+The web app transforms those saved diagnostics into collaborative support features.
+
+Examples:
+
+- pair-programming prompts
+- guided discussion prompts
+- peer review targets
+- reflection prompts
+
+#### Step 5: Pair programming support is shown
+
+If the pair is working on the same concept that Code Coach already detected as weak, the web app can show a pedagogical prompt.
+
+Example:
+
+```text
+Discuss why array.length is the number of elements, not the last valid index.
+```
+
+#### Step 6: Peer review links to the same issue
+
+Later, when peer review happens, the same Code Coach diagnostic can be used as a review anchor.
+
+That means the reviewer is not reviewing blindly.
+
+The reviewer can focus on:
+
+- the exact error type
+- the concept behind the issue
+- whether the student explained the reasoning properly
+
+#### Step 7: Collaboration outcomes are stored
+
+The Collaborative component can then store its own records such as:
+
+- pair session details
+- participation balance
+- communication quality
+- peer review quality
+- linked diagnostic references
+
+This creates a complete learning trail across the IDE and web app.
+
+### 12.5 What data the Collaborative component needs from Code Coach
 
 It mainly needs:
 
@@ -792,7 +910,7 @@ It mainly needs:
 - `status`
 - repeated diagnostic patterns
 
-### 12.4 Example workflow
+### 12.6 Example workflow
 
 ```text
 Two students are pair programming
@@ -805,7 +923,7 @@ Two students are pair programming
 -> review quality and collaboration quality are stored
 ```
 
-### 12.5 Why this matters
+### 12.7 Why this matters
 
 Without Code Coach, the collaboration component knows students are working together, but it does not know:
 
