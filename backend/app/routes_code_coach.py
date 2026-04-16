@@ -11,6 +11,7 @@ from app.code_coach_service import (
 )
 from app.dependencies import AuthContext, get_current_auth, get_storage
 from app.evaluation_logger import log_analysis_event
+from app.learning_signal_service import build_code_coach_learning_events
 from app.models import AnalyzeRequest, AnalyzeResponse
 
 router = APIRouter(prefix="/api/v1/code-coach", tags=["code-coach"])
@@ -48,11 +49,18 @@ def analyze_for_authenticated_user(
         learning_session_id,
         diagnostics,
     )
-    storage.sync_code_diagnostics(
+    sync_result = storage.sync_code_diagnostics(
         auth.user_id,
         learning_session_id,
         diagnostic_documents,
     )
+    learning_events = build_code_coach_learning_events(
+        auth.user_id,
+        learning_session_id,
+        sync_result,
+    )
+    if learning_events:
+        storage.create_learning_events(learning_events)
     storage.touch_learning_session(learning_session_id)
     log_analysis_event(
         payload,

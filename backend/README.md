@@ -32,4 +32,18 @@ Optional:
 - `POST /api/v1/auth/logout`
 - `POST /api/v1/learning-sessions`
 - `GET /api/v1/learning-sessions/{learning_session_id}`
+- `GET /api/v1/learning-sessions/{learning_session_id}/diagnostics`
 - `POST /api/v1/code-coach/analyze`
+- `GET /api/v1/diagnostics/me`
+
+## Phase 2 Foundation Endpoints
+
+- `GET /api/v1/events/me`
+- `GET /api/v1/users/me/diagnostic-summary`
+- `GET /api/v1/users/me/concept-struggles`
+
+These Phase 2 foundation endpoints turn stored Code Coach diagnostics into reusable learning signals for:
+
+- Study Guider
+- Adaptive Gamification
+- Collaborative web application flows

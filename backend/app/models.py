@@ -153,6 +153,95 @@ class LearningSessionResponse(BaseModel):
     reused_existing: bool = False
 
 
+class PersistedDiagnosticView(BaseModel):
+    diagnostic_record_id: str
+    diagnostic_id: str
+    user_id: str
+    learning_session_id: str
+    error_type: str
+    concept_tag: str
+    explanation_key: str
+    line: int
+    column: int
+    severity: str
+    confidence: float
+    ml_probability: Optional[float] = None
+    locator_confidence: Optional[float] = None
+    detection_engine: str
+    status: str
+    code_context_hash: str
+    created_at: datetime
+    resolved_at: Optional[datetime] = None
+
+
+class DiagnosticListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    diagnostics: List[PersistedDiagnosticView]
+
+
+class LearningEventView(BaseModel):
+    event_id: str
+    user_id: str
+    learning_session_id: str
+    component: str
+    event_type: str
+    concept_tag: Optional[str] = None
+    occurred_at: datetime
+    created_at: datetime
+    payload: dict[str, Any]
+
+
+class LearningEventListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    events: List[LearningEventView]
+
+
+class ErrorTypeSummaryView(BaseModel):
+    error_type: str
+    count: int
+    active_count: int
+    last_seen_at: datetime
+
+
+class ConceptSummaryView(BaseModel):
+    concept_tag: str
+    repeat_count: int
+    unresolved_count: int
+    last_seen_at: datetime
+
+
+class DiagnosticSummaryResponse(BaseModel):
+    status: str
+    user_id: str
+    total_diagnostics: int
+    top_error_types: List[ErrorTypeSummaryView]
+    top_concepts: List[ConceptSummaryView]
+
+
+class ConceptStruggleView(BaseModel):
+    concept_tag: str
+    error_type: str
+    repeat_count: int
+    active_count: int
+    resolved_count: int
+    unique_learning_sessions: int
+    last_seen_at: datetime
+    struggle_score: float
+    struggle_level: str
+    recommended_action: str
+
+
+class ConceptStruggleResponse(BaseModel):
+    status: str
+    user_id: str
+    total_concepts: int
+    struggles: List[ConceptStruggleView]
+
+
 @dataclass
 class Span:
     start_line: int
@@ -176,6 +265,13 @@ class ParseResult:
     source_bytes: bytes
     health: ParseHealth
     crashed: bool = False
+
+
+@dataclass
+class DiagnosticSyncResult:
+    active_documents: list[dict[str, Any]] = field(default_factory=list)
+    newly_detected_documents: list[dict[str, Any]] = field(default_factory=list)
+    resolved_documents: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

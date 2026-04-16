@@ -8,7 +8,10 @@ from app.models import AnalyzeRequest, AnalyzeResponse
 from app.parser_utils import parse_java_code
 from app.routes_auth import router as auth_router
 from app.routes_code_coach import router as code_coach_router
+from app.routes_events import router as events_router
+from app.routes_diagnostics import router as diagnostics_router
 from app.routes_learning_sessions import router as learning_session_router
+from app.routes_users import router as users_router
 from app.storage import build_storage
 
 
@@ -35,6 +38,9 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(learning_session_router)
     app.include_router(code_coach_router)
+    app.include_router(diagnostics_router)
+    app.include_router(events_router)
+    app.include_router(users_router)
 
 
     @app.get("/")

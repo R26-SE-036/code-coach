@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.common import generate_prefixed_id, utcnow
 from app.dependencies import AuthContext, get_current_auth, get_storage
-from app.models import LearningSessionCreateRequest, LearningSessionResponse
+from app.models import (
+    DiagnosticListResponse,
+    LearningSessionCreateRequest,
+    LearningSessionResponse,
+)
+from app.routes_diagnostics import _serialize_persisted_diagnostic
 
 router = APIRouter(prefix="/api/v1/learning-sessions", tags=["learning-sessions"])
 
@@ -96,4 +101,31 @@ def get_learning_session(
         session_document,
         message="Learning session loaded.",
         reused_existing=False,
+    )
+
+
+@router.get("/{learning_session_id}/diagnostics", response_model=DiagnosticListResponse)
+def get_learning_session_diagnostics(
+    learning_session_id: str,
+    auth: AuthContext = Depends(get_current_auth),
+    storage: Any = Depends(get_storage),
+) -> DiagnosticListResponse:
+    session_document = storage.find_learning_session_by_id(learning_session_id)
+
+    if session_document is None or session_document.get("userId") != auth.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Learning session not found.",
+        )
+
+    documents = storage.list_diagnostics_for_session(
+        learning_session_id,
+        user_id=auth.user_id,
+    )
+    diagnostics = [_serialize_persisted_diagnostic(document) for document in documents]
+    return DiagnosticListResponse(
+        status="ok",
+        message="Diagnostics loaded for the learning session.",
+        total=len(diagnostics),
+        diagnostics=diagnostics,
     )

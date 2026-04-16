@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 from app.config import get_settings
+from app.models import DiagnosticSyncResult
 
 try:
     from pymongo import ASCENDING, DESCENDING, MongoClient
@@ -41,6 +42,7 @@ class InMemoryStorage:
         self.auth_sessions: dict[str, dict[str, Any]] = {}
         self.learning_sessions: dict[str, dict[str, Any]] = {}
         self.code_diagnostics: dict[str, dict[str, Any]] = {}
+        self.learning_events: dict[str, dict[str, Any]] = {}
 
     def create_indexes(self) -> None:
         return None
@@ -144,7 +146,7 @@ class InMemoryStorage:
         user_id: str,
         learning_session_id: str,
         diagnostics: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
+    ) -> DiagnosticSyncResult:
         now = _utcnow()
         active_documents = [
             document
@@ -157,12 +159,15 @@ class InMemoryStorage:
             document["diagnosticId"]: document for document in active_documents
         }
         current_ids = {document["diagnosticId"] for document in diagnostics}
+        resolved_documents: list[dict[str, Any]] = []
+        newly_detected_documents: list[dict[str, Any]] = []
 
         for document in active_documents:
             if document["diagnosticId"] not in current_ids:
                 document["status"] = "resolved"
                 document["resolvedAt"] = now
                 document["lastSeenAt"] = now
+                resolved_documents.append(_copy_document(document) or {})
 
         stored_current_documents: list[dict[str, Any]] = []
         for incoming in diagnostics:
@@ -184,9 +189,15 @@ class InMemoryStorage:
             stored = deepcopy(incoming)
             stored["lastSeenAt"] = now
             self.code_diagnostics[stored["diagnosticRecordId"]] = stored
-            stored_current_documents.append(_copy_document(stored) or {})
+            stored_copy = _copy_document(stored) or {}
+            newly_detected_documents.append(stored_copy)
+            stored_current_documents.append(stored_copy)
 
-        return _sort_by_created_desc(stored_current_documents)
+        return DiagnosticSyncResult(
+            active_documents=_sort_by_created_desc(stored_current_documents),
+            newly_detected_documents=_sort_by_created_desc(newly_detected_documents),
+            resolved_documents=_sort_by_created_desc(resolved_documents),
+        )
 
     def list_diagnostics_for_user(
         self,
@@ -222,6 +233,35 @@ class InMemoryStorage:
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)
+
+    def create_learning_events(
+        self,
+        documents: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        stored_documents: list[dict[str, Any]] = []
+        for document in documents:
+            stored = deepcopy(document)
+            self.learning_events[stored["eventId"]] = stored
+            stored_documents.append(_copy_document(stored) or {})
+        return _sort_by_created_desc(stored_documents)
+
+    def list_learning_events_for_user(
+        self,
+        user_id: str,
+        *,
+        learning_session_id: Optional[str] = None,
+        event_type: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        documents = [
+            _copy_document(document)
+            for document in self.learning_events.values()
+            if document["userId"] == user_id
+            and (learning_session_id is None or document["learningSessionId"] == learning_session_id)
+            and (event_type is None or document["eventType"] == event_type)
+        ]
+        documents = [item for item in documents if item is not None]
+        return _sort_by_created_desc(documents)[:limit]
 
 
 class MongoStorage:
@@ -270,6 +310,19 @@ class MongoStorage:
         )
         self.db.codeDiagnostics.create_index(
             [("userId", ASCENDING), ("learningSessionId", ASCENDING), ("diagnosticId", ASCENDING), ("status", ASCENDING)],
+        )
+        self.db.learningEvents.create_index(
+            [("eventId", ASCENDING)],
+            unique=True,
+        )
+        self.db.learningEvents.create_index(
+            [("userId", ASCENDING), ("createdAt", DESCENDING)],
+        )
+        self.db.learningEvents.create_index(
+            [("learningSessionId", ASCENDING), ("createdAt", DESCENDING)],
+        )
+        self.db.learningEvents.create_index(
+            [("eventType", ASCENDING), ("createdAt", DESCENDING)],
         )
 
     def create_user(self, document: dict[str, Any]) -> dict[str, Any]:
@@ -375,9 +428,33 @@ class MongoStorage:
         user_id: str,
         learning_session_id: str,
         diagnostics: list[dict[str, Any]],
-    ) -> list[dict[str, Any]]:
+    ) -> DiagnosticSyncResult:
         now = _utcnow()
+        existing_active_documents = [
+            _copy_document(document) or {}
+            for document in self.db.codeDiagnostics.find(
+                {
+                    "userId": user_id,
+                    "learningSessionId": learning_session_id,
+                    "status": "active",
+                },
+            )
+        ]
+        active_by_diagnostic_id = {
+            document["diagnosticId"]: document for document in existing_active_documents
+        }
         current_ids = {document["diagnosticId"] for document in diagnostics}
+        resolved_documents = [
+            {
+                **document,
+                "status": "resolved",
+                "resolvedAt": now,
+                "lastSeenAt": now,
+            }
+            for document in existing_active_documents
+            if document["diagnosticId"] not in current_ids
+        ]
+        newly_detected_ids: set[str] = set()
 
         self.db.codeDiagnostics.update_many(
             {
@@ -399,6 +476,8 @@ class MongoStorage:
             update_fields = deepcopy(incoming)
             diagnostic_record_id = update_fields.pop("diagnosticRecordId")
             created_at = update_fields.pop("createdAt")
+            if incoming["diagnosticId"] not in active_by_diagnostic_id:
+                newly_detected_ids.add(incoming["diagnosticId"])
             self.db.codeDiagnostics.update_one(
                 {
                     "userId": user_id,
@@ -421,15 +500,27 @@ class MongoStorage:
                 upsert=True,
             )
 
-        cursor = self.db.codeDiagnostics.find(
-            {
-                "userId": user_id,
-                "learningSessionId": learning_session_id,
-                "status": "active",
-            },
-            sort=[("createdAt", DESCENDING)],
+        active_documents = [
+            _copy_document(document) or {}
+            for document in self.db.codeDiagnostics.find(
+                {
+                    "userId": user_id,
+                    "learningSessionId": learning_session_id,
+                    "status": "active",
+                },
+                sort=[("createdAt", DESCENDING)],
+            )
+        ]
+        newly_detected_documents = [
+            document
+            for document in active_documents
+            if document["diagnosticId"] in newly_detected_ids
+        ]
+        return DiagnosticSyncResult(
+            active_documents=active_documents,
+            newly_detected_documents=newly_detected_documents,
+            resolved_documents=_sort_by_created_desc(resolved_documents),
         )
-        return [_copy_document(document) or {} for document in cursor]
 
     def list_diagnostics_for_user(
         self,
@@ -466,8 +557,40 @@ class MongoStorage:
             query["userId"] = user_id
 
         cursor = self.db.codeDiagnostics.find(
+            {
+                **query,
+            },
+            sort=[("createdAt", DESCENDING)],
+        )
+        return [_copy_document(document) or {} for document in cursor]
+
+    def create_learning_events(
+        self,
+        documents: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        if not documents:
+            return []
+        self.db.learningEvents.insert_many([deepcopy(document) for document in documents])
+        return [_copy_document(document) or {} for document in documents]
+
+    def list_learning_events_for_user(
+        self,
+        user_id: str,
+        *,
+        learning_session_id: Optional[str] = None,
+        event_type: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        query: dict[str, Any] = {"userId": user_id}
+        if learning_session_id is not None:
+            query["learningSessionId"] = learning_session_id
+        if event_type is not None:
+            query["eventType"] = event_type
+
+        cursor = self.db.learningEvents.find(
             query,
             sort=[("createdAt", DESCENDING)],
+            limit=limit,
         )
         return [_copy_document(document) or {} for document in cursor]
 

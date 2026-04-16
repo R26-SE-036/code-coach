@@ -1164,12 +1164,19 @@ The important live backend areas now are:
 - learning sessions
 - Code Coach analysis
 - Mongo persistence
+- persisted diagnostic query APIs
+- learning event generation
+- user struggle and summary APIs
 
 Important route groups:
 
 - `/api/v1/auth`
 - `/api/v1/learning-sessions`
+- `/api/v1/diagnostics`
 - `/api/v1/code-coach/analyze`
+- `/api/v1/events`
+- `/api/v1/users/me/diagnostic-summary`
+- `/api/v1/users/me/concept-struggles`
 
 ### 18.1 Auth workflow
 
@@ -1311,6 +1318,9 @@ From the current implementation, these things are already real:
 - JWT auth works
 - learning sessions work
 - diagnostics are saved in MongoDB
+- saved diagnostics can be queried per user and per session
+- Code Coach now emits `code_diagnostic_detected` and `diagnostic_resolved` learning events
+- diagnostic summary and concept struggle endpoints now exist for downstream components
 - the full extension flow has already been tested end to end
 
 That means you already have the **foundation** of the bigger Code Guru system.
@@ -1321,8 +1331,6 @@ That means you already have the **foundation** of the bigger Code Guru system.
 
 The bigger platform still needs:
 
-- shared `learningEvents`
-- repeated diagnostic analytics
 - hint interaction persistence
 - gamification event ingestion
 - collaboration event ingestion
