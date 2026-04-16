@@ -62,6 +62,29 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         return response.json()
 
+    def create_learning_event(
+        self,
+        access_token: str,
+        learning_session_id: str,
+        *,
+        event_type: str,
+        concept_tag: str,
+        payload: dict,
+    ) -> dict:
+        response = self.client.post(
+            "/api/v1/events",
+            json={
+                "learning_session_id": learning_session_id,
+                "component": "code_coach",
+                "event_type": event_type,
+                "concept_tag": concept_tag,
+                "payload": payload,
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, response.status_code)
+        return response.json()
+
     def test_analysis_emits_learning_events_and_user_summary(self) -> None:
         auth_payload = self.register_user()
         access_token = auth_payload["tokens"]["access_token"]
@@ -153,6 +176,91 @@ class Phase2LearningSignalTests(unittest.TestCase):
             "trigger_study_guider",
             struggles_payload["struggles"][0]["recommended_action"],
         )
+
+    def test_hint_interaction_events_can_be_recorded_and_filtered(self) -> None:
+        auth_payload = self.register_user(
+            email="hints@example.com",
+            student_number="it22990003",
+        )
+        access_token = auth_payload["tokens"]["access_token"]
+        learning_session_id = self.create_learning_session(access_token, "arrays_lab_04")
+
+        self.create_learning_event(
+            access_token,
+            learning_session_id,
+            event_type="hint_shown",
+            concept_tag="array_indexing",
+            payload={
+                "diagnostic_id": "cc_test_001",
+                "hint_level": "concept",
+                "surface": "warning_popup",
+            },
+        )
+        self.create_learning_event(
+            access_token,
+            learning_session_id,
+            event_type="hint_navigation_used",
+            concept_tag="array_indexing",
+            payload={
+                "diagnostic_id": "cc_test_001",
+                "hint_level": "guidance",
+                "direction": "next",
+            },
+        )
+
+        shown_events_response = self.client.get(
+            "/api/v1/events/me",
+            params={"event_type": "hint_shown"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, shown_events_response.status_code)
+        shown_events_payload = shown_events_response.json()
+        self.assertEqual(1, shown_events_payload["total"])
+        self.assertEqual(
+            "warning_popup",
+            shown_events_payload["events"][0]["payload"]["surface"],
+        )
+
+        all_events_response = self.client.get(
+            "/api/v1/events/me",
+            params={"learning_session_id": learning_session_id},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, all_events_response.status_code)
+        self.assertEqual(2, all_events_response.json()["total"])
+
+    def test_hint_interaction_event_rejects_another_users_session(self) -> None:
+        first_user_auth = self.register_user(
+            email="owner@example.com",
+            student_number="it22990004",
+        )
+        first_access_token = first_user_auth["tokens"]["access_token"]
+        learning_session_id = self.create_learning_session(
+            first_access_token,
+            "arrays_lab_05",
+        )
+
+        second_user_auth = self.register_user(
+            email="intruder@example.com",
+            student_number="it22990005",
+        )
+        second_access_token = second_user_auth["tokens"]["access_token"]
+
+        response = self.client.post(
+            "/api/v1/events",
+            json={
+                "learning_session_id": learning_session_id,
+                "component": "code_coach",
+                "event_type": "hint_shown",
+                "concept_tag": "array_indexing",
+                "payload": {
+                    "diagnostic_id": "cc_test_002",
+                    "hint_level": "concept",
+                },
+            },
+            headers={"Authorization": f"Bearer {second_access_token}"},
+        )
+        self.assertEqual(404, response.status_code)
 
 
 if __name__ == "__main__":

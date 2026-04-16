@@ -200,6 +200,27 @@ class LearningEventListResponse(BaseModel):
     events: List[LearningEventView]
 
 
+class LearningEventCreateRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    component: str = Field(default="code_coach", min_length=2, max_length=64)
+    event_type: str = Field(min_length=3, max_length=64)
+    concept_tag: Optional[str] = Field(default=None, max_length=64)
+    occurred_at: Optional[datetime] = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class LearningEventCreateResponse(BaseModel):
+    status: str
+    message: str
+    event_id: str
+
+
 class ErrorTypeSummaryView(BaseModel):
     error_type: str
     count: int

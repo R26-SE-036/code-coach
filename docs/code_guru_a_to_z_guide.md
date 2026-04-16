@@ -1320,6 +1320,7 @@ From the current implementation, these things are already real:
 - diagnostics are saved in MongoDB
 - saved diagnostics can be queried per user and per session
 - Code Coach now emits `code_diagnostic_detected` and `diagnostic_resolved` learning events
+- the VS Code extension now records hint interaction events such as `hint_shown`, `hint_navigation_used`, and `hint_level_requested`
 - diagnostic summary and concept struggle endpoints now exist for downstream components
 - the full extension flow has already been tested end to end
 

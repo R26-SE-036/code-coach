@@ -15,6 +15,30 @@ from app.models import (
 )
 
 
+def build_learning_event_document(
+    user_id: str,
+    learning_session_id: str,
+    *,
+    component: str,
+    event_type: str,
+    payload: dict[str, Any],
+    concept_tag: str | None = None,
+    occurred_at: datetime | None = None,
+) -> dict[str, Any]:
+    created_at = utcnow()
+    return {
+        "eventId": generate_prefixed_id("evt"),
+        "userId": user_id,
+        "learningSessionId": learning_session_id,
+        "component": component,
+        "eventType": event_type,
+        "conceptTag": concept_tag,
+        "occurredAt": occurred_at or created_at,
+        "createdAt": created_at,
+        "payload": dict(payload),
+    }
+
+
 def _event_payload_from_diagnostic(document: dict[str, Any]) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "diagnostic_id": document["diagnosticId"],
@@ -41,26 +65,23 @@ def build_code_coach_learning_events(
     learning_session_id: str,
     sync_result: DiagnosticSyncResult,
 ) -> list[dict[str, Any]]:
-    created_at = utcnow()
     events: list[dict[str, Any]] = []
 
     for document in sync_result.newly_detected_documents:
         events.append(
-            {
-                "eventId": generate_prefixed_id("evt"),
-                "userId": user_id,
-                "learningSessionId": learning_session_id,
-                "component": "code_coach",
-                "eventType": "code_diagnostic_detected",
-                "conceptTag": document["conceptTag"],
-                "occurredAt": document["createdAt"],
-                "createdAt": created_at,
-                "payload": _event_payload_from_diagnostic(document),
-            }
+            build_learning_event_document(
+                user_id,
+                learning_session_id,
+                component="code_coach",
+                event_type="code_diagnostic_detected",
+                concept_tag=document["conceptTag"],
+                occurred_at=document["createdAt"],
+                payload=_event_payload_from_diagnostic(document),
+            )
         )
 
     for document in sync_result.resolved_documents:
-        resolved_at = document.get("resolvedAt") or created_at
+        resolved_at = document.get("resolvedAt") or utcnow()
         time_to_fix_seconds = 0
         created_at_for_diagnostic = document.get("createdAt")
         if isinstance(created_at_for_diagnostic, datetime):
@@ -74,17 +95,15 @@ def build_code_coach_learning_events(
         payload["time_to_fix_seconds"] = time_to_fix_seconds
 
         events.append(
-            {
-                "eventId": generate_prefixed_id("evt"),
-                "userId": user_id,
-                "learningSessionId": learning_session_id,
-                "component": "code_coach",
-                "eventType": "diagnostic_resolved",
-                "conceptTag": document["conceptTag"],
-                "occurredAt": resolved_at,
-                "createdAt": created_at,
-                "payload": payload,
-            }
+            build_learning_event_document(
+                user_id,
+                learning_session_id,
+                component="code_coach",
+                event_type="diagnostic_resolved",
+                concept_tag=document["conceptTag"],
+                occurred_at=resolved_at,
+                payload=payload,
+            )
         )
 
     return events

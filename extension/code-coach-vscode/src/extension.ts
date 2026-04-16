@@ -87,6 +87,21 @@ type LearningSessionResponse = {
   reused_existing: boolean;
 };
 
+type LearningEventCreateResponse = {
+  status: string;
+  message: string;
+  event_id: string;
+};
+
+type LearningEventRequest = {
+  learning_session_id: string;
+  component?: string;
+  event_type: string;
+  concept_tag?: string;
+  occurred_at?: string;
+  payload: Record<string, unknown>;
+};
+
 class ApiError extends Error {
   readonly statusCode: number;
 
@@ -443,6 +458,35 @@ export function activate(context: vscode.ExtensionContext) {
       currentLearningSessionId,
     );
     return currentLearningSessionId;
+  }
+
+  async function createLearningEvent(
+    event: LearningEventRequest,
+  ): Promise<LearningEventCreateResponse> {
+    return authorizedRequestJson<LearningEventCreateResponse>("/api/v1/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        learning_session_id: event.learning_session_id,
+        component: event.component ?? "code_coach",
+        event_type: event.event_type,
+        concept_tag: event.concept_tag,
+        occurred_at: event.occurred_at,
+        payload: event.payload,
+      }),
+    });
+  }
+
+  function trackLearningEvent(event: LearningEventRequest) {
+    if (!currentUser) {
+      return;
+    }
+
+    void createLearningEvent(event).catch((error) => {
+      console.error("Code Coach learning event tracking failed:", error);
+    });
   }
 
   async function promptValue(
@@ -843,6 +887,23 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showWarningMessage(
           `Code Coach: Found ${result.diagnostics.length} issue(s). First issue: ${firstDiagnostic.message} (Line ${firstDiagnostic.line}). Hint: ${firstDiagnostic.hints.concept}`,
         );
+
+        trackLearningEvent({
+          learning_session_id:
+            result.learning_session_id ?? learningSessionId,
+          event_type: "hint_shown",
+          concept_tag: firstDiagnostic.concept_tag,
+          occurred_at: new Date().toISOString(),
+          payload: {
+            diagnostic_id: firstDiagnostic.diagnostic_id,
+            error_type: firstDiagnostic.error_type,
+            explanation_key: firstDiagnostic.explanation_key,
+            hint_level: "concept",
+            hint_text: firstDiagnostic.hints.concept,
+            surface: "warning_popup",
+            trigger: "manual_analysis_results",
+          },
+        });
       }
     } catch (error) {
       clearFeedbackForDocument(document);
@@ -915,6 +976,46 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage(
       `Code Coach hint ${nextIndex + 1}/${diagnostics.length}: ${diagnostic.hints.guidance}`,
     );
+
+    if (currentLearningSessionId) {
+      const directionLabel = direction === 1 ? "next" : "previous";
+      const occurredAt = new Date().toISOString();
+
+      trackLearningEvent({
+        learning_session_id: currentLearningSessionId,
+        event_type: "hint_navigation_used",
+        concept_tag: diagnostic.concept_tag,
+        occurred_at: occurredAt,
+        payload: {
+          diagnostic_id: diagnostic.diagnostic_id,
+          error_type: diagnostic.error_type,
+          explanation_key: diagnostic.explanation_key,
+          hint_level: "guidance",
+          direction: directionLabel,
+          shown_index: nextIndex + 1,
+          total_diagnostics: diagnostics.length,
+          source_command:
+            direction === 1 ? "next_hint" : "previous_hint",
+        },
+      });
+
+      trackLearningEvent({
+        learning_session_id: currentLearningSessionId,
+        event_type: "hint_level_requested",
+        concept_tag: diagnostic.concept_tag,
+        occurred_at: occurredAt,
+        payload: {
+          diagnostic_id: diagnostic.diagnostic_id,
+          error_type: diagnostic.error_type,
+          explanation_key: diagnostic.explanation_key,
+          hint_level: "guidance",
+          hint_text: diagnostic.hints.guidance,
+          surface: "info_message",
+          source_command:
+            direction === 1 ? "next_hint" : "previous_hint",
+        },
+      });
+    }
   }
 
   const startCommand = vscode.commands.registerCommand(

@@ -57,6 +57,7 @@ The backend is now grouped into a few focused packages:
 
 ## Phase 2 Foundation Endpoints
 
+- `POST /api/v1/events`
 - `GET /api/v1/events/me`
 - `GET /api/v1/users/me/diagnostic-summary`
 - `GET /api/v1/users/me/concept-struggles`
@@ -66,3 +67,9 @@ These Phase 2 foundation endpoints turn stored Code Coach diagnostics into reusa
 - Study Guider
 - Adaptive Gamification
 - Collaborative web application flows
+
+Current Code Coach hint interaction events sent from the VS Code extension:
+
+- `hint_shown`
+- `hint_navigation_used`
+- `hint_level_requested`
