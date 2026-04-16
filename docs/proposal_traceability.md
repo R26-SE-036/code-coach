@@ -2,6 +2,11 @@
 
 This document compares the March 2026 Code Coach proposal requirements against the current improving prototype. The current implementation deliberately focuses on the three research error types that already have datasets, features, ML models, and trained baseline metrics.
 
+## Related Docs
+
+- [Code Guru Shared Data Model](C:/Hello/Tutorials/code-coach/docs/code_guru_shared_data_model.md)
+- [Code Guru Integration API Contract](C:/Hello/Tutorials/code-coach/docs/code_guru_integration_api_contract.md)
+
 ## Current Scope
 
 | Active error type | Detection role |
