@@ -1027,8 +1027,8 @@ This is the base workflow.
 ```text
 Student repeatedly makes loop boundary mistakes
 -> Code Coach stores diagnostics
--> Gamification Engine reads recent weak concept
--> assigns loop-focused game
+-> Gamification Engine reads concept struggle and mastery summary
+-> assigns a loop-focused game with difficulty and support level
 -> student plays game
 -> game result is saved
 -> student profile is updated
@@ -1098,6 +1098,7 @@ This section answers your question very directly.
 - targeted game recommendation
 - difficulty adaptation input
 - post-game re-evaluation
+- mastery-aware difficulty selection
 
 ### 16.2 In the Collaborative component, Code Coach comes in at:
 
@@ -1175,9 +1176,20 @@ Important route groups:
 - `/api/v1/diagnostics`
 - `/api/v1/code-coach/analyze`
 - `/api/v1/events`
+- `/api/v1/collaboration/me/prompts`
+- `/api/v1/collaboration/me/pair-sessions`
+- `/api/v1/collaboration/me/prompts/shown`
+- `/api/v1/collaboration/me/peer-reviews`
+- `/api/v1/gamification/me/recommendations`
+- `/api/v1/gamification/me/adaptation-decisions`
+- `/api/v1/gamification/me/session-results`
 - `/api/v1/remediation/me/triggers`
+- `/api/v1/remediation/me/recommendations`
+- `/api/v1/remediation/me/triggers/{trigger_id}/lesson-opened`
+- `/api/v1/remediation/me/triggers/{trigger_id}/quiz-completed`
 - `/api/v1/users/me/diagnostic-summary`
 - `/api/v1/users/me/concept-struggles`
+- `/api/v1/users/me/mastery`
 
 ### 18.1 Auth workflow
 
@@ -1235,6 +1247,8 @@ System.out.println(arr[arr.length]);
    - Study Guider may trigger array micro-lesson
 8. Quiz later checks whether the student now understands valid array indices
 9. Concept mastery for `array_indexing` is updated
+
+The mastery layer is important because other components should not need to reread every raw event and every old quiz result each time they want to understand the student. Instead, Code Guru keeps one latest mastery snapshot per concept in `conceptMastery`. That snapshot acts as the current truth for dashboards, Study Guider, and Adaptive Gamification.
 
 This is the full educational loop.
 
@@ -1325,6 +1339,11 @@ From the current implementation, these things are already real:
 - diagnostic summary and concept struggle endpoints now exist for downstream components
 - those summary endpoints now include hint-dependence signals, so other components can see not only repeated errors but also how much support the student needed
 - Code Coach now automatically creates remediation triggers and `struggle_signal_created` events when a concept reaches a high struggle state
+- Study Guider can now fetch direct lesson and quiz recommendations from those active remediation triggers
+- Study Guider can now send lesson-opened and quiz-completed feedback back into the platform, updating the remediation trigger lifecycle and emitting mastery-related events
+- Adaptive Gamification can now fetch direct game recommendations from Code Coach struggle signals and mastery summaries
+- Adaptive Gamification can now send adaptation decisions and completed game session results back into Code Guru, and those results can update concept mastery
+- Collaborative Studio can now fetch direct pair-programming and peer-review prompts from Code Coach signals, start pair sessions, record shown prompts, and submit linked peer reviews
 - the full extension flow has already been tested end to end
 
 That means you already have the **foundation** of the bigger Code Guru system.
@@ -1335,12 +1354,8 @@ That means you already have the **foundation** of the bigger Code Guru system.
 
 The bigger platform still needs:
 
-- hint interaction persistence
-- gamification event ingestion
-- collaboration event ingestion
-- remediation trigger engine
-- micro-lesson and quiz flow
-- concept mastery updates
+- full gamification gameplay and result UI
+- collaborative web application UI and analytics workflows
 - dashboards
 
 So the current system is a strong beginning, but not yet the complete Code Guru platform.

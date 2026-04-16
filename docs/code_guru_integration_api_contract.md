@@ -387,126 +387,286 @@ This component mainly consumes Code Coach diagnostic signals and emits remediati
 }
 ```
 
-## Adaptive Gamification Engine Contracts
-
-This component should consume weakness signals and publish game outcomes.
-
-### 1. Read User Weak Concept Summary
+### 5. Read Study Guider Recommendations
 
 #### Endpoint
 
-`GET /api/v1/users/{user_id}/learning-profile`
+`GET /api/v1/remediation/me/recommendations`
 
 #### Response Example
 
 ```json
 {
-  "user_id": "7c7b7d8d-6b27-4d80-a0f9-111111111111",
-  "weak_concepts": [
+  "status": "ok",
+  "message": "Study Guider recommendations generated from active remediation triggers.",
+  "total": 1,
+  "recommendations": [
     {
-      "concept_tag": "loop_boundaries",
-      "confidence": 0.82
-    }
-  ],
-  "recent_error_types": [
-    {
-      "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
-      "count": 4
+      "recommendation_id": "sgrec_123456789abc",
+      "trigger_id": "rt_001",
+      "trigger_source": "code_coach",
+      "learning_session_id": "ls_001",
+      "concept_tag": "array_indexing",
+      "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
+      "struggle_level": "high",
+      "recommended_action": "trigger_study_guider",
+      "lesson": {
+        "lesson_id": "lesson_arrays_01",
+        "title": "Array Indexing Basics"
+      },
+      "quiz": {
+        "quiz_id": "quiz_arrays_01",
+        "title": "Array Index Quiz"
+      },
+      "priority": "high"
     }
   ]
 }
 ```
 
-### 2. Publish Game Session Result
+### 6. Record Micro-Lesson Opened
 
-#### Event Type
+#### Endpoint
 
-`game_session_completed`
+`POST /api/v1/remediation/me/triggers/{trigger_id}/lesson-opened`
 
-#### Payload
+#### Request Example
 
 ```json
 {
-  "game_type": "bug_hunt",
-  "difficulty_level": "beginner",
-  "score": 78,
-  "error_count": 2,
-  "attempt_count": 1,
-  "hint_usage": 1,
-  "time_taken_seconds": 95,
-  "concept_tag": "loop_boundaries"
+  "lesson_id": "lesson_arrays_01"
 }
 ```
+
+#### Result
+
+- updates the remediation trigger lifecycle
+- emits `micro_lesson_viewed`
+
+### 7. Record Quiz Completed
+
+#### Endpoint
+
+`POST /api/v1/remediation/me/triggers/{trigger_id}/quiz-completed`
+
+#### Request Example
+
+```json
+{
+  "quiz_id": "quiz_arrays_01",
+  "score_percent": 84
+}
+```
+
+#### Result
+
+- updates the remediation trigger lifecycle
+- marks the trigger completed when the quiz pass condition is met
+- emits `quiz_completed`
+- emits `mastery_updated`
+
+## Adaptive Gamification Engine Contracts
+
+This component should consume weakness signals and publish game outcomes.
+
+### 1. Read Adaptive Gamification Recommendations
+
+#### Endpoint
+
+`GET /api/v1/gamification/me/recommendations`
+
+#### Response Example
+
+```json
+{
+  "status": "ok",
+  "message": "Adaptive gamification recommendations generated from Code Coach struggle and mastery signals.",
+  "total": 1,
+  "recommendations": [
+    {
+      "recommendation_id": "grec_123456789abc",
+      "concept_tag": "loop_boundaries",
+      "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
+      "recommendation_source": "concept_struggle",
+      "adaptation_goal": "remediation",
+      "based_on_struggle_level": "high",
+      "game_id": "game_loops_trace_01",
+      "game_type": "loop_tracer",
+      "title": "Loop Boundary Trace",
+      "difficulty_level": "beginner",
+      "support_level": "high",
+      "priority": "high"
+    }
+  ]
+}
+```
+
+Useful supporting endpoints for the gamification component:
+
+- `GET /api/v1/users/me/concept-struggles`
+- `GET /api/v1/users/me/mastery`
+
+### 2. Publish Game Session Result
+
+#### Endpoint
+
+`POST /api/v1/gamification/me/session-results`
+
+#### Request Example
+
+```json
+{
+  "learning_session_id": "ls_001",
+  "concept_tag": "loop_boundaries",
+  "game_id": "game_loops_trace_01",
+  "game_type": "loop_tracer",
+  "difficulty_level": "beginner",
+  "score_percent": 78,
+  "error_count": 2,
+  "attempt_count": 2,
+  "hint_usage": 1,
+  "time_taken_seconds": 95,
+  "support_level": "guided"
+}
+```
+
+#### Result
+
+- emits `game_session_completed`
+- emits `mastery_updated`
+- updates the student's `conceptMastery` snapshot for that concept
 
 ### 3. Publish Adaptation Decision
 
-#### Event Type
+#### Endpoint
 
-`game_adaptation_decision_created`
+`POST /api/v1/gamification/me/adaptation-decisions`
 
-#### Payload
+#### Request Example
 
 ```json
 {
-  "assigned_game_type": "bug_hunt",
-  "assigned_difficulty": "beginner",
-  "reason": "repeated_off_by_one_errors"
+  "learning_session_id": "ls_001",
+  "concept_tag": "loop_boundaries",
+  "recommendation_id": "grec_123456789abc",
+  "game_id": "game_loops_trace_01",
+  "game_type": "loop_tracer",
+  "difficulty_level": "beginner",
+  "support_level": "high",
+  "rationale": "Repeated off-by-one issues need guided practice.",
+  "based_on_struggle_level": "high"
 }
 ```
+
+#### Result
+
+- emits `game_adaptation_decision_created`
 
 ## Collaborative Studio Contracts
 
 This component should link collaboration and review activity to Code Coach signals.
 
-### 1. Publish Pair Session Start
+### 1. Read Collaboration Prompts
 
-#### Event Type
+#### Endpoint
 
-`pair_session_started`
+`GET /api/v1/collaboration/me/prompts`
 
-#### Payload
+#### Response Example
 
 ```json
 {
-  "pair_session_id": "collab_001",
-  "partner_user_id": "6f9f5a6a-8f86-4b6c-baaa-444444444444",
-  "task_id": "arrays_lab_01"
+  "status": "ok",
+  "message": "Collaborative prompts generated from Code Coach diagnostics, struggles, and mastery signals.",
+  "total": 1,
+  "prompts": [
+    {
+      "prompt_id": "cpr_123456789abc",
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "concept_tag": "array_indexing",
+      "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
+      "linked_diagnostic_id": "cc_34325868b926",
+      "title": "Reason About the Last Valid Index",
+      "target_role": "navigator",
+      "priority": "high"
+    }
+  ]
 }
 ```
 
-### 2. Publish Collaboration Prompt
+### 2. Publish Pair Session Start
 
-#### Event Type
+#### Endpoint
 
-`collaboration_prompt_shown`
+`POST /api/v1/collaboration/me/pair-sessions`
 
-#### Payload
+#### Request Example
 
 ```json
 {
+  "learning_session_id": "ls_001",
+  "collaboration_mode": "pair_programming",
+  "partner_user_id": "6f9f5a6a-8f86-4b6c-baaa-444444444444",
+  "task_id": "arrays_lab_01",
+  "linked_learning_session_id": "ls_code_001"
+}
+```
+
+#### Result
+
+- creates a persistent collaboration session
+- emits `pair_session_started`
+
+### 3. Publish Collaboration Prompt Display
+
+#### Endpoint
+
+`POST /api/v1/collaboration/me/prompts/shown`
+
+#### Request Example
+
+```json
+{
+  "learning_session_id": "ls_001",
   "pair_session_id": "collab_001",
+  "prompt_id": "cpr_123456789abc",
   "linked_diagnostic_id": "cc_34325868b926",
   "prompt_type": "reasoning_prompt",
-  "concept_tag": "array_indexing"
+  "concept_tag": "array_indexing",
+  "linked_learning_session_id": "ls_code_001",
+  "target_role": "navigator"
 }
 ```
 
-### 3. Publish Peer Review
+#### Result
 
-#### Event Type
+- emits `collaboration_prompt_shown`
 
-`peer_review_submitted`
+### 4. Publish Peer Review
 
-#### Payload
+#### Endpoint
+
+`POST /api/v1/collaboration/me/peer-reviews`
+
+#### Request Example
 
 ```json
 {
+  "learning_session_id": "ls_001",
   "pair_session_id": "collab_001",
+  "concept_tag": "array_indexing",
   "linked_diagnostic_id": "cc_34325868b926",
+  "linked_learning_session_id": "ls_code_001",
   "rubric_score": 4,
-  "feedback_quality_score": 0.76
+  "feedback_quality_score": 0.76,
+  "review_comment": "The reviewer correctly explains the safe last index."
 }
 ```
+
+#### Result
+
+- emits `peer_review_submitted`
 
 ## Mastery Contract
 
@@ -515,6 +675,10 @@ This component should link collaboration and review activity to Code Coach signa
 #### Endpoint
 
 `GET /api/v1/users/{user_id}/mastery`
+
+Current authenticated Code Coach backend implementation:
+
+`GET /api/v1/users/me/mastery`
 
 #### Response Example
 

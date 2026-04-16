@@ -1,0 +1,35 @@
+{
+  "array_indexing": {
+    "game_id": "game_arrays_bug_hunt_01",
+    "game_type": "bug_hunt",
+    "title": "Array Index Bug Hunt",
+    "estimated_duration_minutes": 8,
+    "focus_points": [
+      "zero-based indexing",
+      "last valid index",
+      "safe array access"
+    ]
+  },
+  "loop_boundaries": {
+    "game_id": "game_loops_trace_01",
+    "game_type": "loop_tracer",
+    "title": "Loop Boundary Trace",
+    "estimated_duration_minutes": 9,
+    "focus_points": [
+      "loop stopping conditions",
+      "off-by-one reasoning",
+      "array traversal"
+    ]
+  },
+  "conditional_logic": {
+    "game_id": "game_conditions_fix_01",
+    "game_type": "condition_debug",
+    "title": "Conditional Logic Fix-Up",
+    "estimated_duration_minutes": 7,
+    "focus_points": [
+      "assignment vs comparison",
+      "boolean conditions",
+      "branch reasoning"
+    ]
+  }
+}

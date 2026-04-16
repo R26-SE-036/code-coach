@@ -279,6 +279,32 @@ class ConceptStruggleResponse(BaseModel):
     struggles: List[ConceptStruggleView]
 
 
+class ConceptMasteryView(BaseModel):
+    concept_tag: str
+    mastery_score: float
+    struggle_score: float
+    mastery_level: str
+    update_source: str
+    last_learning_session_id: str
+    last_error_type: Optional[str] = None
+    last_trigger_id: Optional[str] = None
+    last_quiz_id: Optional[str] = None
+    last_quiz_score_percent: Optional[int] = None
+    last_quiz_passed: Optional[bool] = None
+    last_game_id: Optional[str] = None
+    last_game_type: Optional[str] = None
+    last_game_score_percent: Optional[int] = None
+    last_game_difficulty_level: Optional[str] = None
+    last_updated_at: datetime
+
+
+class ConceptMasteryListResponse(BaseModel):
+    status: str
+    user_id: str
+    total_concepts: int
+    concepts: List[ConceptMasteryView]
+
+
 class RemediationTriggerView(BaseModel):
     trigger_id: str
     user_id: str
@@ -297,6 +323,13 @@ class RemediationTriggerView(BaseModel):
     hint_dependency_score: float = 0.0
     hint_dependency_level: str = "low"
     status: str
+    intervention_status: str = "pending"
+    lesson_id: Optional[str] = None
+    lesson_opened_at: Optional[datetime] = None
+    quiz_id: Optional[str] = None
+    quiz_completed_at: Optional[datetime] = None
+    quiz_score_percent: Optional[int] = None
+    quiz_passed: Optional[bool] = None
     created_at: datetime
     updated_at: datetime
     resolved_at: Optional[datetime] = None
@@ -307,6 +340,253 @@ class RemediationTriggerListResponse(BaseModel):
     message: str
     total: int
     triggers: List[RemediationTriggerView]
+
+
+class QuizRecommendationView(BaseModel):
+    quiz_id: str
+    title: str
+    question_count: int
+    passing_score_percent: int
+    focus_points: List[str]
+
+
+class MicroLessonRecommendationView(BaseModel):
+    lesson_id: str
+    title: str
+    summary: str
+    estimated_duration_minutes: int
+    learning_objectives: List[str]
+    recommended_steps: List[str]
+
+
+class StudyGuiderRecommendationView(BaseModel):
+    recommendation_id: str
+    trigger_id: str
+    trigger_source: str
+    learning_session_id: str
+    concept_tag: str
+    error_type: str
+    struggle_level: str
+    recommended_action: str
+    lesson: MicroLessonRecommendationView
+    quiz: QuizRecommendationView
+    rationale: str
+    priority: str
+
+
+class StudyGuiderRecommendationListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    recommendations: List[StudyGuiderRecommendationView]
+
+
+class GamificationRecommendationView(BaseModel):
+    recommendation_id: str
+    concept_tag: str
+    error_type: Optional[str] = None
+    recommendation_source: str
+    adaptation_goal: str
+    based_on_mastery_level: Optional[str] = None
+    based_on_struggle_level: Optional[str] = None
+    game_id: str
+    game_type: str
+    title: str
+    difficulty_level: str
+    support_level: str
+    estimated_duration_minutes: int
+    focus_points: List[str]
+    rationale: str
+    priority: str
+
+
+class GamificationRecommendationListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    recommendations: List[GamificationRecommendationView]
+
+
+class GamificationAdaptationDecisionRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    concept_tag: str = Field(min_length=3, max_length=64)
+    recommendation_id: Optional[str] = Field(default=None, max_length=80)
+    game_id: str = Field(min_length=3, max_length=80)
+    game_type: str = Field(min_length=3, max_length=64)
+    difficulty_level: str = Field(min_length=3, max_length=32)
+    support_level: str = Field(min_length=3, max_length=32)
+    rationale: str = Field(min_length=5, max_length=400)
+    based_on_mastery_level: Optional[str] = Field(default=None, max_length=32)
+    based_on_struggle_level: Optional[str] = Field(default=None, max_length=32)
+    occurred_at: Optional[datetime] = None
+
+
+class GamificationSessionCompletedRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    concept_tag: str = Field(min_length=3, max_length=64)
+    recommendation_id: Optional[str] = Field(default=None, max_length=80)
+    game_id: str = Field(min_length=3, max_length=80)
+    game_type: str = Field(min_length=3, max_length=64)
+    difficulty_level: str = Field(min_length=3, max_length=32)
+    support_level: Optional[str] = Field(default=None, max_length=32)
+    score_percent: int = Field(ge=0, le=100)
+    error_count: int = Field(ge=0, le=100)
+    attempt_count: int = Field(ge=1, le=20)
+    hint_usage: int = Field(ge=0, le=100)
+    time_taken_seconds: int = Field(ge=0, le=7200)
+    passed: Optional[bool] = None
+    occurred_at: Optional[datetime] = None
+
+
+class GamificationActionResponse(BaseModel):
+    status: str
+    message: str
+    created_event_types: List[str]
+    mastery: Optional[ConceptMasteryView] = None
+
+
+class CollaborationPromptView(BaseModel):
+    prompt_id: str
+    prompt_type: str
+    collaboration_mode: str
+    concept_tag: str
+    error_type: Optional[str] = None
+    linked_diagnostic_id: Optional[str] = None
+    linked_learning_session_id: Optional[str] = None
+    title: str
+    prompt_text: str
+    target_role: str
+    based_on_struggle_level: Optional[str] = None
+    based_on_mastery_level: Optional[str] = None
+    priority: str
+    rationale: str
+
+
+class CollaborationPromptListResponse(BaseModel):
+    status: str
+    message: str
+    total: int
+    prompts: List[CollaborationPromptView]
+
+
+class CollaborationSessionView(BaseModel):
+    pair_session_id: str
+    user_id: str
+    learning_session_id: str
+    collaboration_mode: str
+    partner_user_id: Optional[str] = None
+    task_id: Optional[str] = None
+    linked_learning_session_id: Optional[str] = None
+    status: str
+    started_at: datetime
+    last_activity_at: datetime
+
+
+class CollaborationSessionCreateRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    collaboration_mode: str = Field(default="pair_programming", min_length=3, max_length=40)
+    partner_user_id: Optional[str] = Field(default=None, max_length=80)
+    task_id: Optional[str] = Field(default=None, max_length=120)
+    linked_learning_session_id: Optional[str] = Field(
+        default=None,
+        alias="linkedLearningSessionId",
+        max_length=80,
+    )
+
+
+class CollaborationSessionCreateResponse(BaseModel):
+    status: str
+    message: str
+    session: CollaborationSessionView
+    created_event_types: List[str]
+
+
+class CollaborationPromptShownRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    pair_session_id: str = Field(min_length=3, max_length=80)
+    prompt_id: str = Field(min_length=3, max_length=80)
+    prompt_type: str = Field(min_length=3, max_length=40)
+    concept_tag: str = Field(min_length=3, max_length=64)
+    linked_diagnostic_id: Optional[str] = Field(default=None, max_length=120)
+    linked_learning_session_id: Optional[str] = Field(
+        default=None,
+        alias="linkedLearningSessionId",
+        max_length=80,
+    )
+    target_role: Optional[str] = Field(default=None, max_length=40)
+    occurred_at: Optional[datetime] = None
+
+
+class PeerReviewSubmittedRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    pair_session_id: str = Field(min_length=3, max_length=80)
+    concept_tag: str = Field(min_length=3, max_length=64)
+    linked_diagnostic_id: Optional[str] = Field(default=None, max_length=120)
+    linked_learning_session_id: Optional[str] = Field(
+        default=None,
+        alias="linkedLearningSessionId",
+        max_length=80,
+    )
+    rubric_score: int = Field(ge=1, le=5)
+    feedback_quality_score: float = Field(ge=0.0, le=1.0)
+    review_comment: Optional[str] = Field(default=None, max_length=1000)
+    occurred_at: Optional[datetime] = None
+
+
+class CollaborationActionResponse(BaseModel):
+    status: str
+    message: str
+    pair_session_id: str
+    created_event_types: List[str]
+
+
+class LessonOpenedRequest(BaseModel):
+    lesson_id: str = Field(min_length=3, max_length=80)
+    occurred_at: Optional[datetime] = None
+
+
+class QuizCompletedRequest(BaseModel):
+    quiz_id: str = Field(min_length=3, max_length=80)
+    score_percent: int = Field(ge=0, le=100)
+    passed: Optional[bool] = None
+    occurred_at: Optional[datetime] = None
+
+
+class RemediationActionResponse(BaseModel):
+    status: str
+    message: str
+    trigger: RemediationTriggerView
+    created_event_types: List[str]
 
 
 @dataclass

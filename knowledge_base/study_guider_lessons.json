@@ -1,0 +1,89 @@
+{
+  "array_indexing": {
+    "lesson": {
+      "lesson_id": "lesson_arrays_01",
+      "title": "Array Indexing Basics",
+      "summary": "Explains the difference between array length and the last valid index, with examples of safe access patterns.",
+      "estimated_duration_minutes": 8,
+      "learning_objectives": [
+        "Understand how Java array indexes start at 0.",
+        "Differentiate between array length and last valid index.",
+        "Apply safe indexing rules when reading and writing array elements."
+      ],
+      "recommended_steps": [
+        "Review the meaning of array length and last index.",
+        "Trace a few example arrays by hand.",
+        "Rewrite the failing line using a safe final index."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_arrays_01",
+      "title": "Array Index Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "zero-based indexing",
+        "last valid index",
+        "safe array access"
+      ]
+    }
+  },
+  "loop_boundaries": {
+    "lesson": {
+      "lesson_id": "lesson_loops_01",
+      "title": "Loop Boundaries and Off-by-One Errors",
+      "summary": "Shows how loop conditions interact with array sizes and why one extra iteration can break a program.",
+      "estimated_duration_minutes": 9,
+      "learning_objectives": [
+        "Recognize common off-by-one loop patterns.",
+        "Choose a correct stopping condition for array iteration.",
+        "Check loop boundaries against the valid index range."
+      ],
+      "recommended_steps": [
+        "Inspect the loop start, condition, and update together.",
+        "Compare the final loop value with the array's last valid index.",
+        "Test the corrected loop with a small example array."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_loops_01",
+      "title": "Loop Boundary Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "loop stopping conditions",
+        "off-by-one reasoning",
+        "array traversal"
+      ]
+    }
+  },
+  "conditional_logic": {
+    "lesson": {
+      "lesson_id": "lesson_conditions_01",
+      "title": "Conditions, Comparison, and Assignment",
+      "summary": "Covers the difference between assigning a value and checking a condition, with beginner-friendly Java examples.",
+      "estimated_duration_minutes": 7,
+      "learning_objectives": [
+        "Distinguish between assignment and comparison operators.",
+        "Recognize valid boolean conditions in Java.",
+        "Correct accidental assignment inside conditions."
+      ],
+      "recommended_steps": [
+        "Review the purpose of =, ==, and boolean expressions.",
+        "Rewrite the condition in plain English.",
+        "Replace the operator and re-check the condition logic."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_conditions_01",
+      "title": "Conditional Logic Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "assignment vs comparison",
+        "boolean conditions",
+        "if statement correctness"
+      ]
+    }
+  }
+}

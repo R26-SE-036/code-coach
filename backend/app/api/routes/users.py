@@ -9,7 +9,12 @@ from app.services.learning_signal_service import (
     build_concept_struggles,
     build_diagnostic_summary,
 )
-from app.models import ConceptStruggleResponse, DiagnosticSummaryResponse
+from app.services.mastery_service import build_concept_mastery_response
+from app.models import (
+    ConceptMasteryListResponse,
+    ConceptStruggleResponse,
+    DiagnosticSummaryResponse,
+)
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
@@ -56,5 +61,22 @@ def get_my_concept_struggles(
         auth.user_id,
         diagnostics,
         learning_events,
+        limit=limit,
+    )
+
+
+@router.get("/me/mastery", response_model=ConceptMasteryListResponse)
+def get_my_mastery_summary(
+    auth: AuthContext = Depends(get_current_auth),
+    storage: Any = Depends(get_storage),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> ConceptMasteryListResponse:
+    mastery_documents = storage.list_concept_mastery_for_user(
+        auth.user_id,
+        limit=limit,
+    )
+    return build_concept_mastery_response(
+        auth.user_id,
+        mastery_documents,
         limit=limit,
     )

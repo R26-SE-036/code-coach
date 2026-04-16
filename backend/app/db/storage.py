@@ -36,6 +36,25 @@ def _sort_by_created_desc(documents: list[dict[str, Any]]) -> list[dict[str, Any
     )
 
 
+def _sort_by_last_updated_desc(documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        documents,
+        key=lambda item: item.get("lastUpdatedAt") or item.get("createdAt") or _utcnow(),
+        reverse=True,
+    )
+
+
+REMEDIATION_PROGRESS_FIELDS = [
+    "interventionStatus",
+    "lessonId",
+    "lessonOpenedAt",
+    "quizId",
+    "quizCompletedAt",
+    "quizScorePercent",
+    "quizPassed",
+]
+
+
 class InMemoryStorage:
     def __init__(self) -> None:
         self.users: dict[str, dict[str, Any]] = {}
@@ -43,7 +62,9 @@ class InMemoryStorage:
         self.learning_sessions: dict[str, dict[str, Any]] = {}
         self.code_diagnostics: dict[str, dict[str, Any]] = {}
         self.learning_events: dict[str, dict[str, Any]] = {}
+        self.collaboration_sessions: dict[str, dict[str, Any]] = {}
         self.remediation_triggers: dict[str, dict[str, Any]] = {}
+        self.concept_mastery: dict[str, dict[str, Any]] = {}
 
     def create_indexes(self) -> None:
         return None
@@ -235,6 +256,16 @@ class InMemoryStorage:
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)
 
+    def find_diagnostic_by_id(
+        self,
+        user_id: str,
+        diagnostic_id: str,
+    ) -> Optional[dict[str, Any]]:
+        for document in self.code_diagnostics.values():
+            if document["userId"] == user_id and document["diagnosticId"] == diagnostic_id:
+                return _copy_document(document)
+        return None
+
     def create_learning_events(
         self,
         documents: list[dict[str, Any]],
@@ -264,6 +295,32 @@ class InMemoryStorage:
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
 
+    def create_collaboration_session(
+        self,
+        document: dict[str, Any],
+    ) -> dict[str, Any]:
+        stored = deepcopy(document)
+        self.collaboration_sessions[stored["pairSessionId"]] = stored
+        return _copy_document(stored) or {}
+
+    def find_collaboration_session_by_id(
+        self,
+        pair_session_id: str,
+    ) -> Optional[dict[str, Any]]:
+        return _copy_document(self.collaboration_sessions.get(pair_session_id))
+
+    def update_collaboration_session(
+        self,
+        pair_session_id: str,
+        updates: dict[str, Any],
+    ) -> Optional[dict[str, Any]]:
+        stored = self.collaboration_sessions.get(pair_session_id)
+        if stored is None:
+            return None
+
+        stored.update(deepcopy(updates))
+        return _copy_document(stored)
+
     def upsert_remediation_trigger(
         self,
         document: dict[str, Any],
@@ -278,14 +335,40 @@ class InMemoryStorage:
             ):
                 preserved_trigger_id = stored["triggerId"]
                 preserved_created_at = stored["createdAt"]
+                preserved_progress = {
+                    key: stored.get(key)
+                    for key in REMEDIATION_PROGRESS_FIELDS
+                    if key in stored
+                }
                 stored.update(deepcopy(document))
                 stored["triggerId"] = preserved_trigger_id
                 stored["createdAt"] = preserved_created_at
+                for key, value in preserved_progress.items():
+                    if stored.get(key) is None and value is not None:
+                        stored[key] = value
                 return (_copy_document(stored) or {}, False)
 
         stored = deepcopy(document)
         self.remediation_triggers[stored["triggerId"]] = stored
         return (_copy_document(stored) or {}, True)
+
+    def find_remediation_trigger_by_id(
+        self,
+        trigger_id: str,
+    ) -> Optional[dict[str, Any]]:
+        return _copy_document(self.remediation_triggers.get(trigger_id))
+
+    def update_remediation_trigger(
+        self,
+        trigger_id: str,
+        updates: dict[str, Any],
+    ) -> Optional[dict[str, Any]]:
+        stored = self.remediation_triggers.get(trigger_id)
+        if stored is None:
+            return None
+
+        stored.update(deepcopy(updates))
+        return _copy_document(stored)
 
     def list_remediation_triggers_for_user(
         self,
@@ -304,6 +387,42 @@ class InMemoryStorage:
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
+
+    def upsert_concept_mastery(
+        self,
+        document: dict[str, Any],
+    ) -> dict[str, Any]:
+        for stored in self.concept_mastery.values():
+            if (
+                stored["userId"] == document["userId"]
+                and stored["conceptTag"] == document["conceptTag"]
+            ):
+                preserved_mastery_id = stored["masteryId"]
+                preserved_created_at = stored["createdAt"]
+                stored.update(deepcopy(document))
+                stored["masteryId"] = preserved_mastery_id
+                stored["createdAt"] = preserved_created_at
+                return _copy_document(stored) or {}
+
+        stored = deepcopy(document)
+        self.concept_mastery[stored["masteryId"]] = stored
+        return _copy_document(stored) or {}
+
+    def list_concept_mastery_for_user(
+        self,
+        user_id: str,
+        *,
+        concept_tag: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        documents = [
+            _copy_document(document)
+            for document in self.concept_mastery.values()
+            if document["userId"] == user_id
+            and (concept_tag is None or document["conceptTag"] == concept_tag)
+        ]
+        documents = [item for item in documents if item is not None]
+        return _sort_by_last_updated_desc(documents)[:limit]
 
 
 class MongoStorage:
@@ -353,6 +472,16 @@ class MongoStorage:
         self.db.codeDiagnostics.create_index(
             [("userId", ASCENDING), ("learningSessionId", ASCENDING), ("diagnosticId", ASCENDING), ("status", ASCENDING)],
         )
+        self.db.collaborationSessions.create_index(
+            [("pairSessionId", ASCENDING)],
+            unique=True,
+        )
+        self.db.collaborationSessions.create_index(
+            [("userId", ASCENDING), ("startedAt", DESCENDING)],
+        )
+        self.db.collaborationSessions.create_index(
+            [("learningSessionId", ASCENDING), ("status", ASCENDING)],
+        )
         self.db.learningEvents.create_index(
             [("eventId", ASCENDING)],
             unique=True,
@@ -375,6 +504,17 @@ class MongoStorage:
         )
         self.db.remediationTriggers.create_index(
             [("userId", ASCENDING), ("triggerSource", ASCENDING), ("conceptTag", ASCENDING), ("errorType", ASCENDING), ("status", ASCENDING)],
+        )
+        self.db.conceptMastery.create_index(
+            [("masteryId", ASCENDING)],
+            unique=True,
+        )
+        self.db.conceptMastery.create_index(
+            [("userId", ASCENDING), ("conceptTag", ASCENDING)],
+            unique=True,
+        )
+        self.db.conceptMastery.create_index(
+            [("userId", ASCENDING), ("lastUpdatedAt", DESCENDING)],
         )
 
     def create_user(self, document: dict[str, Any]) -> dict[str, Any]:
@@ -616,6 +756,20 @@ class MongoStorage:
         )
         return [_copy_document(document) or {} for document in cursor]
 
+    def find_diagnostic_by_id(
+        self,
+        user_id: str,
+        diagnostic_id: str,
+    ) -> Optional[dict[str, Any]]:
+        return _copy_document(
+            self.db.codeDiagnostics.find_one(
+                {
+                    "userId": user_id,
+                    "diagnosticId": diagnostic_id,
+                }
+            )
+        )
+
     def create_learning_events(
         self,
         documents: list[dict[str, Any]],
@@ -646,6 +800,34 @@ class MongoStorage:
         )
         return [_copy_document(document) or {} for document in cursor]
 
+    def create_collaboration_session(
+        self,
+        document: dict[str, Any],
+    ) -> dict[str, Any]:
+        self.db.collaborationSessions.insert_one(deepcopy(document))
+        return _copy_document(document) or {}
+
+    def find_collaboration_session_by_id(
+        self,
+        pair_session_id: str,
+    ) -> Optional[dict[str, Any]]:
+        return _copy_document(
+            self.db.collaborationSessions.find_one({"pairSessionId": pair_session_id}),
+        )
+
+    def update_collaboration_session(
+        self,
+        pair_session_id: str,
+        updates: dict[str, Any],
+    ) -> Optional[dict[str, Any]]:
+        self.db.collaborationSessions.update_one(
+            {"pairSessionId": pair_session_id},
+            {"$set": deepcopy(updates)},
+        )
+        return _copy_document(
+            self.db.collaborationSessions.find_one({"pairSessionId": pair_session_id}),
+        )
+
     def upsert_remediation_trigger(
         self,
         document: dict[str, Any],
@@ -666,6 +848,9 @@ class MongoStorage:
             update_document = deepcopy(document)
             update_document.pop("triggerId", None)
             update_document.pop("createdAt", None)
+            for key in REMEDIATION_PROGRESS_FIELDS:
+                if key not in update_document and key in existing:
+                    update_document[key] = existing.get(key)
             self.db.remediationTriggers.update_one(
                 {"triggerId": trigger_id},
                 {
@@ -681,6 +866,27 @@ class MongoStorage:
 
         self.db.remediationTriggers.insert_one(deepcopy(document))
         return (_copy_document(document) or {}, True)
+
+    def find_remediation_trigger_by_id(
+        self,
+        trigger_id: str,
+    ) -> Optional[dict[str, Any]]:
+        return _copy_document(
+            self.db.remediationTriggers.find_one({"triggerId": trigger_id}),
+        )
+
+    def update_remediation_trigger(
+        self,
+        trigger_id: str,
+        updates: dict[str, Any],
+    ) -> Optional[dict[str, Any]]:
+        self.db.remediationTriggers.update_one(
+            {"triggerId": trigger_id},
+            {"$set": deepcopy(updates)},
+        )
+        return _copy_document(
+            self.db.remediationTriggers.find_one({"triggerId": trigger_id}),
+        )
 
     def list_remediation_triggers_for_user(
         self,
@@ -699,6 +905,57 @@ class MongoStorage:
         cursor = self.db.remediationTriggers.find(
             query,
             sort=[("createdAt", DESCENDING)],
+            limit=limit,
+        )
+        return [_copy_document(document) or {} for document in cursor]
+
+    def upsert_concept_mastery(
+        self,
+        document: dict[str, Any],
+    ) -> dict[str, Any]:
+        existing = self.db.conceptMastery.find_one(
+            {
+                "userId": document["userId"],
+                "conceptTag": document["conceptTag"],
+            }
+        )
+
+        if existing is not None:
+            mastery_id = existing["masteryId"]
+            created_at = existing["createdAt"]
+            update_document = deepcopy(document)
+            update_document.pop("masteryId", None)
+            update_document.pop("createdAt", None)
+            self.db.conceptMastery.update_one(
+                {"masteryId": mastery_id},
+                {
+                    "$set": update_document,
+                    "$setOnInsert": {
+                        "masteryId": mastery_id,
+                        "createdAt": created_at,
+                    },
+                },
+            )
+            stored = self.db.conceptMastery.find_one({"masteryId": mastery_id})
+            return _copy_document(stored) or {}
+
+        self.db.conceptMastery.insert_one(deepcopy(document))
+        return _copy_document(document) or {}
+
+    def list_concept_mastery_for_user(
+        self,
+        user_id: str,
+        *,
+        concept_tag: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        query: dict[str, Any] = {"userId": user_id}
+        if concept_tag is not None:
+            query["conceptTag"] = concept_tag
+
+        cursor = self.db.conceptMastery.find(
+            query,
+            sort=[("lastUpdatedAt", DESCENDING)],
             limit=limit,
         )
         return [_copy_document(document) or {} for document in cursor]

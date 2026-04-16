@@ -7,6 +7,7 @@ from app.services.learning_signal_service import (
     build_concept_struggles,
     build_learning_event_document,
 )
+from app.services.mastery_service import build_concept_mastery_document
 
 
 def _reason_for_struggle(struggle) -> str:
@@ -49,10 +50,150 @@ def build_remediation_trigger_document(
         "hintDependencyScore": struggle.hint_dependency_score,
         "hintDependencyLevel": struggle.hint_dependency_level,
         "status": "active",
+        "interventionStatus": "pending",
+        "lessonId": None,
+        "lessonOpenedAt": None,
+        "quizId": None,
+        "quizCompletedAt": None,
+        "quizScorePercent": None,
+        "quizPassed": None,
         "createdAt": now,
         "updatedAt": now,
         "resolvedAt": None,
     }
+
+
+def _mastery_scores_for_quiz(score_percent: int, passed: bool) -> tuple[float, float]:
+    mastery_score = round(score_percent / 100, 2)
+    if passed:
+        struggle_score = round(max(0.0, 1 - mastery_score), 2)
+    else:
+        struggle_score = round(min(0.99, max(0.45, 1 - mastery_score + 0.1)), 2)
+    return mastery_score, struggle_score
+
+
+def record_micro_lesson_opened(
+    storage: Any,
+    *,
+    trigger_document: dict[str, Any],
+    lesson_id: str,
+    occurred_at=None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    event_time = occurred_at or utcnow()
+    updated_trigger = storage.update_remediation_trigger(
+        trigger_document["triggerId"],
+        {
+            "lessonId": lesson_id,
+            "lessonOpenedAt": event_time,
+            "interventionStatus": "lesson_opened",
+            "updatedAt": utcnow(),
+        },
+    )
+    if updated_trigger is None:
+        raise ValueError("Remediation trigger not found for lesson update.")
+
+    event = build_learning_event_document(
+        trigger_document["userId"],
+        trigger_document["learningSessionId"],
+        component="study_guider",
+        event_type="micro_lesson_viewed",
+        concept_tag=trigger_document["conceptTag"],
+        occurred_at=event_time,
+        payload={
+            "trigger_id": trigger_document["triggerId"],
+            "trigger_source": trigger_document["triggerSource"],
+            "lesson_id": lesson_id,
+            "concept_tag": trigger_document["conceptTag"],
+            "error_type": trigger_document["errorType"],
+        },
+    )
+    storage.create_learning_events([event])
+    return updated_trigger, [event]
+
+
+def record_quiz_completed(
+    storage: Any,
+    *,
+    trigger_document: dict[str, Any],
+    quiz_id: str,
+    score_percent: int,
+    passed: bool,
+    occurred_at=None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    event_time = occurred_at or utcnow()
+    mastery_score, struggle_score = _mastery_scores_for_quiz(score_percent, passed)
+    mastery_document = build_concept_mastery_document(
+        trigger_document["userId"],
+        trigger_document["learningSessionId"],
+        concept_tag=trigger_document["conceptTag"],
+        error_type=trigger_document["errorType"],
+        trigger_id=trigger_document["triggerId"],
+        mastery_score=mastery_score,
+        struggle_score=struggle_score,
+        update_source="quiz_completed",
+        quiz_id=quiz_id,
+        score_percent=score_percent,
+        passed=passed,
+        occurred_at=event_time,
+    )
+    updates = {
+        "quizId": quiz_id,
+        "quizCompletedAt": event_time,
+        "quizScorePercent": score_percent,
+        "quizPassed": passed,
+        "interventionStatus": "quiz_completed_passed" if passed else "quiz_completed_failed",
+        "updatedAt": utcnow(),
+    }
+    if passed:
+        updates["status"] = "completed"
+        updates["resolvedAt"] = event_time
+
+    updated_trigger = storage.update_remediation_trigger(
+        trigger_document["triggerId"],
+        updates,
+    )
+    if updated_trigger is None:
+        raise ValueError("Remediation trigger not found for quiz update.")
+
+    quiz_event = build_learning_event_document(
+        trigger_document["userId"],
+        trigger_document["learningSessionId"],
+        component="study_guider",
+        event_type="quiz_completed",
+        concept_tag=trigger_document["conceptTag"],
+        occurred_at=event_time,
+        payload={
+            "trigger_id": trigger_document["triggerId"],
+            "trigger_source": trigger_document["triggerSource"],
+            "quiz_id": quiz_id,
+            "score_percent": score_percent,
+            "passed": passed,
+            "concept_tag": trigger_document["conceptTag"],
+            "error_type": trigger_document["errorType"],
+        },
+    )
+    mastery_event = build_learning_event_document(
+        trigger_document["userId"],
+        trigger_document["learningSessionId"],
+        component="study_guider",
+        event_type="mastery_updated",
+        concept_tag=trigger_document["conceptTag"],
+        occurred_at=event_time,
+        payload={
+            "trigger_id": trigger_document["triggerId"],
+            "trigger_source": trigger_document["triggerSource"],
+            "concept_tag": trigger_document["conceptTag"],
+            "mastery_score": mastery_score,
+            "struggle_score": struggle_score,
+            "update_source": "quiz_completed",
+            "quiz_id": quiz_id,
+            "score_percent": score_percent,
+            "passed": passed,
+        },
+    )
+    storage.upsert_concept_mastery(mastery_document)
+    storage.create_learning_events([quiz_event, mastery_event])
+    return updated_trigger, [quiz_event, mastery_event]
 
 
 def sync_code_coach_remediation_triggers(

@@ -1,0 +1,50 @@
+{
+  "array_indexing": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Reason About the Last Valid Index",
+      "prompt_text": "Ask the driver to explain why array.length is the number of elements and what the last valid index should be for the current array.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Array Access Fix",
+      "prompt_text": "Check whether the fix uses a safe array index and whether the explanation clearly distinguishes array length from the last valid index.",
+      "target_role": "reviewer"
+    }
+  },
+  "loop_boundaries": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Trace the Final Loop Iteration",
+      "prompt_text": "Have the driver trace the final loop iteration aloud and compare the stopping condition with the last valid array index.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Loop Boundary Choice",
+      "prompt_text": "Review whether the stopping condition avoids one extra iteration and whether the explanation matches the valid index range.",
+      "target_role": "reviewer"
+    }
+  },
+  "conditional_logic": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Explain the Condition in Plain English",
+      "prompt_text": "Ask the driver to read the condition in plain English and explain whether it is checking a value or accidentally assigning one.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Conditional Operator",
+      "prompt_text": "Check whether the condition uses the correct operator and whether the reviewer comment explains why that operator is appropriate.",
+      "target_role": "reviewer"
+    }
+  }
+}
