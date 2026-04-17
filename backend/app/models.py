@@ -570,6 +570,65 @@ class CollaborationActionResponse(BaseModel):
     created_event_types: List[str]
 
 
+class DashboardCountsView(BaseModel):
+    total_diagnostics: int
+    active_diagnostics: int
+    resolved_diagnostics: int
+    total_hint_events: int
+    active_remediation_triggers: int
+    completed_remediation_triggers: int
+    total_game_sessions: int
+    total_pair_sessions: int
+    total_peer_reviews: int
+    total_lessons_viewed: int
+    total_quizzes_completed: int
+
+
+class DashboardMasterySummaryView(BaseModel):
+    total_concepts: int
+    strong_count: int
+    developing_count: int
+    at_risk_count: int
+
+
+class DashboardConceptTrendView(BaseModel):
+    concept_tag: str
+    repeat_count: int = 0
+    active_count: int = 0
+    struggle_level: Optional[str] = None
+    mastery_level: Optional[str] = None
+    mastery_score: Optional[float] = None
+    hint_dependency_level: Optional[str] = None
+    last_activity_at: datetime
+    recommended_focus: str
+
+
+class DashboardTimelineItemView(BaseModel):
+    event_id: str
+    component: str
+    event_type: str
+    title: str
+    summary: str
+    concept_tag: Optional[str] = None
+    occurred_at: datetime
+
+
+class DashboardOverviewResponse(BaseModel):
+    status: str
+    user_id: str
+    counts: DashboardCountsView
+    mastery: DashboardMasterySummaryView
+    concept_trends: List[DashboardConceptTrendView]
+    recent_timeline: List[DashboardTimelineItemView]
+
+
+class DashboardTimelineResponse(BaseModel):
+    status: str
+    user_id: str
+    total: int
+    events: List[DashboardTimelineItemView]
+
+
 class LessonOpenedRequest(BaseModel):
     lesson_id: str = Field(min_length=3, max_length=80)
     occurred_at: Optional[datetime] = None

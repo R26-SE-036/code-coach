@@ -713,6 +713,70 @@ Current authenticated Code Coach backend implementation:
 }
 ```
 
+## Dashboard Contracts
+
+### 1. Read Dashboard Overview
+
+#### Endpoint
+
+`GET /api/v1/dashboard/me/overview`
+
+#### Response Example
+
+```json
+{
+  "status": "ok",
+  "user_id": "7c7b7d8d-6b27-4d80-a0f9-111111111111",
+  "counts": {
+    "total_diagnostics": 4,
+    "total_hint_events": 3,
+    "total_game_sessions": 1,
+    "total_pair_sessions": 1,
+    "total_peer_reviews": 1
+  },
+  "mastery": {
+    "total_concepts": 2,
+    "strong_count": 1,
+    "developing_count": 1,
+    "at_risk_count": 0
+  },
+  "concept_trends": [
+    {
+      "concept_tag": "array_indexing",
+      "active_count": 1,
+      "struggle_level": "high",
+      "recommended_focus": "study_guider_and_collaboration"
+    }
+  ]
+}
+```
+
+### 2. Read Dashboard Timeline
+
+#### Endpoint
+
+`GET /api/v1/dashboard/me/timeline`
+
+#### Response Example
+
+```json
+{
+  "status": "ok",
+  "user_id": "7c7b7d8d-6b27-4d80-a0f9-111111111111",
+  "total": 3,
+  "events": [
+    {
+      "event_type": "game_session_completed",
+      "title": "Game completed"
+    },
+    {
+      "event_type": "peer_review_submitted",
+      "title": "Peer review submitted"
+    }
+  ]
+}
+```
+
 ## API Response Conventions
 
 Recommended success envelope:

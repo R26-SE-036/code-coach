@@ -863,6 +863,131 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(code_session_id, stored_session["linkedLearningSessionId"])
         self.assertEqual("active", stored_session["status"])
 
+    def test_dashboard_overview_summarizes_cross_component_activity(self) -> None:
+        auth_payload = self.register_user(
+            email="dashboard@example.com",
+            student_number="it22990013",
+        )
+        access_token = auth_payload["tokens"]["access_token"]
+
+        code_session_id = self.create_learning_session(access_token, "dashboard_code_01")
+        analysis_response = self.analyze_code(
+            access_token,
+            code_session_id,
+            "class A{void m(){int[] a={1,2}; int x=a[a.length];}}",
+        )
+        diagnostic_id = analysis_response["diagnostics"][0]["diagnostic_id"]
+        self.create_learning_event(
+            access_token,
+            code_session_id,
+            event_type="hint_shown",
+            concept_tag="array_indexing",
+            payload={"diagnostic_id": diagnostic_id, "hint_level": "concept"},
+        )
+
+        collab_session_id = self.create_learning_session(
+            access_token,
+            "dashboard_collab_01",
+            source_component="collaborative_studio",
+        )
+        pair_session_response = self.client.post(
+            "/api/v1/collaboration/me/pair-sessions",
+            json={
+                "learning_session_id": collab_session_id,
+                "collaboration_mode": "pair_programming",
+                "partner_user_id": "peer_002",
+                "task_id": "dashboard_collab_01",
+                "linked_learning_session_id": code_session_id,
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, pair_session_response.status_code)
+        pair_session_id = pair_session_response.json()["session"]["pair_session_id"]
+
+        prompt_shown_response = self.client.post(
+            "/api/v1/collaboration/me/prompts/shown",
+            json={
+                "learning_session_id": collab_session_id,
+                "pair_session_id": pair_session_id,
+                "prompt_id": "cpr_dash_01",
+                "prompt_type": "reasoning_prompt",
+                "concept_tag": "array_indexing",
+                "linked_diagnostic_id": diagnostic_id,
+                "linked_learning_session_id": code_session_id,
+                "target_role": "navigator",
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, prompt_shown_response.status_code)
+
+        review_response = self.client.post(
+            "/api/v1/collaboration/me/peer-reviews",
+            json={
+                "learning_session_id": collab_session_id,
+                "pair_session_id": pair_session_id,
+                "concept_tag": "array_indexing",
+                "linked_diagnostic_id": diagnostic_id,
+                "linked_learning_session_id": code_session_id,
+                "rubric_score": 4,
+                "feedback_quality_score": 0.8,
+                "review_comment": "Solid review of the array boundary issue.",
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, review_response.status_code)
+
+        game_session_id = self.create_learning_session(
+            access_token,
+            "dashboard_game_01",
+            source_component="adaptive_gamification",
+        )
+        game_result_response = self.client.post(
+            "/api/v1/gamification/me/session-results",
+            json={
+                "learning_session_id": game_session_id,
+                "concept_tag": "loop_boundaries",
+                "game_id": "game_loops_trace_01",
+                "game_type": "loop_tracer",
+                "difficulty_level": "beginner",
+                "support_level": "guided",
+                "score_percent": 76,
+                "error_count": 1,
+                "attempt_count": 1,
+                "hint_usage": 1,
+                "time_taken_seconds": 145
+            },
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, game_result_response.status_code)
+
+        overview_response = self.client.get(
+            "/api/v1/dashboard/me/overview",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, overview_response.status_code)
+        overview = overview_response.json()
+        self.assertEqual(1, overview["counts"]["total_diagnostics"])
+        self.assertEqual(1, overview["counts"]["total_hint_events"])
+        self.assertEqual(1, overview["counts"]["total_game_sessions"])
+        self.assertEqual(1, overview["counts"]["total_pair_sessions"])
+        self.assertEqual(1, overview["counts"]["total_peer_reviews"])
+        self.assertEqual(1, overview["mastery"]["total_concepts"])
+        trend_concepts = {item["concept_tag"] for item in overview["concept_trends"]}
+        self.assertIn("array_indexing", trend_concepts)
+        self.assertIn("loop_boundaries", trend_concepts)
+        self.assertGreaterEqual(len(overview["recent_timeline"]), 5)
+
+        timeline_response = self.client.get(
+            "/api/v1/dashboard/me/timeline",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        self.assertEqual(200, timeline_response.status_code)
+        timeline_payload = timeline_response.json()
+        self.assertGreaterEqual(timeline_payload["total"], 5)
+        event_types = {item["event_type"] for item in timeline_payload["events"]}
+        self.assertIn("game_session_completed", event_types)
+        self.assertIn("peer_review_submitted", event_types)
+
 
 if __name__ == "__main__":
     unittest.main()

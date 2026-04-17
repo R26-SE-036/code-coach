@@ -7,6 +7,7 @@ from app.models import AnalyzeRequest, AnalyzeResponse
 from app.api.routes.auth import router as auth_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
+from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.diagnostics import router as diagnostics_router
 from app.api.routes.events import router as events_router
 from app.api.routes.gamification import router as gamification_router
@@ -42,6 +43,7 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)
     app.include_router(code_coach_router)
+    app.include_router(dashboard_router)
     app.include_router(diagnostics_router)
     app.include_router(events_router)
     app.include_router(gamification_router)

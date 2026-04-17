@@ -63,6 +63,8 @@ The backend is now grouped into a few focused packages:
 - `POST /api/v1/collaboration/me/pair-sessions`
 - `POST /api/v1/collaboration/me/prompts/shown`
 - `POST /api/v1/collaboration/me/peer-reviews`
+- `GET /api/v1/dashboard/me/overview`
+- `GET /api/v1/dashboard/me/timeline`
 - `GET /api/v1/gamification/me/recommendations`
 - `POST /api/v1/gamification/me/adaptation-decisions`
 - `POST /api/v1/gamification/me/session-results`
@@ -150,3 +152,10 @@ Those endpoints validate session ownership, can link back to Code Coach diagnost
 - `pair_session_started`
 - `collaboration_prompt_shown`
 - `peer_review_submitted`
+
+The shared dashboard layer can now read the cross-component learning picture through:
+
+- `GET /api/v1/dashboard/me/overview`
+- `GET /api/v1/dashboard/me/timeline`
+
+These endpoints summarize diagnostics, hints, remediation, mastery, gamification activity, collaboration activity, concept trends, and a recent learning timeline for the authenticated user.

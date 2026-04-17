@@ -1180,6 +1180,8 @@ Important route groups:
 - `/api/v1/collaboration/me/pair-sessions`
 - `/api/v1/collaboration/me/prompts/shown`
 - `/api/v1/collaboration/me/peer-reviews`
+- `/api/v1/dashboard/me/overview`
+- `/api/v1/dashboard/me/timeline`
 - `/api/v1/gamification/me/recommendations`
 - `/api/v1/gamification/me/adaptation-decisions`
 - `/api/v1/gamification/me/session-results`
@@ -1344,6 +1346,7 @@ From the current implementation, these things are already real:
 - Adaptive Gamification can now fetch direct game recommendations from Code Coach struggle signals and mastery summaries
 - Adaptive Gamification can now send adaptation decisions and completed game session results back into Code Guru, and those results can update concept mastery
 - Collaborative Studio can now fetch direct pair-programming and peer-review prompts from Code Coach signals, start pair sessions, record shown prompts, and submit linked peer reviews
+- a shared dashboard layer can now summarize diagnostics, mastery, remediation, games, collaboration, and recent learning events for the authenticated user
 - the full extension flow has already been tested end to end
 
 That means you already have the **foundation** of the bigger Code Guru system.
@@ -1356,7 +1359,7 @@ The bigger platform still needs:
 
 - full gamification gameplay and result UI
 - collaborative web application UI and analytics workflows
-- dashboards
+- lecturer/admin dashboards
 
 So the current system is a strong beginning, but not yet the complete Code Guru platform.
 
