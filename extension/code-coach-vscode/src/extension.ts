@@ -102,6 +102,15 @@ type LearningEventRequest = {
   payload: Record<string, unknown>;
 };
 
+type AnalysisSnapshot = {
+  diagnosticsCount: number;
+  analysisDurationMs: number;
+  analyzedAt: string;
+  firstMessage?: string;
+  firstLine?: number;
+  learningSessionId?: string;
+};
+
 class ApiError extends Error {
   readonly statusCode: number;
 
@@ -129,6 +138,12 @@ export function activate(context: vscode.ExtensionContext) {
     100,
   );
   authStatusBar.name = "Code Coach Auth";
+  const analysisStatusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    99,
+  );
+  analysisStatusBar.name = "Code Coach Analysis";
+  analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
 
   const warningDecorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: "rgba(255, 215, 0, 0.18)",
@@ -138,8 +153,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const lastDiagnosticsByUri = new Map<string, DiagnosticItem[]>();
+  const lastAnalysisSnapshotByUri = new Map<string, AnalysisSnapshot>();
   const activeHintIndexByUri = new Map<string, number>();
   const debounceDelayMs = 900;
+  let activeAnalysisUriKey: string | undefined;
 
   let currentUser =
     context.globalState.get<AuthUser | undefined>(USER_STATE_KEY) ?? undefined;
@@ -175,6 +192,75 @@ export function activate(context: vscode.ExtensionContext) {
     authStatusBar.show();
   }
 
+  function formatDuration(durationMs: number): string {
+    if (durationMs >= 1000) {
+      return `${(durationMs / 1000).toFixed(2)} s`;
+    }
+
+    return `${Math.round(durationMs)} ms`;
+  }
+
+  function updateAnalysisStatusBar(
+    editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor,
+  ) {
+    if (!currentUser) {
+      analysisStatusBar.text = "$(lock) Sign In for Code Coach";
+      analysisStatusBar.tooltip =
+        "Sign in to analyze Java files and save your progress.";
+      analysisStatusBar.command = "code-coach-vscode.signIn";
+      analysisStatusBar.show();
+      return;
+    }
+
+    if (!editor || !isSupportedDocument(editor.document)) {
+      analysisStatusBar.text = "$(beaker) Code Coach Ready";
+      analysisStatusBar.tooltip =
+        "Open a Java file to analyze it with Code Coach.";
+      analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
+      analysisStatusBar.show();
+      return;
+    }
+
+    const uriKey = editor.document.uri.toString();
+    const snapshot = lastAnalysisSnapshotByUri.get(uriKey);
+
+    analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
+
+    if (activeAnalysisUriKey === uriKey) {
+      analysisStatusBar.text = "$(sync~spin) Code Coach Analyzing";
+      analysisStatusBar.tooltip =
+        "Code Coach is analyzing the current Java file.";
+      analysisStatusBar.show();
+      return;
+    }
+
+    if (!snapshot) {
+      analysisStatusBar.text = "$(search) Analyze Java File";
+      analysisStatusBar.tooltip =
+        "Run Code Coach on the current Java file.";
+      analysisStatusBar.show();
+      return;
+    }
+
+    if (snapshot.diagnosticsCount === 0) {
+      analysisStatusBar.text = "$(check) Code Coach Clean";
+      analysisStatusBar.tooltip =
+        `No target issues detected. Last analysis took ${formatDuration(snapshot.analysisDurationMs)}.`;
+      analysisStatusBar.show();
+      return;
+    }
+
+    const issueLabel =
+      snapshot.diagnosticsCount === 1 ? "issue" : "issues";
+    analysisStatusBar.text =
+      `$(warning) Code Coach ${snapshot.diagnosticsCount} ${issueLabel}`;
+    analysisStatusBar.tooltip =
+      `${snapshot.firstMessage ?? "Issues detected."} ` +
+      `Line ${snapshot.firstLine ?? "n/a"}. ` +
+      `Last analysis took ${formatDuration(snapshot.analysisDurationMs)}.`;
+    analysisStatusBar.show();
+  }
+
   function isSupportedDocument(document: vscode.TextDocument): boolean {
     return document.languageId === "java";
   }
@@ -197,20 +283,29 @@ export function activate(context: vscode.ExtensionContext) {
     clearTimerForUri(editor.document.uri);
     diagnosticCollection.delete(editor.document.uri);
     editor.setDecorations(warningDecorationType, []);
+    updateAnalysisStatusBar(editor);
   }
 
-  function clearFeedbackForDocument(document: vscode.TextDocument) {
+  function clearFeedbackForDocument(
+    document: vscode.TextDocument,
+    options?: { preserveAnalysisSnapshot?: boolean },
+  ) {
     clearTimerForUri(document.uri);
     diagnosticCollection.delete(document.uri);
-    lastDiagnosticsByUri.delete(document.uri.toString());
-    activeHintIndexByUri.delete(document.uri.toString());
+    const uriKey = document.uri.toString();
+    lastDiagnosticsByUri.delete(uriKey);
+    activeHintIndexByUri.delete(uriKey);
+    if (!options?.preserveAnalysisSnapshot) {
+      lastAnalysisSnapshotByUri.delete(uriKey);
+    }
 
     const activeEditor = vscode.window.activeTextEditor;
     if (
       activeEditor &&
-      activeEditor.document.uri.toString() === document.uri.toString()
+      activeEditor.document.uri.toString() === uriKey
     ) {
       activeEditor.setDecorations(warningDecorationType, []);
+      updateAnalysisStatusBar(activeEditor);
     }
   }
 
@@ -227,9 +322,11 @@ export function activate(context: vscode.ExtensionContext) {
     await clearLearningSession();
     diagnosticCollection.clear();
     lastDiagnosticsByUri.clear();
+    lastAnalysisSnapshotByUri.clear();
     activeHintIndexByUri.clear();
     clearEditorFeedback(vscode.window.activeTextEditor);
     updateAuthStatusBar();
+    updateAnalysisStatusBar();
   }
 
   async function storeAuthResponse(
@@ -252,6 +349,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     updateAuthStatusBar();
+    updateAnalysisStatusBar();
   }
 
   function headersToRecord(
@@ -383,6 +481,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (!accessToken && !refreshToken) {
       currentUser = undefined;
       updateAuthStatusBar();
+      updateAnalysisStatusBar();
       return false;
     }
 
@@ -393,6 +492,7 @@ export function activate(context: vscode.ExtensionContext) {
       currentUser = me.user;
       await context.globalState.update(USER_STATE_KEY, me.user);
       updateAuthStatusBar();
+      updateAnalysisStatusBar();
       return true;
     } catch (error) {
       console.error("Code Coach session restore failed:", error);
@@ -737,6 +837,141 @@ export function activate(context: vscode.ExtensionContext) {
     activeHintIndexByUri.set(uriKey, 0);
     diagnosticCollection.set(editor.document.uri, vscodeDiagnostics);
     editor.setDecorations(warningDecorationType, decorationOptions);
+    updateAnalysisStatusBar(editor);
+  }
+
+  function focusDiagnostic(
+    editor: vscode.TextEditor,
+    diagnostic: DiagnosticItem,
+  ): vscode.Range {
+    const range = createRangeFromDiagnostic(editor.document, diagnostic);
+    editor.selection = new vscode.Selection(range.start, range.start);
+    editor.revealRange(
+      range,
+      vscode.TextEditorRevealType.InCenterIfOutsideViewport,
+    );
+    return range;
+  }
+
+  function hintTextForLevel(
+    diagnostic: DiagnosticItem,
+    level: "concept" | "guidance" | "targeted",
+  ): string {
+    switch (level) {
+      case "guidance":
+        return diagnostic.hints.guidance;
+      case "targeted":
+        return diagnostic.hints.targeted;
+      default:
+        return diagnostic.hints.concept;
+    }
+  }
+
+  async function showHintAtIndex(
+    editor: vscode.TextEditor,
+    diagnostics: DiagnosticItem[],
+    index: number,
+    options: {
+      level: "concept" | "guidance" | "targeted";
+      navigationDirection?: "next" | "previous";
+      sourceCommand: string;
+    },
+  ) {
+    const diagnostic = diagnostics[index];
+    if (!diagnostic) {
+      return;
+    }
+
+    const uriKey = editor.document.uri.toString();
+    activeHintIndexByUri.set(uriKey, index);
+    focusDiagnostic(editor, diagnostic);
+
+    const hintText = hintTextForLevel(diagnostic, options.level);
+    const levelLabel =
+      options.level.charAt(0).toUpperCase() + options.level.slice(1);
+
+    await vscode.window.showInformationMessage(
+      `Code Coach ${levelLabel.toLowerCase()} hint ${index + 1}/${diagnostics.length}: ${hintText}`,
+    );
+
+    if (!currentLearningSessionId) {
+      return;
+    }
+
+    const occurredAt = new Date().toISOString();
+
+    if (options.navigationDirection) {
+      trackLearningEvent({
+        learning_session_id: currentLearningSessionId,
+        event_type: "hint_navigation_used",
+        concept_tag: diagnostic.concept_tag,
+        occurred_at: occurredAt,
+        payload: {
+          diagnostic_id: diagnostic.diagnostic_id,
+          error_type: diagnostic.error_type,
+          explanation_key: diagnostic.explanation_key,
+          hint_level: options.level,
+          direction: options.navigationDirection,
+          shown_index: index + 1,
+          total_diagnostics: diagnostics.length,
+          source_command: options.sourceCommand,
+        },
+      });
+    }
+
+    trackLearningEvent({
+      learning_session_id: currentLearningSessionId,
+      event_type: "hint_level_requested",
+      concept_tag: diagnostic.concept_tag,
+      occurred_at: occurredAt,
+      payload: {
+        diagnostic_id: diagnostic.diagnostic_id,
+        error_type: diagnostic.error_type,
+        explanation_key: diagnostic.explanation_key,
+        hint_level: options.level,
+        hint_text: hintText,
+        surface: "info_message",
+        source_command: options.sourceCommand,
+      },
+    });
+  }
+
+  function writeAnalysisOutput(result: AnalyzeResponse) {
+    outputChannel.clear();
+    outputChannel.appendLine("=== Code Coach Analysis Result ===");
+    outputChannel.appendLine(`Status           : ${result.status}`);
+    outputChannel.appendLine(`Message          : ${result.message}`);
+    outputChannel.appendLine(`Timestamp        : ${result.timestamp}`);
+    outputChannel.appendLine(
+      `Analysis time    : ${formatDuration(result.analysis_duration_ms)}`,
+    );
+    outputChannel.appendLine(
+      `Learning session : ${result.learning_session_id ?? "n/a"}`,
+    );
+    outputChannel.appendLine(`User             : ${currentUser?.email ?? "n/a"}`);
+    outputChannel.appendLine(
+      `Detected issues  : ${result.diagnostics.length}`,
+    );
+    outputChannel.appendLine("");
+
+    if (result.diagnostics.length === 0) {
+      outputChannel.appendLine("No target issues detected.");
+      return;
+    }
+
+    result.diagnostics.forEach((diagnostic, index) => {
+      outputChannel.appendLine(
+        `Issue ${index + 1}: ${diagnostic.error_type} (Line ${diagnostic.line}, Column ${diagnostic.column})`,
+      );
+      outputChannel.appendLine(`  Message   : ${diagnostic.message}`);
+      outputChannel.appendLine(`  Concept   : ${diagnostic.hints.concept}`);
+      outputChannel.appendLine(`  Guidance  : ${diagnostic.hints.guidance}`);
+      outputChannel.appendLine(`  Targeted  : ${diagnostic.hints.targeted}`);
+      outputChannel.appendLine(
+        `  Confidence: ${diagnostic.confidence} | ML: ${diagnostic.ml_probability ?? "n/a"} | Locator: ${diagnostic.locator_confidence ?? "n/a"}`,
+      );
+      outputChannel.appendLine("");
+    });
   }
 
   async function requestAnalyze(
@@ -775,24 +1010,25 @@ export function activate(context: vscode.ExtensionContext) {
 
     const code = document.getText();
 
-    if (!code.trim()) {
-      clearFeedbackForDocument(document);
+      if (!code.trim()) {
+        clearFeedbackForDocument(document);
 
       if (options.showPopup) {
         vscode.window.showWarningMessage("The current file is empty.");
       }
 
-      if (options.showOutput) {
-        outputChannel.clear();
-        outputChannel.show(true);
-        outputChannel.appendLine("=== Code Coach Analysis Result ===");
-        outputChannel.appendLine("The current file is empty.");
-      }
+        if (options.showOutput) {
+          outputChannel.show(true);
+          outputChannel.appendLine("The current file is empty.");
+        }
 
       return;
     }
 
     try {
+      activeAnalysisUriKey = document.uri.toString();
+      updateAnalysisStatusBar(editor);
+
       let learningSessionId = await ensureLearningSession();
       if (!learningSessionId) {
         throw new Error("Unable to start a learning session.");
@@ -820,73 +1056,43 @@ export function activate(context: vscode.ExtensionContext) {
         }
       }
 
+      lastAnalysisSnapshotByUri.set(document.uri.toString(), {
+        diagnosticsCount: result.diagnostics.length,
+        analysisDurationMs: result.analysis_duration_ms,
+        analyzedAt: result.timestamp,
+        firstMessage: result.diagnostics[0]?.message,
+        firstLine: result.diagnostics[0]?.line,
+        learningSessionId: result.learning_session_id ?? learningSessionId,
+      });
+
       if (options.showOutput) {
-        outputChannel.clear();
+        writeAnalysisOutput(result);
         outputChannel.show(true);
-        outputChannel.appendLine("=== Code Coach Analysis Result ===");
-        outputChannel.appendLine(`Status: ${result.status}`);
-        outputChannel.appendLine(`Message: ${result.message}`);
-        outputChannel.appendLine(`Timestamp: ${result.timestamp}`);
-        outputChannel.appendLine(
-          `Analysis time: ${result.analysis_duration_ms} ms`,
-        );
-        outputChannel.appendLine(
-          `Learning session: ${result.learning_session_id ?? "n/a"}`,
-        );
-        outputChannel.appendLine(`User: ${currentUser?.email ?? "n/a"}`);
-        outputChannel.appendLine("");
       }
 
       if (result.diagnostics.length === 0) {
-        clearFeedbackForDocument(document);
-
-        if (options.showOutput) {
-          outputChannel.appendLine("No issues detected.");
-        }
+        clearFeedbackForDocument(document, { preserveAnalysisSnapshot: true });
 
         if (options.showPopup) {
-          vscode.window.showInformationMessage("Code Coach: No issues detected.");
+          void vscode.window
+            .showInformationMessage(
+              "Code Coach did not detect any of the current target issues in this file.",
+              "Open Output",
+            )
+            .then((action) => {
+              if (action === "Open Output") {
+                outputChannel.show(true);
+              }
+            });
         }
 
         return;
-      }
-
-      if (options.showOutput) {
-        for (const diagnostic of result.diagnostics) {
-          outputChannel.appendLine(`Diagnostic : ${diagnostic.diagnostic_id}`);
-          outputChannel.appendLine(`Error Type : ${diagnostic.error_type}`);
-          outputChannel.appendLine(`Severity   : ${diagnostic.severity}`);
-          outputChannel.appendLine(
-            `Engine     : ${diagnostic.detection_engine}`,
-          );
-          outputChannel.appendLine(
-            `ML Prob.   : ${diagnostic.ml_probability ?? "n/a"}`,
-          );
-          outputChannel.appendLine(
-            `Locator    : ${diagnostic.locator_confidence ?? "n/a"}`,
-          );
-          outputChannel.appendLine(`Line       : ${diagnostic.line}`);
-          outputChannel.appendLine(`Column     : ${diagnostic.column}`);
-          outputChannel.appendLine(`Confidence : ${diagnostic.confidence}`);
-          outputChannel.appendLine(`Message    : ${diagnostic.message}`);
-          outputChannel.appendLine(`Context    : ${diagnostic.code_context}`);
-          outputChannel.appendLine(`ConceptTag : ${diagnostic.concept_tag}`);
-          outputChannel.appendLine(`ExplainKey : ${diagnostic.explanation_key}`);
-          outputChannel.appendLine(`Concept    : ${diagnostic.hints.concept}`);
-          outputChannel.appendLine(`Guidance   : ${diagnostic.hints.guidance}`);
-          outputChannel.appendLine(`Targeted   : ${diagnostic.hints.targeted}`);
-          outputChannel.appendLine("-----------------------------------");
-        }
       }
 
       applyEditorFeedback(editor, result.diagnostics);
 
       if (options.showPopup) {
         const firstDiagnostic = result.diagnostics[0];
-
-        vscode.window.showWarningMessage(
-          `Code Coach: Found ${result.diagnostics.length} issue(s). First issue: ${firstDiagnostic.message} (Line ${firstDiagnostic.line}). Hint: ${firstDiagnostic.hints.concept}`,
-        );
 
         trackLearningEvent({
           learning_session_id:
@@ -904,6 +1110,26 @@ export function activate(context: vscode.ExtensionContext) {
             trigger: "manual_analysis_results",
           },
         });
+
+        void vscode.window
+          .showWarningMessage(
+            `Code Coach found ${result.diagnostics.length} issue(s). First issue on line ${firstDiagnostic.line}: ${firstDiagnostic.message}`,
+            "Go to First Issue",
+            "Show Guidance Hint",
+            "Open Output",
+          )
+          .then((action) => {
+            if (action === "Go to First Issue") {
+              focusDiagnostic(editor, firstDiagnostic);
+            } else if (action === "Show Guidance Hint") {
+              void showHintAtIndex(editor, result.diagnostics, 0, {
+                level: "guidance",
+                sourceCommand: "analysis_popup",
+              });
+            } else if (action === "Open Output") {
+              outputChannel.show(true);
+            }
+          });
       }
     } catch (error) {
       clearFeedbackForDocument(document);
@@ -916,6 +1142,11 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       console.error("Code Coach analyze error:", error);
+    } finally {
+      if (activeAnalysisUriKey === document.uri.toString()) {
+        activeAnalysisUriKey = undefined;
+      }
+      updateAnalysisStatusBar(editor);
     }
   }
 
@@ -965,63 +1196,35 @@ export function activate(context: vscode.ExtensionContext) {
       (currentIndex + direction + diagnostics.length) % diagnostics.length;
     const diagnostic = diagnostics[nextIndex];
     const range = createRangeFromDiagnostic(editor.document, diagnostic);
-
-    activeHintIndexByUri.set(uriKey, nextIndex);
-    editor.selection = new vscode.Selection(range.start, range.start);
-    editor.revealRange(
-      range,
-      vscode.TextEditorRevealType.InCenterIfOutsideViewport,
-    );
-
-    vscode.window.showInformationMessage(
-      `Code Coach hint ${nextIndex + 1}/${diagnostics.length}: ${diagnostic.hints.guidance}`,
-    );
-
-    if (currentLearningSessionId) {
-      const directionLabel = direction === 1 ? "next" : "previous";
-      const occurredAt = new Date().toISOString();
-
-      trackLearningEvent({
-        learning_session_id: currentLearningSessionId,
-        event_type: "hint_navigation_used",
-        concept_tag: diagnostic.concept_tag,
-        occurred_at: occurredAt,
-        payload: {
-          diagnostic_id: diagnostic.diagnostic_id,
-          error_type: diagnostic.error_type,
-          explanation_key: diagnostic.explanation_key,
-          hint_level: "guidance",
-          direction: directionLabel,
-          shown_index: nextIndex + 1,
-          total_diagnostics: diagnostics.length,
-          source_command:
-            direction === 1 ? "next_hint" : "previous_hint",
-        },
-      });
-
-      trackLearningEvent({
-        learning_session_id: currentLearningSessionId,
-        event_type: "hint_level_requested",
-        concept_tag: diagnostic.concept_tag,
-        occurred_at: occurredAt,
-        payload: {
-          diagnostic_id: diagnostic.diagnostic_id,
-          error_type: diagnostic.error_type,
-          explanation_key: diagnostic.explanation_key,
-          hint_level: "guidance",
-          hint_text: diagnostic.hints.guidance,
-          surface: "info_message",
-          source_command:
-            direction === 1 ? "next_hint" : "previous_hint",
-        },
-      });
-    }
+    void showHintAtIndex(editor, diagnostics, nextIndex, {
+      level: "guidance",
+      navigationDirection: direction === 1 ? "next" : "previous",
+      sourceCommand: direction === 1 ? "next_hint" : "previous_hint",
+    });
   }
 
   const startCommand = vscode.commands.registerCommand(
     "code-coach-vscode.start",
     () => {
-      vscode.window.showInformationMessage("Code Coach extension is running.");
+      const action = currentUser
+        ? "Analyze Current File"
+        : "Sign In";
+      void vscode.window
+        .showInformationMessage(
+          currentUser
+            ? "Code Coach is ready. Use it on the current Java file."
+            : "Code Coach is ready. Sign in to analyze code and save progress.",
+          action,
+        )
+        .then((selected) => {
+          if (selected === "Analyze Current File") {
+            void vscode.commands.executeCommand(
+              "code-coach-vscode.analyzeCurrentFile",
+            );
+          } else if (selected === "Sign In") {
+            void vscode.commands.executeCommand("code-coach-vscode.signIn");
+          }
+        });
       outputChannel.show(true);
       outputChannel.appendLine("Code Coach extension started.");
     },
@@ -1054,7 +1257,7 @@ export function activate(context: vscode.ExtensionContext) {
       const editor = vscode.window.activeTextEditor;
 
       if (!editor) {
-        vscode.window.showErrorMessage("No active editor found.");
+        vscode.window.showErrorMessage("Open a Java file to analyze it with Code Coach.");
         return;
       }
 
@@ -1109,6 +1312,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       scheduleAutoAnalysis(editor);
+      updateAnalysisStatusBar(editor);
     },
   );
 
@@ -1119,6 +1323,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   updateAuthStatusBar();
+  updateAnalysisStatusBar();
   void restoreAuthSession();
 
   const initialEditor = vscode.window.activeTextEditor;
@@ -1138,6 +1343,7 @@ export function activate(context: vscode.ExtensionContext) {
     diagnosticCollection,
     warningDecorationType,
     authStatusBar,
+    analysisStatusBar,
     onDidChangeTextDocument,
     onDidChangeActiveEditor,
     onDidCloseTextDocument,
