@@ -111,6 +111,18 @@ type AnalysisSnapshot = {
   learningSessionId?: string;
 };
 
+type CoachPanelState = {
+  signedIn: boolean;
+  userLabel?: string;
+  fileLabel?: string;
+  isSupportedFile: boolean;
+  diagnostics: DiagnosticItem[];
+  activeIndex: number;
+  activeDiagnostic?: DiagnosticItem;
+  snapshot?: AnalysisSnapshot;
+  learningSessionId?: string;
+};
+
 class ApiError extends Error {
   readonly statusCode: number;
 
@@ -157,6 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
   const activeHintIndexByUri = new Map<string, number>();
   const debounceDelayMs = 900;
   let activeAnalysisUriKey: string | undefined;
+  let coachPanel: vscode.WebviewPanel | undefined;
 
   let currentUser =
     context.globalState.get<AuthUser | undefined>(USER_STATE_KEY) ?? undefined;
@@ -192,6 +205,398 @@ export function activate(context: vscode.ExtensionContext) {
     authStatusBar.show();
   }
 
+  function escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatProbability(value?: number): string {
+    if (value === undefined) {
+      return "n/a";
+    }
+
+    return `${Math.round(value * 100)}%`;
+  }
+
+  function getCoachPanelState(): CoachPanelState {
+    const editor = vscode.window.activeTextEditor;
+    const isSupportedFile = !!editor && isSupportedDocument(editor.document);
+
+    if (!editor || !isSupportedFile) {
+      return {
+        signedIn: !!currentUser,
+        userLabel: currentUser?.full_name,
+        isSupportedFile: false,
+        diagnostics: [],
+        activeIndex: 0,
+      };
+    }
+
+    const uriKey = editor.document.uri.toString();
+    const diagnostics = lastDiagnosticsByUri.get(uriKey) ?? [];
+    const activeIndex = Math.min(
+      activeHintIndexByUri.get(uriKey) ?? 0,
+      Math.max(0, diagnostics.length - 1),
+    );
+
+    return {
+      signedIn: !!currentUser,
+      userLabel: currentUser?.full_name,
+      fileLabel: vscode.workspace.asRelativePath(editor.document.uri, false),
+      isSupportedFile: true,
+      diagnostics,
+      activeIndex,
+      activeDiagnostic: diagnostics[activeIndex],
+      snapshot: lastAnalysisSnapshotByUri.get(uriKey),
+      learningSessionId: currentLearningSessionId,
+    };
+  }
+
+  function buildCoachPanelHtml(): string {
+    const state = getCoachPanelState();
+    const active = state.activeDiagnostic;
+    const issueCount = state.diagnostics.length;
+    const hasIssues = issueCount > 0;
+    const hintIndexLabel = hasIssues
+      ? `${state.activeIndex + 1}/${issueCount}`
+      : "0/0";
+    const sessionLabel = state.learningSessionId ?? state.snapshot?.learningSessionId ?? "n/a";
+
+    const issueCard = !state.signedIn
+      ? `
+        <div class="empty-state">
+          <h2>Sign in to use Code Coach</h2>
+          <p>Sign in to analyze Java files, save learning sessions, and keep your progress connected to the platform.</p>
+          <div class="actions">
+            <button data-command="signIn">Sign In</button>
+            <button class="secondary" data-command="createAccount">Create Account</button>
+          </div>
+        </div>
+      `
+      : !state.isSupportedFile
+        ? `
+          <div class="empty-state">
+            <h2>Open a Java file</h2>
+            <p>Code Coach works on Java files. Open one to analyze it and see targeted hints here.</p>
+          </div>
+        `
+        : !state.snapshot
+          ? `
+            <div class="empty-state">
+              <h2>Analyze the current file</h2>
+              <p>Run Code Coach to see the current issue summary, concept hint, guidance hint, and targeted hint.</p>
+              <div class="actions">
+                <button data-command="analyze">Analyze Current File</button>
+              </div>
+            </div>
+          `
+          : issueCount === 0
+            ? `
+              <div class="empty-state good">
+                <h2>No target issues detected</h2>
+                <p>Code Coach did not detect any of the current target beginner issues in this file.</p>
+                <div class="meta-grid">
+                  <div><span>Last analysis</span><strong>${escapeHtml(formatDuration(state.snapshot.analysisDurationMs))}</strong></div>
+                  <div><span>Learning session</span><strong>${escapeHtml(sessionLabel)}</strong></div>
+                </div>
+                <div class="actions">
+                  <button data-command="analyze">Analyze Again</button>
+                  <button class="secondary" data-command="openOutput">Open Output</button>
+                </div>
+              </div>
+            `
+            : `
+              <div class="issue-card">
+                <div class="issue-header">
+                  <div>
+                    <div class="eyebrow">Current issue ${escapeHtml(hintIndexLabel)}</div>
+                    <h2>${escapeHtml(active?.error_type ?? "Issue")}</h2>
+                  </div>
+                  <div class="pill">${escapeHtml(active?.severity ?? "warning")}</div>
+                </div>
+                <p class="message">${escapeHtml(active?.message ?? "")}</p>
+                <div class="meta-grid">
+                  <div><span>Line</span><strong>${escapeHtml(String(active?.line ?? "n/a"))}</strong></div>
+                  <div><span>Concept</span><strong>${escapeHtml(active?.concept_tag ?? "n/a")}</strong></div>
+                  <div><span>ML</span><strong>${escapeHtml(formatProbability(active?.ml_probability))}</strong></div>
+                  <div><span>Locator</span><strong>${escapeHtml(formatProbability(active?.locator_confidence))}</strong></div>
+                </div>
+                <div class="hint-block">
+                  <h3>Concept Hint</h3>
+                  <p>${escapeHtml(active?.hints.concept ?? "")}</p>
+                </div>
+                <div class="hint-block">
+                  <h3>Guidance Hint</h3>
+                  <p>${escapeHtml(active?.hints.guidance ?? "")}</p>
+                </div>
+                <div class="hint-block">
+                  <h3>Targeted Hint</h3>
+                  <p>${escapeHtml(active?.hints.targeted ?? "")}</p>
+                </div>
+                <div class="actions">
+                  <button data-command="previousHint">Previous</button>
+                  <button data-command="nextHint">Next</button>
+                  <button class="secondary" data-command="revealIssue">Reveal in Editor</button>
+                  <button class="secondary" data-command="openOutput">Open Output</button>
+                </div>
+              </div>
+            `;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Coach Panel</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        font-family: var(--vscode-font-family);
+        color: var(--vscode-foreground);
+        background: var(--vscode-editor-background);
+        margin: 0;
+        padding: 16px;
+      }
+      h1, h2, h3, p {
+        margin: 0;
+      }
+      .page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .summary {
+        border: 1px solid var(--vscode-panel-border);
+        border-radius: 8px;
+        padding: 14px;
+        background: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--vscode-button-background) 10%);
+      }
+      .summary h1 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+      .summary p {
+        font-size: 12px;
+        color: var(--vscode-descriptionForeground);
+      }
+      .issue-card, .empty-state {
+        border: 1px solid var(--vscode-panel-border);
+        border-radius: 8px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .good {
+        border-color: color-mix(in srgb, var(--vscode-terminal-ansiGreen) 50%, var(--vscode-panel-border) 50%);
+      }
+      .issue-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--vscode-descriptionForeground);
+        margin-bottom: 6px;
+      }
+      .message {
+        line-height: 1.45;
+      }
+      .pill {
+        align-self: flex-start;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: color-mix(in srgb, var(--vscode-editorWarning-foreground) 16%, transparent);
+        color: var(--vscode-foreground);
+      }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .meta-grid div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 10px;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--vscode-editor-background) 82%, var(--vscode-sideBar-background) 18%);
+      }
+      .meta-grid span {
+        font-size: 11px;
+        color: var(--vscode-descriptionForeground);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .meta-grid strong {
+        font-size: 13px;
+      }
+      .hint-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px 12px;
+        border-left: 3px solid var(--vscode-button-background);
+        background: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--vscode-button-background) 12%);
+      }
+      .hint-block h3 {
+        font-size: 12px;
+      }
+      .hint-block p {
+        line-height: 1.45;
+        color: var(--vscode-foreground);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      button {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        background: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        cursor: pointer;
+        font: inherit;
+      }
+      button:hover {
+        background: var(--vscode-button-hoverBackground);
+      }
+      button.secondary {
+        background: color-mix(in srgb, var(--vscode-button-background) 20%, transparent);
+        color: var(--vscode-foreground);
+        border: 1px solid var(--vscode-panel-border);
+      }
+      .footer-note {
+        font-size: 11px;
+        color: var(--vscode-descriptionForeground);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="summary">
+        <h1>Code Coach</h1>
+        <p>${escapeHtml(
+          state.signedIn
+            ? `Signed in as ${state.userLabel ?? "student"}`
+            : "Not signed in",
+        )}</p>
+        <p>${escapeHtml(
+          state.fileLabel
+            ? `Current file: ${state.fileLabel}`
+            : "Open a Java file to work with Code Coach.",
+        )}</p>
+      </section>
+      ${issueCard}
+      <div class="footer-note">
+        Learning session: ${escapeHtml(sessionLabel)}
+      </div>
+    </div>
+    <script>
+      const vscode = acquireVsCodeApi();
+      for (const element of document.querySelectorAll("[data-command]")) {
+        element.addEventListener("click", () => {
+          const command = element.getAttribute("data-command");
+          if (command) {
+            vscode.postMessage({ command });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>`;
+  }
+
+  function updateCoachPanel() {
+    if (!coachPanel) {
+      return;
+    }
+
+    coachPanel.title = "Code Coach";
+    coachPanel.webview.html = buildCoachPanelHtml();
+  }
+
+  function getSupportedActiveEditor(): vscode.TextEditor | undefined {
+    const editor = vscode.window.activeTextEditor;
+    return editor && isSupportedDocument(editor.document) ? editor : undefined;
+  }
+
+  function openCoachPanel() {
+    if (coachPanel) {
+      coachPanel.reveal(vscode.ViewColumn.Beside, true);
+      updateCoachPanel();
+      return;
+    }
+
+    coachPanel = vscode.window.createWebviewPanel(
+      "codeCoachPanel",
+      "Code Coach",
+      vscode.ViewColumn.Beside,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+      },
+    );
+
+    coachPanel.onDidDispose(() => {
+      coachPanel = undefined;
+    });
+
+    coachPanel.webview.onDidReceiveMessage((message: { command?: string }) => {
+      switch (message.command) {
+        case "signIn":
+          void vscode.commands.executeCommand("code-coach-vscode.signIn");
+          break;
+        case "createAccount":
+          void vscode.commands.executeCommand("code-coach-vscode.createAccount");
+          break;
+        case "analyze":
+          void vscode.commands.executeCommand("code-coach-vscode.analyzeCurrentFile");
+          break;
+        case "previousHint":
+          void vscode.commands.executeCommand("code-coach-vscode.previousHint");
+          break;
+        case "nextHint":
+          void vscode.commands.executeCommand("code-coach-vscode.nextHint");
+          break;
+        case "openOutput":
+          outputChannel.show(true);
+          break;
+        case "revealIssue": {
+          const editor = getSupportedActiveEditor();
+          if (!editor) {
+            break;
+          }
+          const diagnostics =
+            lastDiagnosticsByUri.get(editor.document.uri.toString()) ?? [];
+          const currentIndex =
+            activeHintIndexByUri.get(editor.document.uri.toString()) ?? 0;
+          const diagnostic = diagnostics[currentIndex];
+          if (diagnostic) {
+            focusDiagnostic(editor, diagnostic);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    });
+
+    updateCoachPanel();
+  }
+
   function formatDuration(durationMs: number): string {
     if (durationMs >= 1000) {
       return `${(durationMs / 1000).toFixed(2)} s`;
@@ -209,6 +614,7 @@ export function activate(context: vscode.ExtensionContext) {
         "Sign in to analyze Java files and save your progress.";
       analysisStatusBar.command = "code-coach-vscode.signIn";
       analysisStatusBar.show();
+      updateCoachPanel();
       return;
     }
 
@@ -218,6 +624,7 @@ export function activate(context: vscode.ExtensionContext) {
         "Open a Java file to analyze it with Code Coach.";
       analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
       analysisStatusBar.show();
+      updateCoachPanel();
       return;
     }
 
@@ -231,6 +638,7 @@ export function activate(context: vscode.ExtensionContext) {
       analysisStatusBar.tooltip =
         "Code Coach is analyzing the current Java file.";
       analysisStatusBar.show();
+      updateCoachPanel();
       return;
     }
 
@@ -239,6 +647,7 @@ export function activate(context: vscode.ExtensionContext) {
       analysisStatusBar.tooltip =
         "Run Code Coach on the current Java file.";
       analysisStatusBar.show();
+      updateCoachPanel();
       return;
     }
 
@@ -247,6 +656,7 @@ export function activate(context: vscode.ExtensionContext) {
       analysisStatusBar.tooltip =
         `No target issues detected. Last analysis took ${formatDuration(snapshot.analysisDurationMs)}.`;
       analysisStatusBar.show();
+      updateCoachPanel();
       return;
     }
 
@@ -259,6 +669,7 @@ export function activate(context: vscode.ExtensionContext) {
       `Line ${snapshot.firstLine ?? "n/a"}. ` +
       `Last analysis took ${formatDuration(snapshot.analysisDurationMs)}.`;
     analysisStatusBar.show();
+    updateCoachPanel();
   }
 
   function isSupportedDocument(document: vscode.TextDocument): boolean {
@@ -885,6 +1296,7 @@ export function activate(context: vscode.ExtensionContext) {
     const uriKey = editor.document.uri.toString();
     activeHintIndexByUri.set(uriKey, index);
     focusDiagnostic(editor, diagnostic);
+    updateCoachPanel();
 
     const hintText = hintTextForLevel(diagnostic, options.level);
     const levelLabel =
@@ -1078,10 +1490,13 @@ export function activate(context: vscode.ExtensionContext) {
             .showInformationMessage(
               "Code Coach did not detect any of the current target issues in this file.",
               "Open Output",
+              "Open Coach Panel",
             )
             .then((action) => {
               if (action === "Open Output") {
                 outputChannel.show(true);
+              } else if (action === "Open Coach Panel") {
+                openCoachPanel();
               }
             });
         }
@@ -1116,6 +1531,7 @@ export function activate(context: vscode.ExtensionContext) {
             `Code Coach found ${result.diagnostics.length} issue(s). First issue on line ${firstDiagnostic.line}: ${firstDiagnostic.message}`,
             "Go to First Issue",
             "Show Guidance Hint",
+            "Open Coach Panel",
             "Open Output",
           )
           .then((action) => {
@@ -1126,6 +1542,8 @@ export function activate(context: vscode.ExtensionContext) {
                 level: "guidance",
                 sourceCommand: "analysis_popup",
               });
+            } else if (action === "Open Coach Panel") {
+              openCoachPanel();
             } else if (action === "Open Output") {
               outputChannel.show(true);
             }
@@ -1215,6 +1633,7 @@ export function activate(context: vscode.ExtensionContext) {
             ? "Code Coach is ready. Use it on the current Java file."
             : "Code Coach is ready. Sign in to analyze code and save progress.",
           action,
+          "Open Coach Panel",
         )
         .then((selected) => {
           if (selected === "Analyze Current File") {
@@ -1223,6 +1642,8 @@ export function activate(context: vscode.ExtensionContext) {
             );
           } else if (selected === "Sign In") {
             void vscode.commands.executeCommand("code-coach-vscode.signIn");
+          } else if (selected === "Open Coach Panel") {
+            openCoachPanel();
           }
         });
       outputChannel.show(true);
@@ -1267,6 +1688,13 @@ export function activate(context: vscode.ExtensionContext) {
         showPopup: true,
         showOutput: true,
       });
+    },
+  );
+
+  const openCoachPanelCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.openCoachPanel",
+    () => {
+      openCoachPanel();
     },
   );
 
@@ -1337,6 +1765,7 @@ export function activate(context: vscode.ExtensionContext) {
     createAccountCommand,
     signOutCommand,
     analyzeCommand,
+    openCoachPanelCommand,
     previousHintCommand,
     nextHintCommand,
     outputChannel,

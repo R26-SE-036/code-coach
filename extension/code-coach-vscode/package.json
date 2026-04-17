@@ -16,6 +16,7 @@
     "onCommand:code-coach-vscode.createAccount",
     "onCommand:code-coach-vscode.signOut",
     "onCommand:code-coach-vscode.analyzeCurrentFile",
+    "onCommand:code-coach-vscode.openCoachPanel",
     "onCommand:code-coach-vscode.previousHint",
     "onCommand:code-coach-vscode.nextHint"
   ],
@@ -56,6 +57,10 @@
       {
         "command": "code-coach-vscode.analyzeCurrentFile",
         "title": "Code Coach: Analyze Current File"
+      },
+      {
+        "command": "code-coach-vscode.openCoachPanel",
+        "title": "Code Coach: Open Coach Panel"
       },
       {
         "command": "code-coach-vscode.previousHint",
