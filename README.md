@@ -160,4 +160,4 @@ npm run lint
 See `docs/proposal_traceability.md` for the detailed comparison between the proposal requirements and the current implementation. The main remaining academic work is improving and evaluating the dataset/model quality for these three categories, benchmarking response time and resource usage, expert hint review, novice user testing, and comparison against compiler/linter feedback.
 
 ## Proposal Status
-Test Teams Worklow
+Test Teams Worklow 2
