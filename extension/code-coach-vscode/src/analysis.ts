@@ -257,86 +257,113 @@ export async function runAnalysisForEditor(
     return;
   }
 
-  try {
-    state.activeAnalysisUriKey = document.uri.toString();
-    updateAnalysisStatusBar(state, editor);
-
-    let learningSessionId = await ensureLearningSession(state);
-    if (!learningSessionId) { throw new Error("Unable to start a learning session."); }
-
-    let result: AnalyzeResponse;
-
+  const doAnalysis = async (
+    progress?: vscode.Progress<{ message?: string; increment?: number }>,
+  ) => {
     try {
-      result = await requestAnalyze(state, code, learningSessionId);
-    } catch (error) {
-      if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 409)) {
-        await clearLearningSession(state);
-        learningSessionId = await ensureLearningSession(state);
-        if (!learningSessionId) { throw error; }
+      state.activeAnalysisUriKey = document.uri.toString();
+      updateAnalysisStatusBar(state, editor);
+
+      progress?.report({ message: "Initializing session…", increment: 10 });
+
+      let learningSessionId = await ensureLearningSession(state);
+      if (!learningSessionId) { throw new Error("Unable to start a learning session."); }
+
+      progress?.report({ message: "Analyzing code…", increment: 30 });
+
+      let result: AnalyzeResponse;
+
+      try {
         result = await requestAnalyze(state, code, learningSessionId);
-      } else {
-        throw error;
+      } catch (error) {
+        if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 409)) {
+          await clearLearningSession(state);
+          learningSessionId = await ensureLearningSession(state);
+          if (!learningSessionId) { throw error; }
+          result = await requestAnalyze(state, code, learningSessionId);
+        } else {
+          throw error;
+        }
       }
-    }
 
-    state.lastAnalysisSnapshotByUri.set(document.uri.toString(), {
-      diagnosticsCount: result.diagnostics.length,
-      analysisDurationMs: result.analysis_duration_ms,
-      analyzedAt: result.timestamp,
-      firstMessage: result.diagnostics[0]?.message,
-      firstLine: result.diagnostics[0]?.line,
-      learningSessionId: result.learning_session_id ?? learningSessionId,
-    });
+      progress?.report({ message: "Processing results…", increment: 40 });
 
-    if (options.showOutput) { writeAnalysisOutput(state, result); state.outputChannel.show(true); }
+      state.lastAnalysisSnapshotByUri.set(document.uri.toString(), {
+        diagnosticsCount: result.diagnostics.length,
+        analysisDurationMs: result.analysis_duration_ms,
+        analyzedAt: result.timestamp,
+        firstMessage: result.diagnostics[0]?.message,
+        firstLine: result.diagnostics[0]?.line,
+        learningSessionId: result.learning_session_id ?? learningSessionId,
+      });
 
-    if (result.diagnostics.length === 0) {
-      clearFeedbackForDocument(state, document, { preserveAnalysisSnapshot: true });
+      if (options.showOutput) { writeAnalysisOutput(state, result); state.outputChannel.show(true); }
+
+      if (result.diagnostics.length === 0) {
+        clearFeedbackForDocument(state, document, { preserveAnalysisSnapshot: true });
+        progress?.report({ message: "No issues found ✓", increment: 20 });
+        if (options.showPopup) {
+          void vscode.window.showInformationMessage(
+            "Code Coach did not detect any of the current target issues in this file.",
+            "Open Output", "Open Coach Panel",
+          ).then((action) => {
+            if (action === "Open Output") { state.outputChannel.show(true); }
+            else if (action === "Open Coach Panel") { openCoachPanelFromState(state); }
+          });
+        }
+        return;
+      }
+
+      applyEditorFeedback(state, editor, result.diagnostics);
+
+      progress?.report({ message: `Found ${result.diagnostics.length} issue(s)`, increment: 20 });
+
       if (options.showPopup) {
-        void vscode.window.showInformationMessage(
-          "Code Coach did not detect any of the current target issues in this file.",
-          "Open Output", "Open Coach Panel",
+        const first = result.diagnostics[0];
+        trackLearningEvent(state, {
+          learning_session_id: result.learning_session_id ?? learningSessionId,
+          event_type: "hint_shown", concept_tag: first.concept_tag,
+          occurred_at: new Date().toISOString(),
+          payload: {
+            diagnostic_id: first.diagnostic_id, error_type: first.error_type,
+            explanation_key: first.explanation_key, hint_level: "concept",
+            hint_text: first.hints.concept, surface: "warning_popup", trigger: "manual_analysis_results",
+          },
+        });
+
+        void vscode.window.showWarningMessage(
+          `Code Coach found ${result.diagnostics.length} issue(s). First issue on line ${first.line}: ${first.message}`,
+          "Go to First Issue", "Show Guidance Hint", "Open Coach Panel", "Open Output",
         ).then((action) => {
-          if (action === "Open Output") { state.outputChannel.show(true); }
+          if (action === "Go to First Issue") { focusDiagnostic(editor, first); }
+          else if (action === "Show Guidance Hint") { void showHintAtIndex(state, editor, result.diagnostics, 0, { level: "guidance", sourceCommand: "analysis_popup" }); }
           else if (action === "Open Coach Panel") { openCoachPanelFromState(state); }
+          else if (action === "Open Output") { state.outputChannel.show(true); }
         });
       }
-      return;
+    } catch (error) {
+      clearFeedbackForDocument(state, document);
+      const message = error instanceof Error ? error.message : "Unknown error occurred.";
+      if (options.showPopup) { vscode.window.showErrorMessage(`Code Coach error: ${message}`); }
+      console.error("Code Coach analyze error:", error);
+    } finally {
+      if (state.activeAnalysisUriKey === document.uri.toString()) { state.activeAnalysisUriKey = undefined; }
+      updateAnalysisStatusBar(state, editor);
     }
+  };
 
-    applyEditorFeedback(state, editor, result.diagnostics);
-
-    if (options.showPopup) {
-      const first = result.diagnostics[0];
-      trackLearningEvent(state, {
-        learning_session_id: result.learning_session_id ?? learningSessionId,
-        event_type: "hint_shown", concept_tag: first.concept_tag,
-        occurred_at: new Date().toISOString(),
-        payload: {
-          diagnostic_id: first.diagnostic_id, error_type: first.error_type,
-          explanation_key: first.explanation_key, hint_level: "concept",
-          hint_text: first.hints.concept, surface: "warning_popup", trigger: "manual_analysis_results",
-        },
-      });
-
-      void vscode.window.showWarningMessage(
-        `Code Coach found ${result.diagnostics.length} issue(s). First issue on line ${first.line}: ${first.message}`,
-        "Go to First Issue", "Show Guidance Hint", "Open Coach Panel", "Open Output",
-      ).then((action) => {
-        if (action === "Go to First Issue") { focusDiagnostic(editor, first); }
-        else if (action === "Show Guidance Hint") { void showHintAtIndex(state, editor, result.diagnostics, 0, { level: "guidance", sourceCommand: "analysis_popup" }); }
-        else if (action === "Open Coach Panel") { openCoachPanelFromState(state); }
-        else if (action === "Open Output") { state.outputChannel.show(true); }
-      });
-    }
-  } catch (error) {
-    clearFeedbackForDocument(state, document);
-    const message = error instanceof Error ? error.message : "Unknown error occurred.";
-    if (options.showPopup) { vscode.window.showErrorMessage(`Code Coach error: ${message}`); }
-    console.error("Code Coach analyze error:", error);
-  } finally {
-    if (state.activeAnalysisUriKey === document.uri.toString()) { state.activeAnalysisUriKey = undefined; }
-    updateAnalysisStatusBar(state, editor);
+  // Show progress notification for manual analysis, run silently for auto-analysis
+  if (options.showPopup) {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Code Coach",
+        cancellable: false,
+      },
+      async (progress) => { await doAnalysis(progress); },
+    );
+  } else {
+    await doAnalysis();
   }
 }
 
