@@ -1,0 +1,16 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Graduation cap base -->
+  <path d="M12 3L1 9L12 15L23 9L12 3Z" fill="#a78bfa" opacity="0.9"/>
+  <!-- Cap brim shadow -->
+  <path d="M12 15L1 9V10L12 16L23 10V9L12 15Z" fill="#8b5cf6" opacity="0.7"/>
+  <!-- Tassel string -->
+  <line x1="20" y1="9" x2="20" y2="16" stroke="#c4b5fd" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Tassel end -->
+  <circle cx="20" cy="17" r="1.2" fill="#c4b5fd"/>
+  <!-- Code bracket left -->
+  <path d="M7 17.5L4.5 19.5L7 21.5" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Code bracket right -->
+  <path d="M17 17.5L19.5 19.5L17 21.5" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Code slash -->
+  <line x1="13.5" y1="17" x2="10.5" y2="22" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

@@ -13,6 +13,7 @@ import {
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
 import { createWarningDecorationType } from "./ui/decorations";
+import { CoachSidebarProvider } from "./ui/sidebarProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Code Coach extension has been activated.");
@@ -29,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     debounceTimers: new Map(),
     activeAnalysisUriKey: undefined,
     coachPanel: undefined,
+    sidebarProvider: undefined,
     outputChannel: vscode.window.createOutputChannel("Code Coach"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection("code-coach"),
     warningDecorationType: createWarningDecorationType(),
@@ -40,6 +42,15 @@ export function activate(context: vscode.ExtensionContext) {
   state.authStatusBar.name = "Code Coach Auth";
   state.analysisStatusBar.name = "Code Coach Analysis";
   state.analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
+
+  // ── Sidebar provider ──
+  const sidebarProvider = new CoachSidebarProvider(state);
+  state.sidebarProvider = sidebarProvider;
+  const sidebarRegistration = vscode.window.registerWebviewViewProvider(
+    CoachSidebarProvider.viewType,
+    sidebarProvider,
+    { webviewOptions: { retainContextWhenHidden: true } },
+  );
 
   // ── Coach panel helpers ──
   function getSupportedActiveEditor(): vscode.TextEditor | undefined {
@@ -190,6 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
+    sidebarRegistration,
     onDidChangeTextDocument, onDidChangeActiveEditor, onDidCloseTextDocument,
   );
 }

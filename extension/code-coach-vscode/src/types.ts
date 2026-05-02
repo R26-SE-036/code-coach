@@ -133,6 +133,8 @@ export class ApiError extends Error {
   }
 }
 
+import { CoachSidebarProvider } from "./ui/sidebarProvider";
+
 /**
  * Shared mutable state passed by reference across all modules.
  * Replaces the closure-captured locals from the original monolithic activate().
@@ -146,6 +148,7 @@ export type ExtensionState = {
   debounceTimers: Map<string, ReturnType<typeof setTimeout>>;
   activeAnalysisUriKey: string | undefined;
   coachPanel: vscode.WebviewPanel | undefined;
+  sidebarProvider: CoachSidebarProvider | undefined;
   outputChannel: vscode.OutputChannel;
   diagnosticCollection: vscode.DiagnosticCollection;
   warningDecorationType: vscode.TextEditorDecorationType;

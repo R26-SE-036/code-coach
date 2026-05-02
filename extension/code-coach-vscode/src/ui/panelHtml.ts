@@ -342,7 +342,13 @@ body{
 }
 
 export function updateCoachPanel(state: ExtensionState): void {
-  if (!state.coachPanel) { return; }
-  state.coachPanel.title = "Code Coach";
-  state.coachPanel.webview.html = buildCoachPanelHtml(state);
+  if (state.coachPanel) {
+    state.coachPanel.title = "Code Coach";
+    state.coachPanel.webview.html = buildCoachPanelHtml(state);
+  }
+
+  // Also refresh the sidebar if it exists
+  if (state.sidebarProvider) {
+    state.sidebarProvider.refresh();
+  }
 }

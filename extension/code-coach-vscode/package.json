@@ -11,6 +11,7 @@
   ],
   "activationEvents": [
     "onLanguage:java",
+    "onView:codeCoachSidebar",
     "onCommand:code-coach-vscode.start",
     "onCommand:code-coach-vscode.signIn",
     "onCommand:code-coach-vscode.createAccount",
@@ -22,6 +23,24 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "code-coach",
+          "title": "Code Coach",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "code-coach": [
+        {
+          "type": "webview",
+          "id": "codeCoachSidebar",
+          "name": "Coach Panel"
+        }
+      ]
+    },
     "configuration": {
       "title": "Code Coach",
       "properties": {
