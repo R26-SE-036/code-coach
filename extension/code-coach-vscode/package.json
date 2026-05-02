@@ -89,6 +89,65 @@
         "command": "code-coach-vscode.nextHint",
         "title": "Code Coach: Next Hint"
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "codeCoachWelcome",
+        "title": "Get Started with Code Coach",
+        "description": "Code Coach helps beginner Java programmers learn from their mistakes with progressive hints and targeted feedback powered by ML.",
+        "steps": [
+          {
+            "id": "signIn",
+            "title": "Sign In or Create an Account",
+            "description": "Code Coach tracks your learning progress. Sign in to save your sessions and get personalized feedback.\n\n[Sign In](command:code-coach-vscode.signIn) or [Create Account](command:code-coach-vscode.createAccount)",
+            "media": {
+              "image": "media/walkthrough/step-signin.svg",
+              "altText": "Sign in screen with lock icon and authentication buttons"
+            },
+            "completionEvents": ["onCommand:code-coach-vscode.signIn", "onCommand:code-coach-vscode.createAccount"]
+          },
+          {
+            "id": "openJavaFile",
+            "title": "Open a Java File",
+            "description": "Code Coach works with Java source files. Open any `.java` file in your workspace to begin — your own assignment, a practice exercise, or any Java project.\n\nCode Coach will automatically detect supported files.",
+            "media": {
+              "image": "media/walkthrough/step-openfile.svg",
+              "altText": "VS Code editor with a Java file open showing code"
+            },
+            "completionEvents": ["onLanguage:java"]
+          },
+          {
+            "id": "analyzeCode",
+            "title": "Analyze Your Code",
+            "description": "Run analysis to detect common beginner issues like uninitialized variables, missing brackets, and more.\n\n[Analyze Current File](command:code-coach-vscode.analyzeCurrentFile)\n\nCode Coach also runs **automatically** as you type, with results appearing after a brief pause.",
+            "media": {
+              "image": "media/walkthrough/step-analyze.svg",
+              "altText": "Magnifying glass analyzing code with results showing 3 issues found"
+            },
+            "completionEvents": ["onCommand:code-coach-vscode.analyzeCurrentFile"]
+          },
+          {
+            "id": "exploreHints",
+            "title": "Explore Progressive Hints",
+            "description": "Each issue comes with **3 levels of hints** that progressively guide you to the answer:\n\n- 💡 **Concept** — explains the underlying concept\n- 🧭 **Guidance** — points you in the right direction\n- 🎯 **Targeted** — gives a specific fix suggestion\n\nLook for the **💡 lightbulb** on warning squiggles and the **CodeLens** links above problem lines.",
+            "media": {
+              "image": "media/walkthrough/step-hints.svg",
+              "altText": "Three progressive hint blocks in blue, teal, and purple"
+            },
+            "completionEvents": ["onCommand:code-coach-vscode.nextHint", "onCommand:code-coach-vscode.previousHint"]
+          },
+          {
+            "id": "openCoachPanel",
+            "title": "Use the Coach Panel",
+            "description": "The Coach Panel is your command center. Click the **🎓 graduation cap** icon in the activity bar (left sidebar) to open it.\n\nNavigate between issues, view all hints at a glance, and track your session.\n\n[Open Coach Panel](command:code-coach-vscode.openCoachPanel)",
+            "media": {
+              "image": "media/walkthrough/step-panel.svg",
+              "altText": "Sidebar panel showing issue navigation and hint cards with editor warnings"
+            },
+            "completionEvents": ["onCommand:code-coach-vscode.openCoachPanel"]
+          }
+        ]
+      }
     ]
   },
   "scripts": {

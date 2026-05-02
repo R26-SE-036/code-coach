@@ -1,0 +1,21 @@
+<svg width="400" height="260" viewBox="0 0 400 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="260" rx="12" fill="#1e1e2e"/>
+  <!-- Hint cards stacked -->
+  <!-- Concept hint -->
+  <rect x="60" y="30" width="280" height="54" rx="10" fill="#2a2a3e" stroke="#60a5fa" stroke-width="1"/>
+  <rect x="60" y="30" width="4" height="54" rx="2" fill="#60a5fa"/>
+  <text x="80" y="52" fill="#60a5fa" font-family="system-ui" font-size="10" font-weight="700">💡 CONCEPT HINT</text>
+  <text x="80" y="72" fill="#cbd5e1" font-family="system-ui" font-size="11">Variables must be initialized before use</text>
+  <!-- Guidance hint -->
+  <rect x="60" y="96" width="280" height="54" rx="10" fill="#2a2a3e" stroke="#2dd4bf" stroke-width="1"/>
+  <rect x="60" y="96" width="4" height="54" rx="2" fill="#2dd4bf"/>
+  <text x="80" y="118" fill="#2dd4bf" font-family="system-ui" font-size="10" font-weight="700">🧭 GUIDANCE HINT</text>
+  <text x="80" y="138" fill="#cbd5e1" font-family="system-ui" font-size="11">Check where the variable is declared and assigned</text>
+  <!-- Targeted hint -->
+  <rect x="60" y="162" width="280" height="54" rx="10" fill="#2a2a3e" stroke="#a78bfa" stroke-width="1"/>
+  <rect x="60" y="162" width="4" height="54" rx="2" fill="#a78bfa"/>
+  <text x="80" y="184" fill="#a78bfa" font-family="system-ui" font-size="10" font-weight="700">🎯 TARGETED HINT</text>
+  <text x="80" y="204" fill="#cbd5e1" font-family="system-ui" font-size="11">Add = 0 after int x on line 5</text>
+  <!-- Bottom text -->
+  <text x="200" y="242" text-anchor="middle" fill="#e2e8f0" font-family="system-ui" font-size="13" font-weight="600">Progressive hints guide you without spoiling the answer</text>
+</svg>
