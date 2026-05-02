@@ -10,6 +10,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:java",
     "onView:codeCoachSidebar",
     "onCommand:code-coach-vscode.start",
@@ -88,6 +89,10 @@
       {
         "command": "code-coach-vscode.nextHint",
         "title": "Code Coach: Next Hint"
+      },
+      {
+        "command": "code-coach-vscode.openWalkthrough",
+        "title": "Code Coach: Welcome Guide"
       }
     ],
     "walkthroughs": [

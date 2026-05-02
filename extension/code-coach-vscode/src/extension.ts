@@ -189,6 +189,16 @@ export function activate(context: vscode.ExtensionContext) {
     },
   );
 
+  const openWalkthroughCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.openWalkthrough", () => {
+      void vscode.commands.executeCommand(
+        "workbench.action.openWalkthrough",
+        "code-coach-vscode.codeCoachWelcome",
+        false,
+      );
+    },
+  );
+
   // ── Event listeners ──
   const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument((event) => {
     if (event.contentChanges.length === 0) { return; }
@@ -220,7 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
-    showCodeLensHintCommand,
+    showCodeLensHintCommand, openWalkthroughCommand,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
     sidebarRegistration, codeLensRegistration, codeLensProvider, codeActionRegistration,
