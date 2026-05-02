@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { ExtensionState } from "../types";
 import { buildCoachPanelHtml } from "./panelHtml";
 import { isSupportedDocument } from "./statusBar";
-import { focusDiagnostic } from "../analysis";
+import { navigatePanelHint } from "../analysis";
 
 /**
  * WebviewViewProvider that renders the Coach Panel inside the
@@ -37,29 +37,21 @@ export class CoachSidebarProvider implements vscode.WebviewViewProvider {
         case "createAccount":
           void vscode.commands.executeCommand("code-coach-vscode.createAccount");
           break;
+        case "signOut":
+          void vscode.commands.executeCommand("code-coach-vscode.signOut");
+          break;
         case "analyze":
           void vscode.commands.executeCommand("code-coach-vscode.analyzeCurrentFile");
           break;
-        case "previousHint":
-          void vscode.commands.executeCommand("code-coach-vscode.previousHint");
+        case "panelPrevious":
+          navigatePanelHint(this.state, -1);
           break;
-        case "nextHint":
-          void vscode.commands.executeCommand("code-coach-vscode.nextHint");
+        case "panelNext":
+          navigatePanelHint(this.state, 1);
           break;
         case "openOutput":
           this.state.outputChannel.show(true);
           break;
-        case "revealIssue": {
-          const editor = vscode.window.activeTextEditor;
-          if (!editor || !isSupportedDocument(editor.document)) { break; }
-          const diagnostics =
-            this.state.lastDiagnosticsByUri.get(editor.document.uri.toString()) ?? [];
-          const currentIndex =
-            this.state.activeHintIndexByUri.get(editor.document.uri.toString()) ?? 0;
-          const diagnostic = diagnostics[currentIndex];
-          if (diagnostic) { focusDiagnostic(editor, diagnostic); }
-          break;
-        }
         default:
           break;
       }

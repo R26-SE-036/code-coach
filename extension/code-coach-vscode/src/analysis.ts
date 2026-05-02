@@ -76,6 +76,9 @@ export function clearFeedbackForDocument(
     activeEditor.setDecorations(state.warningDecorationType, []);
     updateAnalysisStatusBar(state, activeEditor);
   }
+
+  // Refresh CodeLens so lenses disappear when feedback is cleared
+  if (state.codeLensProvider) { state.codeLensProvider.refresh(); }
 }
 
 // ── Apply editor feedback ──
@@ -107,6 +110,9 @@ function applyEditorFeedback(
   state.diagnosticCollection.set(editor.document.uri, vscodeDiagnostics);
   editor.setDecorations(state.warningDecorationType, decorationOptions);
   updateAnalysisStatusBar(state, editor);
+
+  // Refresh CodeLens so inline hint actions appear above problem lines
+  if (state.codeLensProvider) { state.codeLensProvider.refresh(); }
 }
 
 // ── Focus & hint helpers ──
@@ -369,6 +375,22 @@ export function showHintForActiveEditor(state: ExtensionState, direction: 1 | -1
     navigationDirection: direction === 1 ? "next" : "previous",
     sourceCommand: direction === 1 ? "next_hint" : "previous_hint",
   });
+}
+
+/**
+ * Silent hint navigation for the panel/sidebar buttons.
+ * Updates the active index and refreshes the panel without showing a popup.
+ */
+export function navigatePanelHint(state: ExtensionState, direction: 1 | -1): void {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || !isSupportedDocument(editor.document)) { return; }
+  const uriKey = editor.document.uri.toString();
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const currentIndex = state.activeHintIndexByUri.get(uriKey) ?? 0;
+  const nextIndex = (currentIndex + direction + diagnostics.length) % diagnostics.length;
+  state.activeHintIndexByUri.set(uriKey, nextIndex);
+  updateCoachPanel(state);
 }
 
 // ── Coach panel opener (used internally) ──

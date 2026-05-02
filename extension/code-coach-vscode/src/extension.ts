@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { AuthUser, ExtensionState } from "./types";
+import { AuthUser, DiagnosticItem, ExtensionState } from "./types";
 import { USER_STATE_KEY, LEARNING_SESSION_KEY } from "./constants";
 import { signIn, signOut, createAccount, restoreAuthSession } from "./auth";
 import {
@@ -9,11 +9,14 @@ import {
   clearTimerForUri,
   focusDiagnostic,
   clearFeedbackForDocument,
+  navigatePanelHint,
 } from "./analysis";
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
 import { createWarningDecorationType } from "./ui/decorations";
 import { CoachSidebarProvider } from "./ui/sidebarProvider";
+import { CoachCodeLensProvider } from "./ui/codeLensProvider";
+import { CoachCodeActionProvider } from "./ui/codeActionProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Code Coach extension has been activated.");
@@ -31,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     activeAnalysisUriKey: undefined,
     coachPanel: undefined,
     sidebarProvider: undefined,
+    codeLensProvider: undefined,
     outputChannel: vscode.window.createOutputChannel("Code Coach"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection("code-coach"),
     warningDecorationType: createWarningDecorationType(),
@@ -52,12 +56,22 @@ export function activate(context: vscode.ExtensionContext) {
     { webviewOptions: { retainContextWhenHidden: true } },
   );
 
-  // ── Coach panel helpers ──
-  function getSupportedActiveEditor(): vscode.TextEditor | undefined {
-    const editor = vscode.window.activeTextEditor;
-    return editor && isSupportedDocument(editor.document) ? editor : undefined;
-  }
+  // ── CodeLens provider ──
+  const codeLensProvider = new CoachCodeLensProvider(state);
+  state.codeLensProvider = codeLensProvider;
+  const codeLensRegistration = vscode.languages.registerCodeLensProvider(
+    { language: "java" },
+    codeLensProvider,
+  );
 
+  // ── Code Action provider ──
+  const codeActionRegistration = vscode.languages.registerCodeActionsProvider(
+    { language: "java" },
+    new CoachCodeActionProvider(state),
+    { providedCodeActionKinds: CoachCodeActionProvider.providedCodeActionKinds },
+  );
+
+  // ── Coach panel helpers ──
   function openCoachPanel() {
     if (state.coachPanel) {
       state.coachPanel.reveal(vscode.ViewColumn.Beside, true);
@@ -82,27 +96,21 @@ export function activate(context: vscode.ExtensionContext) {
         case "createAccount":
           void vscode.commands.executeCommand("code-coach-vscode.createAccount");
           break;
+        case "signOut":
+          void vscode.commands.executeCommand("code-coach-vscode.signOut");
+          break;
         case "analyze":
           void vscode.commands.executeCommand("code-coach-vscode.analyzeCurrentFile");
           break;
-        case "previousHint":
-          void vscode.commands.executeCommand("code-coach-vscode.previousHint");
+        case "panelPrevious":
+          navigatePanelHint(state, -1);
           break;
-        case "nextHint":
-          void vscode.commands.executeCommand("code-coach-vscode.nextHint");
+        case "panelNext":
+          navigatePanelHint(state, 1);
           break;
         case "openOutput":
           state.outputChannel.show(true);
           break;
-        case "revealIssue": {
-          const editor = getSupportedActiveEditor();
-          if (!editor) { break; }
-          const diagnostics = state.lastDiagnosticsByUri.get(editor.document.uri.toString()) ?? [];
-          const currentIndex = state.activeHintIndexByUri.get(editor.document.uri.toString()) ?? 0;
-          const diagnostic = diagnostics[currentIndex];
-          if (diagnostic) { focusDiagnostic(editor, diagnostic); }
-          break;
-        }
         default:
           break;
       }
@@ -168,6 +176,19 @@ export function activate(context: vscode.ExtensionContext) {
     "code-coach-vscode.nextHint", () => { showHintForActiveEditor(state, 1); },
   );
 
+  const showCodeLensHintCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.showCodeLensHint",
+    (index: number, level: "concept" | "guidance" | "targeted", diag: DiagnosticItem) => {
+      const hintText = level === "guidance" ? diag.hints.guidance
+        : level === "targeted" ? diag.hints.targeted
+        : diag.hints.concept;
+      const label = level.charAt(0).toUpperCase() + level.slice(1);
+      void vscode.window.showInformationMessage(
+        `Code Coach ${label} Hint (${diag.error_type}, line ${diag.line}): ${hintText}`,
+      );
+    },
+  );
+
   // ── Event listeners ──
   const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument((event) => {
     if (event.contentChanges.length === 0) { return; }
@@ -199,9 +220,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
+    showCodeLensHintCommand,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
-    sidebarRegistration,
+    sidebarRegistration, codeLensRegistration, codeLensProvider, codeActionRegistration,
     onDidChangeTextDocument, onDidChangeActiveEditor, onDidCloseTextDocument,
   );
 }

@@ -134,6 +134,7 @@ export class ApiError extends Error {
 }
 
 import { CoachSidebarProvider } from "./ui/sidebarProvider";
+import { CoachCodeLensProvider } from "./ui/codeLensProvider";
 
 /**
  * Shared mutable state passed by reference across all modules.
@@ -149,6 +150,7 @@ export type ExtensionState = {
   activeAnalysisUriKey: string | undefined;
   coachPanel: vscode.WebviewPanel | undefined;
   sidebarProvider: CoachSidebarProvider | undefined;
+  codeLensProvider: CoachCodeLensProvider | undefined;
   outputChannel: vscode.OutputChannel;
   diagnosticCollection: vscode.DiagnosticCollection;
   warningDecorationType: vscode.TextEditorDecorationType;

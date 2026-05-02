@@ -124,17 +124,17 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
         </div>
 
         <div class="btn-row nav-row">
-          <button class="btn btn-nav" data-command="previousHint">← Previous</button>
-          <button class="btn btn-nav" data-command="nextHint">Next →</button>
+          <button class="btn btn-nav" data-command="panelPrevious">← Previous</button>
+          <button class="btn btn-nav" data-command="panelNext">Next →</button>
         </div>
         <div class="btn-row">
-          <button class="btn btn-secondary" data-command="revealIssue">Reveal in Editor</button>
           <button class="btn btn-ghost" data-command="openOutput">Open Output</button>
         </div>
       </div>`;
   }
 
   const userLine = s.signedIn ? `Signed in as <strong>${escapeHtml(s.userLabel ?? "student")}</strong>` : "Not signed in";
+  const logoutBtn = s.signedIn ? `<button class="btn btn-logout" data-command="signOut" title="Sign out">Sign Out</button>` : "";
   const fileLine = s.fileLabel ? escapeHtml(s.fileLabel) : "No Java file open";
 
   return `<!DOCTYPE html>
@@ -312,13 +312,46 @@ body{
 .footer .dot{width:4px;height:4px;border-radius:50%;background:var(--vscode-terminal-ansiGreen);flex-shrink:0}
 
 .muted{font-size:13px;color:var(--vscode-descriptionForeground);line-height:1.5}
+
+/* ── Logout button ── */
+.btn-logout{
+  padding:4px 10px;font-size:11px;
+  background:transparent;color:var(--vscode-descriptionForeground);
+  border:1px solid color-mix(in srgb,var(--vscode-panel-border) 50%,transparent);
+  border-radius:6px;cursor:pointer;font:inherit;font-weight:600;
+  transition:all .15s ease;
+}
+.btn-logout:hover{color:var(--vscode-errorForeground);border-color:var(--vscode-errorForeground)}
+
+/* ── Header row ── */
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* ── Responsive ── */
+@media(max-width:220px){
+  .stat-row{grid-template-columns:1fr}
+  .btn-row{flex-direction:column}
+  .btn-nav{flex:unset}
+  .header-title{font-size:13px}
+  .hint-block{padding:8px 10px}
+  .empty-icon{font-size:28px}
+}
+@media(max-width:300px){
+  .page{padding:10px 12px 16px}
+  .header{padding:10px 12px}
+  .card{padding:12px}
+  .issue-top{flex-direction:column;gap:6px}
+  .sev-pill{align-self:flex-start}
+}
 </style>
 </head>
 <body>
   <div class="accent-bar"></div>
   <div class="page">
     <section class="header">
-      <div class="header-title"><span class="logo">🎓</span> Code Coach</div>
+      <div class="header-row">
+        <div class="header-title"><span class="logo">🎓</span> Code Coach</div>
+        ${logoutBtn}
+      </div>
       <div class="header-meta">${userLine}</div>
       <div class="header-file">📄 ${fileLine}</div>
     </section>
