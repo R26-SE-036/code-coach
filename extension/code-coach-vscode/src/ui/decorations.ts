@@ -34,14 +34,9 @@ export function buildHoverMarkdown(item: DiagnosticItem): vscode.MarkdownString 
         ? "ℹ️"
         : "⚠️";
 
-  const confidenceBar = (value: number | undefined): string => {
-    if (value === undefined) {
-      return "n/a";
-    }
-    const pct = Math.round(value * 100);
-    const filled = Math.round(value * 10);
-    const empty = 10 - filled;
-    return `\`[${"█".repeat(filled)}${"░".repeat(empty)}]\` ${pct}%`;
+  const pctLabel = (value: number | undefined): string => {
+    if (value === undefined) { return "n/a"; }
+    return `\`${Math.round(value * 100)}%\``;
   };
 
   const md = new vscode.MarkdownString(undefined, true);
@@ -59,13 +54,7 @@ export function buildHoverMarkdown(item: DiagnosticItem): vscode.MarkdownString 
     `| **Line : Column** | \`${item.line} : ${item.column}\` |\n` +
     `| **Concept** | \`${item.concept_tag}\` |\n` +
     `| **Engine** | \`${item.detection_engine}\` |\n` +
-    `| **Diagnostic ID** | \`${item.diagnostic_id}\` |\n` +
-    `| **Explanation key** | \`${item.explanation_key}\` |\n\n` +
-    `---\n\n` +
-    `### 🔬 Detection Confidence\n\n` +
-    `**ML probability:** ${confidenceBar(item.ml_probability)}\n\n` +
-    `**Locator confidence:** ${confidenceBar(item.locator_confidence)}\n\n` +
-    `**Overall confidence:** \`${item.confidence}\`\n\n` +
+    `| **Confidence** | \`${item.confidence}\` — ML ${pctLabel(item.ml_probability)} · Locator ${pctLabel(item.locator_confidence)} |\n\n` +
     `---\n\n` +
     `### 📝 Code Context\n\n` +
     `\`\`\`java\n${item.code_context}\n\`\`\`\n\n` +

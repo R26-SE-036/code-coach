@@ -123,10 +123,6 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
           <p>${escapeHtml(active?.hints.targeted ?? "")}</p>
         </div>
 
-        <div class="btn-row nav-row">
-          <button class="btn btn-nav" data-command="panelPrevious">← Previous</button>
-          <button class="btn btn-nav" data-command="panelNext">Next →</button>
-        </div>
         <div class="btn-row">
           <button class="btn btn-ghost" data-command="openOutput">Open Output</button>
         </div>
@@ -158,7 +154,7 @@ body{
 /* ── Accent bar ── */
 .accent-bar{
   height:3px;
-  background:linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa,#6366f1);
+  background:linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa,#2563eb);
   background-size:200% 100%;
   animation:shimmer 3s linear infinite;
 }
@@ -178,7 +174,7 @@ body{
 .header-title{
   display:flex;align-items:center;gap:8px;
   font-size:15px;font-weight:700;
-  background:linear-gradient(135deg,#818cf8,#a78bfa);
+  background:linear-gradient(135deg,#3b82f6,#60a5fa);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
@@ -259,12 +255,12 @@ body{
 .hint-block h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .hint-block p{font-size:13px;line-height:1.5;color:var(--vscode-foreground)}
 
-.hint-concept{border-left-color:#60a5fa;background:rgba(96,165,250,.06)}
-.hint-concept:hover{background:rgba(96,165,250,.1)}
-.hint-guidance{border-left-color:#2dd4bf;background:rgba(45,212,191,.06)}
-.hint-guidance:hover{background:rgba(45,212,191,.1)}
-.hint-targeted{border-left-color:#a78bfa;background:rgba(167,139,250,.06)}
-.hint-targeted:hover{background:rgba(167,139,250,.1)}
+.hint-concept{border-left-color:#3b82f6;background:rgba(59,130,246,.06)}
+.hint-concept:hover{background:rgba(59,130,246,.1)}
+.hint-guidance{border-left-color:#64748b;background:rgba(100,116,139,.06)}
+.hint-guidance:hover{background:rgba(100,116,139,.1)}
+.hint-targeted{border-left-color:#60a5fa;background:rgba(96,165,250,.06)}
+.hint-targeted:hover{background:rgba(96,165,250,.1)}
 
 /* ── Buttons ── */
 .btn-row{display:flex;flex-wrap:wrap;gap:8px}
@@ -276,10 +272,10 @@ body{
 .btn-icon{font-size:11px}
 
 .btn-primary{
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
-  box-shadow:0 2px 8px rgba(99,102,241,.25);
+  background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;
+  box-shadow:0 2px 8px rgba(37,99,235,.25);
 }
-.btn-primary:hover{box-shadow:0 4px 16px rgba(99,102,241,.35);transform:translateY(-1px)}
+.btn-primary:hover{box-shadow:0 4px 16px rgba(37,99,235,.35);transform:translateY(-1px)}
 
 .btn-secondary{
   background:color-mix(in srgb,var(--vscode-button-background) 18%,transparent);

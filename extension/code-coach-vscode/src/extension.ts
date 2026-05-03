@@ -226,6 +226,9 @@ export function activate(context: vscode.ExtensionContext) {
   const initialEditor = vscode.window.activeTextEditor;
   if (initialEditor) { scheduleAutoAnalysis(state, initialEditor); }
 
+  // Auto-open the Coach Panel on the right side at startup
+  openCoachPanel();
+
   // ── Push disposables ──
   context.subscriptions.push(
     startCommand, signInCommand, createAccountCommand, signOutCommand,
