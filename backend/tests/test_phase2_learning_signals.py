@@ -20,14 +20,12 @@ class Phase2LearningSignalTests(unittest.TestCase):
         *,
         full_name: str = "Signal Student",
         email: str = "signals@example.com",
-        student_number: str = "it22990001",
     ) -> dict:
         response = self.client.post(
             "/api/v1/auth/register",
             json={
                 "full_name": full_name,
                 "email": email,
-                "student_number": student_number,
                 "password": "Password123",
                 "client_name": "code-coach-test",
             },
@@ -157,7 +155,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_concept_struggles_escalate_after_repeated_failures(self) -> None:
         auth_payload = self.register_user(
             email="repeat@example.com",
-            student_number="it22990002",
         )
         access_token = auth_payload["tokens"]["access_token"]
 
@@ -262,7 +259,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_hint_interaction_events_can_be_recorded_and_filtered(self) -> None:
         auth_payload = self.register_user(
             email="hints@example.com",
-            student_number="it22990003",
         )
         access_token = auth_payload["tokens"]["access_token"]
         learning_session_id = self.create_learning_session(access_token, "arrays_lab_04")
@@ -324,7 +320,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_summary_and_struggles_include_hint_dependency_signals(self) -> None:
         auth_payload = self.register_user(
             email="dependency@example.com",
-            student_number="it22990006",
         )
         access_token = auth_payload["tokens"]["access_token"]
         learning_session_id = self.create_learning_session(access_token, "arrays_lab_06")
@@ -392,7 +387,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_hint_interaction_event_rejects_another_users_session(self) -> None:
         first_user_auth = self.register_user(
             email="owner@example.com",
-            student_number="it22990004",
         )
         first_access_token = first_user_auth["tokens"]["access_token"]
         learning_session_id = self.create_learning_session(
@@ -402,7 +396,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
 
         second_user_auth = self.register_user(
             email="intruder@example.com",
-            student_number="it22990005",
         )
         second_access_token = second_user_auth["tokens"]["access_token"]
 
@@ -425,7 +418,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_study_guider_feedback_loop_updates_trigger_lifecycle(self) -> None:
         auth_payload = self.register_user(
             email="loop@example.com",
-            student_number="it22990007",
         )
         access_token = auth_payload["tokens"]["access_token"]
 
@@ -545,7 +537,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_gamification_recommendations_use_concept_struggles(self) -> None:
         auth_payload = self.register_user(
             email="game-struggle@example.com",
-            student_number="it22990008",
         )
         access_token = auth_payload["tokens"]["access_token"]
 
@@ -576,7 +567,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_gamification_recommendations_shift_to_mastery_reinforcement(self) -> None:
         auth_payload = self.register_user(
             email="game-mastery@example.com",
-            student_number="it22990009",
         )
         access_token = auth_payload["tokens"]["access_token"]
         session_ids: list[str] = []
@@ -632,7 +622,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_gamification_feedback_loop_records_events_and_updates_mastery(self) -> None:
         auth_payload = self.register_user(
             email="game-feedback@example.com",
-            student_number="it22990010",
         )
         access_token = auth_payload["tokens"]["access_token"]
         learning_session_id = self.create_learning_session(
@@ -732,7 +721,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_collaboration_prompts_use_code_coach_diagnostics(self) -> None:
         auth_payload = self.register_user(
             email="collab-prompts@example.com",
-            student_number="it22990011",
         )
         access_token = auth_payload["tokens"]["access_token"]
         learning_session_id = self.create_learning_session(access_token, "arrays_collab_01")
@@ -760,7 +748,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_collaboration_feedback_loop_records_pair_session_prompt_and_review(self) -> None:
         auth_payload = self.register_user(
             email="collab-feedback@example.com",
-            student_number="it22990012",
         )
         access_token = auth_payload["tokens"]["access_token"]
         code_session_id = self.create_learning_session(access_token, "arrays_collab_02")
@@ -866,7 +853,6 @@ class Phase2LearningSignalTests(unittest.TestCase):
     def test_dashboard_overview_summarizes_cross_component_activity(self) -> None:
         auth_payload = self.register_user(
             email="dashboard@example.com",
-            student_number="it22990013",
         )
         access_token = auth_payload["tokens"]["access_token"]
 

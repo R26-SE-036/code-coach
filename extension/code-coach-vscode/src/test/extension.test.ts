@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 type TestAccount = {
   fullName: string;
   email: string;
-  studentNumber: string;
   password: string;
 };
 
@@ -21,7 +20,6 @@ function uniqueAccount(): TestAccount {
   return {
     fullName: "Code Coach Extension Test",
     email: `codecoach.extension.${suffix}@example.com`,
-    studentNumber: `IT${suffix}`,
     password: "Password123",
   };
 }
@@ -145,7 +143,6 @@ suite("Code Coach Extension Flow", () => {
         inputQueue: [
           account.fullName,
           account.email,
-          account.studentNumber,
           account.password,
           account.password,
         ],

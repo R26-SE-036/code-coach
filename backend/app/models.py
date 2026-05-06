@@ -71,7 +71,6 @@ class AnalyzeResponse(BaseModel):
 class RegisterRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
     email: EmailStr
-    student_number: str = Field(min_length=4, max_length=40)
     password: str = Field(min_length=8, max_length=128)
     client_name: str = Field(default="code-coach-vscode", min_length=2, max_length=80)
 
@@ -90,7 +89,6 @@ class AuthUser(BaseModel):
     user_id: str
     full_name: str
     email: EmailStr
-    student_number: str
     role: str
     status: str
     created_at: datetime

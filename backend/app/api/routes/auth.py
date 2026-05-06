@@ -34,16 +34,11 @@ def _normalize_email(value: str) -> str:
     return value.strip().lower()
 
 
-def _normalize_student_number(value: str) -> str:
-    return value.strip().upper()
-
-
 def _serialize_user(document: dict[str, Any]) -> AuthUser:
     return AuthUser(
         user_id=document["userId"],
         full_name=document["fullName"],
         email=document["email"],
-        student_number=document["studentNumber"],
         role=document["role"],
         status=document["status"],
         created_at=document["createdAt"],
@@ -114,7 +109,6 @@ def register(
     storage: Any = Depends(get_storage),
 ) -> AuthResponse:
     normalized_email = _normalize_email(str(payload.email))
-    normalized_student_number = _normalize_student_number(payload.student_number)
 
     if storage.find_user_by_email(normalized_email) is not None:
         raise HTTPException(
@@ -122,18 +116,11 @@ def register(
             detail="An account with that email already exists.",
         )
 
-    if storage.find_user_by_student_number(normalized_student_number) is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An account with that student number already exists.",
-        )
-
     created_at = utcnow()
-    user_document = {
+    user_document: dict[str, Any] = {
         "userId": generate_prefixed_id("user"),
         "fullName": payload.full_name,
         "email": normalized_email,
-        "studentNumber": normalized_student_number,
         "passwordHash": hash_password(payload.password),
         "role": "student",
         "status": "active",
@@ -163,13 +150,7 @@ def login(
     storage: Any = Depends(get_storage),
 ) -> AuthResponse:
     identifier = payload.identifier.strip()
-
-    if "@" in identifier:
-        user_document = storage.find_user_by_email(_normalize_email(identifier))
-    else:
-        user_document = storage.find_user_by_student_number(
-            _normalize_student_number(identifier),
-        )
+    user_document = storage.find_user_by_email(_normalize_email(identifier))
 
     if user_document is None or not verify_password(
         payload.password,

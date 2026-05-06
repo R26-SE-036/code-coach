@@ -37,7 +37,6 @@ export type AuthUser = {
   user_id: string;
   full_name: string;
   email: string;
-  student_number: string;
   role: string;
   status: string;
   created_at: string;

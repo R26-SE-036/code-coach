@@ -83,11 +83,6 @@ class InMemoryStorage:
                 return _copy_document(document)
         return None
 
-    def find_user_by_student_number(self, student_number: str) -> Optional[dict[str, Any]]:
-        for document in self.users.values():
-            if document["studentNumber"] == student_number:
-                return _copy_document(document)
-        return None
 
     def find_user_by_id(self, user_id: str) -> Optional[dict[str, Any]]:
         return _copy_document(self.users.get(user_id))
@@ -439,7 +434,6 @@ class MongoStorage:
     def create_indexes(self) -> None:
         self.db.users.create_index([("userId", ASCENDING)], unique=True)
         self.db.users.create_index([("email", ASCENDING)], unique=True)
-        self.db.users.create_index([("studentNumber", ASCENDING)], unique=True)
 
         self.db.authSessions.create_index([("authSessionId", ASCENDING)], unique=True)
         self.db.authSessions.create_index([("userId", ASCENDING), ("status", ASCENDING)])
@@ -524,8 +518,6 @@ class MongoStorage:
     def find_user_by_email(self, email: str) -> Optional[dict[str, Any]]:
         return _copy_document(self.db.users.find_one({"email": email.lower()}))
 
-    def find_user_by_student_number(self, student_number: str) -> Optional[dict[str, Any]]:
-        return _copy_document(self.db.users.find_one({"studentNumber": student_number}))
 
     def find_user_by_id(self, user_id: str) -> Optional[dict[str, Any]]:
         return _copy_document(self.db.users.find_one({"userId": user_id}))

@@ -61,14 +61,6 @@ export async function createAccount(state: ExtensionState): Promise<void> {
       return;
     }
 
-    const studentNumber = await promptValue({
-      prompt: "Enter your student number",
-      placeHolder: "IT22203380",
-    });
-    if (!studentNumber) {
-      return;
-    }
-
     const password = await promptValue(
       {
         prompt: "Create a password (minimum 8 characters)",
@@ -104,7 +96,6 @@ export async function createAccount(state: ExtensionState): Promise<void> {
       body: JSON.stringify({
         full_name: fullName,
         email,
-        student_number: studentNumber,
         password,
         client_name: CLIENT_NAME,
       }),
@@ -131,8 +122,8 @@ export async function createAccount(state: ExtensionState): Promise<void> {
 export async function signIn(state: ExtensionState): Promise<void> {
   try {
     const identifier = await promptValue({
-      prompt: "Enter your email or student number",
-      placeHolder: "student@example.com or IT22203380",
+      prompt: "Enter your email",
+      placeHolder: "student@example.com",
     });
     if (!identifier) {
       return;

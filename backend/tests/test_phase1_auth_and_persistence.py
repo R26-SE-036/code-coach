@@ -20,14 +20,12 @@ class Phase1AuthAndPersistenceTests(unittest.TestCase):
         *,
         full_name: str = "Sample Student",
         email: str = "student@example.com",
-        student_number: str = "it22203380",
     ) -> dict:
         response = self.client.post(
             "/api/v1/auth/register",
             json={
                 "full_name": full_name,
                 "email": email,
-                "student_number": student_number,
                 "password": "Password123",
                 "client_name": "code-coach-test",
             },
@@ -187,7 +185,6 @@ class Phase1AuthAndPersistenceTests(unittest.TestCase):
         second_user_auth = self.register_user(
             full_name="Second Student",
             email="second@example.com",
-            student_number="it22230942",
         )
         second_access_token = second_user_auth["tokens"]["access_token"]
 
