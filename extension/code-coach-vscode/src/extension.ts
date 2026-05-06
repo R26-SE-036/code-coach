@@ -226,8 +226,21 @@ export function activate(context: vscode.ExtensionContext) {
   const initialEditor = vscode.window.activeTextEditor;
   if (initialEditor) { scheduleAutoAnalysis(state, initialEditor); }
 
-  // Auto-open the Coach Panel on the right side at startup
-  openCoachPanel();
+  // On first activation, guide the user to move Code Coach to the right sidebar
+  const shownTipKey = "codeCoach.shownRightSidebarTip";
+  if (!context.globalState.get<boolean>(shownTipKey)) {
+    void context.globalState.update(shownTipKey, true);
+    setTimeout(() => {
+      void vscode.window.showInformationMessage(
+        "💡 Code Coach: Right-click the 🎓 icon in the activity bar and select \"Move to Secondary Side Bar\" to pin it on the right side.",
+        "Open Code Coach",
+      ).then((action) => {
+        if (action === "Open Code Coach") {
+          void vscode.commands.executeCommand("codeCoachSidebar.focus");
+        }
+      });
+    }, 3000);
+  }
 
   // ── Push disposables ──
   context.subscriptions.push(

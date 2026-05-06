@@ -80,7 +80,16 @@
       },
       {
         "command": "code-coach-vscode.openCoachPanel",
-        "title": "Code Coach: Open Coach Panel"
+        "title": "Code Coach: Open Coach Panel",
+        "icon": {
+          "light": "media/icon-light.svg",
+          "dark": "media/icon.svg"
+        }
+      },
+      {
+        "command": "code-coach-vscode.analyzeCurrentFile",
+        "title": "Code Coach: Analyze Current File",
+        "icon": "$(search)"
       },
       {
         "command": "code-coach-vscode.previousHint",
@@ -95,6 +104,15 @@
         "title": "Code Coach: Welcome Guide"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "code-coach-vscode.openCoachPanel",
+          "group": "navigation",
+          "when": "resourceLangId == java"
+        }
+      ]
+    },
     "walkthroughs": [
       {
         "id": "codeCoachWelcome",
