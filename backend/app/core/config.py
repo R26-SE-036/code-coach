@@ -3,6 +3,10 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# loads environment variables
+# gives app-wide settings
+
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(

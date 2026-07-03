@@ -368,7 +368,7 @@ export async function runAnalysisForEditor(
 }
 
 // ── Auto analysis ──
-
+// waits fir 900ms to debounce instead of every key stroke
 export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextEditor | undefined): void {
   if (!editor) { return; }
   const document = editor.document;

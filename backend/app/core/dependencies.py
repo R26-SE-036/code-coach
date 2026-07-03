@@ -10,6 +10,7 @@ from app.core.security import TokenError, decode_access_token
 
 _bearer = HTTPBearer(auto_error=False)
 
+# provides reusable FastAPI dependencies
 
 @dataclass
 class AuthContext:

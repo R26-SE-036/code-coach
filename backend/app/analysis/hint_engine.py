@@ -90,7 +90,9 @@ def _diagnostic_id_for(finding: DetectionResult) -> str:
     digest = hashlib.sha1(stable_key.encode("utf-8")).hexdigest()[:12]
     return f"cc_{digest}"
 
-
+# It loads hint templates from: knowledge_base\code_coach_errors.json
+# Then it creates the final diagnostic with containing:
+# diagnostic ID, error type, line and column, confidence, message, code context, concept tag, explanation key, detection engine, ML probability, locator confidence, concept hint, guidance hint, targeted hint
 def build_diagnostic(finding: DetectionResult) -> Diagnostic:
     knowledge = get_error_knowledge(finding.error_type)
 

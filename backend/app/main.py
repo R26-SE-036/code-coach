@@ -39,6 +39,7 @@ def create_app(*, storage=None) -> FastAPI:
     if storage is not None:
         app.state.storage = storage
 
+    # registered routes
     app.include_router(auth_router)
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)

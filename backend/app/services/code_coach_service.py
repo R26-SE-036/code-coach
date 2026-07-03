@@ -9,7 +9,7 @@ from app.analysis.analyzer import analyze_code
 from app.core.common import generate_prefixed_id, utcnow
 from app.models import AnalyzeRequest, AnalyzeResponse, Diagnostic
 
-
+# it calls analysis/analyzer.py
 def run_analysis(payload: AnalyzeRequest) -> tuple[list[Diagnostic], float]:
     started_at = perf_counter()
     diagnostics: list[Diagnostic] = []
@@ -20,7 +20,14 @@ def run_analysis(payload: AnalyzeRequest) -> tuple[list[Diagnostic], float]:
     elapsed_ms = round((perf_counter() - started_at) * 1000, 2)
     return diagnostics, elapsed_ms
 
-
+# response comes from api/routes/code_coach.py after data sync in the DB
+# it contains:
+# status
+# message
+# timestamp
+# analysis_duration_ms
+# learning_session_id
+# diagnostics
 def build_analyze_response(
     diagnostics: list[Diagnostic],
     analysis_duration_ms: float,

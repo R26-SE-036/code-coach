@@ -55,11 +55,13 @@ def _prediction_to_localized_result(
         locator_confidence=locator_confidence,
     )
 
-
+#For each positive ML prediction, use AST locator to find exact location.
 def _localize_ml_positive_prediction(
     prediction: MLPrediction,
     parse_result: ParseResult,
 ) -> List[DetectionResult]:
+    
+    #use issue_locators.py
     locator = TARGET_LOCATORS.get(prediction.error_type)
 
     if locator is None:
@@ -71,8 +73,15 @@ def _localize_ml_positive_prediction(
         for finding in findings
     ]
 
-
+# 1. Parse Java safely.
+# 2. Reject crashed or very incomplete parse results.
+# 3. Extract features.
+# 4. Ask ML engine to predict target issue types.
+# 5. For each positive ML prediction, use AST locator to find exact location.
+# 6. Build final diagnostic with hints.
+# 7.Sort diagnostics by confidence.
 def analyze_code(code: str) -> List[Diagnostic]:
+    # 1. parse code
     parse_result = parse_java_code_safe(code)
 
     if parse_result.crashed or parse_result.tree is None:
@@ -81,15 +90,20 @@ def analyze_code(code: str) -> List[Diagnostic]:
     if parse_result.health.completeness_score < MIN_FILE_COMPLETENESS:
         return []
 
+    # 2. extract features
     feature_dict = extract_features(code)
+    # 3. predict issue types
     predictions = _safe_predict_issue_types(feature_dict)
 
+    # 4. localize issue types
     diagnostics: List[Diagnostic] = []
 
     for prediction in predictions:
         if not prediction.predicted_positive:
             continue
 
+        # 5. For each positive ML prediction, use AST locator to find exact location.
+        # This is why the implementation is called: ml_gated_ast_locator
         localized_findings = _localize_ml_positive_prediction(
             prediction,
             parse_result,
@@ -97,6 +111,7 @@ def analyze_code(code: str) -> List[Diagnostic]:
 
         for finding in localized_findings:
             diagnostics.append(build_diagnostic(finding))
-
+    
+    # 5. build diagnostics
     diagnostics.sort(key=lambda item: item.confidence, reverse=True)
     return diagnostics

@@ -190,6 +190,16 @@ def _extract_general_ast_features(root_node) -> Dict[str, Any]:
     }
 
 
+# it created numeric features such as:
+# number of lines
+# AST node count
+# parse completeness
+# number of for statements
+# whether loop condition uses .length
+# whether loop condition uses <=
+# assignment inside if condition count
+# array access count
+# direct array.length index usage count
 def extract_features(code: str) -> Dict[str, Any]:
     parse_result = parse_java_code_safe(code)
 
