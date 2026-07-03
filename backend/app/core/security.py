@@ -14,6 +14,15 @@ from app.core.config import get_settings
 
 _PASSWORD_HASHER = PasswordHasher()
 
+# Purpose:
+    # password hashing
+    # password checking
+    # access token creation
+    # access token decoding
+    # refresh token creation
+    # refresh token hashing
+
+
 
 def hash_password(password: str) -> str:
     return _PASSWORD_HASHER.hash(password)

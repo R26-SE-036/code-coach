@@ -66,7 +66,11 @@ def _build_feature_frame(model, feature_dict: Dict[str, float]) -> pd.DataFrame:
 
     return pd.DataFrame([row], columns=expected_columns)
 
-
+# It loads trained .joblib models and predicts probabilities for:
+# - OFF_BY_ONE_LOOP_BOUNDARY
+# - INCORRECT_CONDITIONAL_OPERATOR
+# - ARRAY_LENGTH_INDEX_MISUSE
+# ML decides whether the issue type is likely present. It does not directly find the line number.
 def predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPrediction]:
     predictions: List[MLPrediction] = []
 

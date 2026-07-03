@@ -44,6 +44,7 @@ def analyze_for_authenticated_user(
             detail="The learning session is not active.",
         )
 
+    # Calls code_coach_service.py
     diagnostics, analysis_duration_ms = run_analysis(payload)
     diagnostic_documents = build_diagnostic_records(
         auth.user_id,
@@ -60,8 +61,10 @@ def analyze_for_authenticated_user(
         learning_session_id,
         sync_result,
     )
+    
     if learning_events:
         storage.create_learning_events(learning_events)
+    # If the student repeatedly struggles with a concept, the system can create remediation triggers for Study Guider
     sync_code_coach_remediation_triggers(
         storage,
         user_id=auth.user_id,

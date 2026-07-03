@@ -14,6 +14,9 @@ except ImportError:  # pragma: no cover - exercised only when pymongo missing
     DESCENDING = -1
     MongoClient = None
 
+# Purpose:
+    # abstracts database operations
+    # provides both in-memory and MongoDB implementation
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -419,6 +422,23 @@ class InMemoryStorage:
         documents = [item for item in documents if item is not None]
         return _sort_by_last_updated_desc(documents)[:limit]
 
+
+# MongoStorage:
+    # stores data in MongoDB collections
+    # used in real/backend running mode when MongoDB URI exists
+
+    # Important operations:
+        # create/find users
+        # create/revoke auth sessions
+        # create/find learning sessions
+        # sync diagnostics
+        # list diagnostics
+        # create learning events
+        # list events
+        # upsert remediation triggers
+        # update mastery
+        # create collaboration sessions
+        # store gamification records
 
 class MongoStorage:
     def __init__(self, mongo_uri: str, database_name: str) -> None:
@@ -952,7 +972,7 @@ class MongoStorage:
         )
         return [_copy_document(document) or {} for document in cursor]
 
-
+# It decides whether to use MongoDB or in-memory storage based on configuration.
 def build_storage() -> InMemoryStorage | MongoStorage:
     settings = get_settings()
 

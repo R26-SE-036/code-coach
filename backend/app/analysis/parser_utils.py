@@ -85,6 +85,12 @@ def inspect_tree_health(root_node) -> ParseHealth:
         completeness_score=completeness_score,
     )
 
+# it parses Java code using Tree-sitter and returns a ParseResult object
+# which contains:
+# - tree: the parse tree
+# - source_bytes: the source code as bytes
+# - health: the health of the parse tree
+# - crashed: whether the parsing crashed
 
 def parse_java_code_safe(code: str) -> ParseResult:
     source_bytes = code.encode("utf-8")

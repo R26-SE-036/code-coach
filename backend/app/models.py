@@ -4,7 +4,15 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+# shared data model
+#Purpose:
+# defines request and response structures
+# defines database view models
+# defines analysis models
+# keeps API contracts consistent
 
+
+# request body for code analysis
 class AnalyzeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
@@ -21,7 +29,7 @@ class AnalyzeRequest(BaseModel):
     def resolved_session_id(self) -> Optional[str]:
         return self.learning_session_id or self.session_id
 
-
+# concept/guidance/targeted hints
 class HintSet(BaseModel):
     concept: str
     guidance: str
@@ -67,7 +75,7 @@ class AnalyzeResponse(BaseModel):
     learning_session_id: Optional[str] = None
     diagnostics: List[Diagnostic]
 
-
+# Auth models
 class RegisterRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
     email: EmailStr
@@ -128,7 +136,7 @@ class StatusResponse(BaseModel):
     status: str
     message: str
 
-
+# Learning Session and Diagnostics
 class LearningSessionCreateRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -179,6 +187,7 @@ class DiagnosticListResponse(BaseModel):
     diagnostics: List[PersistedDiagnosticView]
 
 
+# Learning Events and summaries
 class LearningEventView(BaseModel):
     event_id: str
     user_id: str
@@ -302,7 +311,7 @@ class ConceptMasteryListResponse(BaseModel):
     total_concepts: int
     concepts: List[ConceptMasteryView]
 
-
+# Remediation
 class RemediationTriggerView(BaseModel):
     trigger_id: str
     user_id: str
@@ -379,6 +388,7 @@ class StudyGuiderRecommendationListResponse(BaseModel):
     recommendations: List[StudyGuiderRecommendationView]
 
 
+# Gamification recommendations
 class GamificationRecommendationView(BaseModel):
     recommendation_id: str
     concept_tag: str
@@ -454,7 +464,7 @@ class GamificationActionResponse(BaseModel):
     created_event_types: List[str]
     mastery: Optional[ConceptMasteryView] = None
 
-
+# Collaboration features
 class CollaborationPromptView(BaseModel):
     prompt_id: str
     prompt_type: str
@@ -567,7 +577,7 @@ class CollaborationActionResponse(BaseModel):
     pair_session_id: str
     created_event_types: List[str]
 
-
+# Dashboard models
 class DashboardCountsView(BaseModel):
     total_diagnostics: int
     active_diagnostics: int
@@ -645,7 +655,7 @@ class RemediationActionResponse(BaseModel):
     trigger: RemediationTriggerView
     created_event_types: List[str]
 
-
+# AST Parser/analysis dataclasses
 @dataclass
 class Span:
     start_line: int
