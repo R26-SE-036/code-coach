@@ -389,26 +389,32 @@ backend/app/analysis/error_catalog.py
 entries includes:
 
 - public error type
-- Logistic Regression `.joblib` file
-- probability threshold
+- the selected `.joblib` model file
+- a calibrated probability threshold
 
-All current thresholds are:
+Model choice and thresholds are calibrated per target by
+`app/dev_tools/calibrate_thresholds.py`: the model with the best validation
+F1 is selected (ties broken by prediction latency) and the threshold is set
+at the midpoint of the validation separation margin. Current values
+(recorded in `backend/models/calibration_v1.json`):
 
 ```text
-0.65
+has_off_by_one                 logistic_regression  threshold 0.6321
+has_incorrect_conditional      random_forest        threshold 0.285
+has_array_length_index_misuse  logistic_regression  threshold 0.5371
 ```
 
-Example:
+Example (off-by-one target):
 
 ```text
 predicted probability = 0.81
-threshold = 0.65
+threshold = 0.6321
 result = positive
 ```
 
 ```text
 predicted probability = 0.42
-threshold = 0.65
+threshold = 0.6321
 result = negative
 ```
 
@@ -443,11 +449,11 @@ Feature order must match training. Otherwise, the model could interpret the wron
 
 ### `predict_issue_types(feature_dict)`
 
-- loads each of the three runtime models
+- loads the runtime model for each ml_gated catalog entry
 - creates the model input row
 - calls `predict_proba()`
-- compares probability with `0.65`
-- returns three `MLPrediction` objects
+- compares the probability with that entry's calibrated threshold
+- returns one `MLPrediction` per ml_gated entry
 
 ## 16. Detection Is Not Localization
 
@@ -525,7 +531,7 @@ final confidence = 0.83 * 0.70 = 0.581
 - The AST locator still uses deterministic patterns.
 - The dataset is curated and relatively small.
 - The current runtime always uses Logistic Regression models.
-- Threshold `0.65` is configured manually, not dynamically calibrated per user.
+- Thresholds and model choice are calibrated per target on the validation split (`calibrate_thresholds.py`), but not dynamically per user, and the validation set is small (28 samples).
 - `_safe_predict_issue_types()` returns an empty list if model prediction fails, so a model-loading failure produces no diagnostics instead of crashing the API.
 - True candidate-level ML scoring is not implemented.
 - This is not CNN, RNN, GAN, Transformer, or generative AI.
@@ -1682,10 +1688,10 @@ If parser crashes or completeness is below `0.35`, analyzer returns no diagnosti
 
 `predict_issue_types()`:
 
-- loads three Logistic Regression pipelines
+- loads the calibrated model for each ml_gated catalog entry
 - aligns features
 - calls `predict_proba()`
-- compares each result with `0.65`
+- compares each result with that entry's calibrated threshold
 
 ### Step 13: Locate positive issues
 
@@ -1812,7 +1818,7 @@ Keystroke
 
 ## 62. Explain the Architecture in One Minute
 
-> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and detects fifteen logical error types registered in a single error catalog. Three of them are ML-gated: scikit-learn Logistic Regression models estimate the probability of each category, and predictions above 0.65 are passed to deterministic AST locators that identify the exact line and column. The other twelve are rule-only types whose AST locators run directly without a model. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
+> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and detects fifteen logical error types registered in a single error catalog. Three of them are ML-gated: scikit-learn models selected and threshold-calibrated on a validation split estimate the probability of each category, and predictions above the per-target calibrated threshold are passed to deterministic AST locators that identify the exact line and column. The other twelve are rule-only types whose AST locators run directly without a model. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
 
 ## 63. Why Use ML and AST Together?
 
