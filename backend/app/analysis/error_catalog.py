@@ -49,6 +49,11 @@ class ErrorTypeSpec:
     ml_threshold: float = 0.65
 
 
+# Model choice and ml_threshold for ml_gated entries come from
+# app/dev_tools/calibrate_thresholds.py (best validation F1, ties broken by
+# latency; threshold at the validation separation-margin midpoint). The full
+# calibration record lives in backend/models/calibration_v1.json — rerun the
+# tool after retraining models and copy the recommended values here.
 ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
     "OFF_BY_ONE_LOOP_BOUNDARY": ErrorTypeSpec(
         error_type="OFF_BY_ONE_LOOP_BOUNDARY",
@@ -56,13 +61,15 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         locator=locate_off_by_one_loop_boundaries,
         target_column="has_off_by_one",
         model_file="has_off_by_one__logistic_regression.joblib",
+        ml_threshold=0.6321,
     ),
     "INCORRECT_CONDITIONAL_OPERATOR": ErrorTypeSpec(
         error_type="INCORRECT_CONDITIONAL_OPERATOR",
         detection_mode="ml_gated",
         locator=locate_incorrect_conditional_operators,
         target_column="has_incorrect_conditional",
-        model_file="has_incorrect_conditional__logistic_regression.joblib",
+        model_file="has_incorrect_conditional__random_forest.joblib",
+        ml_threshold=0.285,
     ),
     "ARRAY_LENGTH_INDEX_MISUSE": ErrorTypeSpec(
         error_type="ARRAY_LENGTH_INDEX_MISUSE",
@@ -70,6 +77,7 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         locator=locate_array_length_index_misuses,
         target_column="has_array_length_index_misuse",
         model_file="has_array_length_index_misuse__logistic_regression.joblib",
+        ml_threshold=0.5371,
     ),
     "STRING_EQUALITY_WITH_OPERATOR": ErrorTypeSpec(
         error_type="STRING_EQUALITY_WITH_OPERATOR",

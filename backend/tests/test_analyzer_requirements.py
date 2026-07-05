@@ -93,7 +93,10 @@ class AnalyzerRequirementTests(unittest.TestCase):
         self.assertEqual(diagnostic.detection_engine, "ml_gated_ast_locator")
         self.assertIsNotNone(diagnostic.ml_probability)
         self.assertIsNotNone(diagnostic.locator_confidence)
-        self.assertGreaterEqual(diagnostic.ml_probability or 0, 0.65)
+        self.assertGreaterEqual(
+            diagnostic.ml_probability or 0,
+            ERROR_CATALOG[diagnostic.error_type].ml_threshold,
+        )
         self.assertIn(diagnostic.severity, {"warning", "error"})
         self.assertGreaterEqual(diagnostic.confidence, 0)
         self.assertLessEqual(diagnostic.confidence, 0.99)
