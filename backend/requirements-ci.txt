@@ -1,0 +1,15 @@
+# Minimal dependencies for running the backend test suite in CI.
+# The full local environment (Jupyter, matplotlib, dev tools) lives in
+# requirements.txt; keep versions here in sync with it.
+fastapi==0.135.2
+httpx==0.28.1
+argon2-cffi==25.1.0
+pydantic==2.12.5
+pydantic-settings==2.13.1
+email-validator==2.3.0
+scikit-learn==1.8.0
+joblib==1.5.3
+pandas==3.0.1
+numpy==2.4.1
+tree-sitter==0.25.2
+tree-sitter-java==0.23.5
