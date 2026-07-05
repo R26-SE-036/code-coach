@@ -13,9 +13,21 @@ from pathlib import Path
 from typing import Callable, List, Literal, Optional
 
 from app.analysis.issue_locators import (
+    locate_always_true_or_conditions,
     locate_array_length_index_misuses,
+    locate_constant_false_loop_conditions,
+    locate_division_by_zero_literals,
+    locate_duplicate_if_else_conditions,
+    locate_empty_conditional_bodies,
+    locate_ignored_string_method_results,
     locate_incorrect_conditional_operators,
+    locate_loop_update_wrong_directions,
+    locate_missing_breaks_in_switch,
     locate_off_by_one_loop_boundaries,
+    locate_self_assignments,
+    locate_string_equality_with_operator,
+    locate_unreachable_code_after_return,
+    locate_while_variables_not_updated,
 )
 from app.models import DetectionResult, ParseResult
 
@@ -58,6 +70,66 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         locator=locate_array_length_index_misuses,
         target_column="has_array_length_index_misuse",
         model_file="has_array_length_index_misuse__logistic_regression.joblib",
+    ),
+    "STRING_EQUALITY_WITH_OPERATOR": ErrorTypeSpec(
+        error_type="STRING_EQUALITY_WITH_OPERATOR",
+        detection_mode="rule_only",
+        locator=locate_string_equality_with_operator,
+    ),
+    "LOOP_UPDATE_WRONG_DIRECTION": ErrorTypeSpec(
+        error_type="LOOP_UPDATE_WRONG_DIRECTION",
+        detection_mode="rule_only",
+        locator=locate_loop_update_wrong_directions,
+    ),
+    "UNREACHABLE_CODE_AFTER_RETURN": ErrorTypeSpec(
+        error_type="UNREACHABLE_CODE_AFTER_RETURN",
+        detection_mode="rule_only",
+        locator=locate_unreachable_code_after_return,
+    ),
+    "MISSING_BREAK_IN_SWITCH": ErrorTypeSpec(
+        error_type="MISSING_BREAK_IN_SWITCH",
+        detection_mode="rule_only",
+        locator=locate_missing_breaks_in_switch,
+    ),
+    "EMPTY_CONDITIONAL_BODY": ErrorTypeSpec(
+        error_type="EMPTY_CONDITIONAL_BODY",
+        detection_mode="rule_only",
+        locator=locate_empty_conditional_bodies,
+    ),
+    "SELF_ASSIGNMENT": ErrorTypeSpec(
+        error_type="SELF_ASSIGNMENT",
+        detection_mode="rule_only",
+        locator=locate_self_assignments,
+    ),
+    "ALWAYS_TRUE_OR_CONDITION": ErrorTypeSpec(
+        error_type="ALWAYS_TRUE_OR_CONDITION",
+        detection_mode="rule_only",
+        locator=locate_always_true_or_conditions,
+    ),
+    "IGNORED_STRING_METHOD_RESULT": ErrorTypeSpec(
+        error_type="IGNORED_STRING_METHOD_RESULT",
+        detection_mode="rule_only",
+        locator=locate_ignored_string_method_results,
+    ),
+    "DIVISION_BY_ZERO_LITERAL": ErrorTypeSpec(
+        error_type="DIVISION_BY_ZERO_LITERAL",
+        detection_mode="rule_only",
+        locator=locate_division_by_zero_literals,
+    ),
+    "CONSTANT_FALSE_LOOP_CONDITION": ErrorTypeSpec(
+        error_type="CONSTANT_FALSE_LOOP_CONDITION",
+        detection_mode="rule_only",
+        locator=locate_constant_false_loop_conditions,
+    ),
+    "DUPLICATE_IF_ELSE_CONDITION": ErrorTypeSpec(
+        error_type="DUPLICATE_IF_ELSE_CONDITION",
+        detection_mode="rule_only",
+        locator=locate_duplicate_if_else_conditions,
+    ),
+    "WHILE_VARIABLE_NOT_UPDATED": ErrorTypeSpec(
+        error_type="WHILE_VARIABLE_NOT_UPDATED",
+        detection_mode="rule_only",
+        locator=locate_while_variables_not_updated,
     ),
 }
 

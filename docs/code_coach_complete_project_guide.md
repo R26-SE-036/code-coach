@@ -311,7 +311,7 @@ load train/validation/test CSV files
 -> identify numeric feature columns
 -> convert features and labels to numeric values
 -> build Logistic Regression, Random Forest, and SVM pipelines
--> for each of the three targets:
+-> for each of the three ML-gated targets:
      train each model
      evaluate on validation data
      evaluate on test data
@@ -518,7 +518,8 @@ final confidence = 0.83 * 0.70 = 0.581
 
 ## 18. Important ML Limitations
 
-- Only three target categories are supported.
+- Fifteen error types are detected in total, but only the original three are
+  ML-gated; the other twelve are rule-only AST detectors with no trained model.
 - The models use file-level engineered features, not token sequences.
 - ML predicts category presence, not source span.
 - The AST locator still uses deterministic patterns.
@@ -1811,7 +1812,7 @@ Keystroke
 
 ## 62. Explain the Architecture in One Minute
 
-> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and uses three scikit-learn Logistic Regression models to estimate the probability of the three target error categories. Predictions above 0.65 are passed to deterministic AST locators that identify the exact line and column. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
+> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and detects fifteen logical error types registered in a single error catalog. Three of them are ML-gated: scikit-learn Logistic Regression models estimate the probability of each category, and predictions above 0.65 are passed to deterministic AST locators that identify the exact line and column. The other twelve are rule-only types whose AST locators run directly without a model. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
 
 ## 63. Why Use ML and AST Together?
 
