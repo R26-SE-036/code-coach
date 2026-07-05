@@ -13,43 +13,17 @@ class ErrorKnowledge(BaseModel):
     hints: HintSet
 
 
-EMBEDDED_ERROR_KNOWLEDGE_BASE: dict[str, ErrorKnowledge] = {
-    "OFF_BY_ONE_LOOP_BOUNDARY": ErrorKnowledge(
-        concept_tag="loop_boundaries",
-        explanation_key="loop_index_exceeds_array_limit",
-        hints=HintSet(
-            concept="Think about what the last valid index of an array should be.",
-            guidance="An array with length n usually has valid indexes from 0 up to n - 1.",
-            targeted="Check whether this loop condition should use < instead of <= when comparing with an array length."
-        ),
-    ),
-    "INCORRECT_CONDITIONAL_OPERATOR": ErrorKnowledge(
-        concept_tag="conditional_logic",
-        explanation_key="assignment_used_in_condition",
-        hints=HintSet(
-            concept="Conditions usually check a true or false result, not change a value.",
-            guidance="Think about whether this condition is comparing two values or assigning a new value.",
-            targeted="Check whether you meant to use == instead of = inside this condition."
-        ),
-    ),
-    "ARRAY_LENGTH_INDEX_MISUSE": ErrorKnowledge(
-        concept_tag="array_indexing",
-        explanation_key="array_length_used_as_index",
-        hints=HintSet(
-            concept="Array length tells you how many items exist, not the last valid position.",
-            guidance="Think about the difference between the number of elements and the final usable index.",
-            targeted="Check whether the array length is being used directly as an index. The last valid index is usually length - 1."
-        ),
-    ),
-}
-
+# knowledge_base/code_coach_errors.json is the single source of truth for
+# hints. error_catalog.validate_catalog() checks at startup that every
+# registered error type has an entry here, so a missing or broken file fails
+# loudly instead of silently serving the generic default hints.
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 KNOWLEDGE_BASE_PATH = PROJECT_ROOT / "knowledge_base" / "code_coach_errors.json"
 
 
 def _load_error_knowledge_base() -> dict[str, ErrorKnowledge]:
     if not KNOWLEDGE_BASE_PATH.exists():
-        return EMBEDDED_ERROR_KNOWLEDGE_BASE
+        return {}
 
     try:
         raw_items = json.loads(KNOWLEDGE_BASE_PATH.read_text(encoding="utf-8"))
@@ -58,7 +32,7 @@ def _load_error_knowledge_base() -> dict[str, ErrorKnowledge]:
             for error_type, knowledge in raw_items.items()
         }
     except (OSError, json.JSONDecodeError, TypeError, ValidationError):
-        return EMBEDDED_ERROR_KNOWLEDGE_BASE
+        return {}
 
 
 ERROR_KNOWLEDGE_BASE = _load_error_knowledge_base()
