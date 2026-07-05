@@ -382,10 +382,11 @@ Although nine models exist, runtime currently uses only the Logistic Regression 
 This is configured in:
 
 ```text
-backend/app/analysis/ml_engine.py
+backend/app/analysis/error_catalog.py
 ```
 
-`TARGET_SPECS` maps each target to:
+`ERROR_CATALOG` holds one `ErrorTypeSpec` per error type, which for ML-gated
+entries includes:
 
 - public error type
 - Logistic Regression `.joblib` file
@@ -983,14 +984,28 @@ maximum total penalty = 0.80
 - `_extract_general_ast_features()`: general structure counts
 - `extract_features()`: returns complete feature dictionary
 
-## 36. `backend/app/analysis/ml_engine.py`
+## 36. `backend/app/analysis/error_catalog.py` and `ml_engine.py`
+
+### `error_catalog.py`
+
+The single registry for every detectable error type:
+
+- `ErrorTypeSpec`: one error type's full definition (detection mode, locator,
+  model file, threshold)
+- `ERROR_CATALOG`: dict of all registered error types
+- `detection_mode`: `"ml_gated"` (ML model gates the locator) or
+  `"rule_only"` (AST locator runs on its own, no model needed)
+- `validate_catalog()`: called at app startup; fails loudly if an entry is
+  missing its model file or knowledge-base hints
+
+### `ml_engine.py`
 
 - `MLPrediction`: one model's runtime result
-- `TARGET_SPECS`: model file, public error type, threshold
 - `_LOADED_MODELS`: in-memory cache
 - `_get_model()`: load/cache model
 - `_build_feature_frame()`: align runtime features with trained columns
-- `predict_issue_types()`: produce three probabilities and decisions
+- `predict_issue_types()`: produce a probability and decision for every
+  ml_gated catalog entry
 
 ## 37. `backend/app/analysis/issue_locators.py`
 
@@ -1010,9 +1025,8 @@ Locators:
 - `locate_incorrect_conditional_operators()`: finds assignment expressions inside `if` or `while`
 - `locate_array_length_index_misuses()`: finds direct `array[array.length]`
 
-`TARGET_LOCATORS` maps an error type to its locator.
-
-Single-result wrappers return the first result for compatibility.
+Each locator is registered against its error type in
+`error_catalog.ERROR_CATALOG`.
 
 ## 38. `backend/app/analysis/hint_engine.py`
 
@@ -1024,9 +1038,12 @@ Contains:
 - explanation key
 - three hints
 
-### Embedded knowledge
+### Knowledge source
 
-`EMBEDDED_ERROR_KNOWLEDGE_BASE` is a fallback if the external JSON cannot be loaded.
+`knowledge_base/code_coach_errors.json` is the single source of truth for
+hints. `validate_catalog()` checks at startup that every registered error
+type has an entry; if a lookup still misses, `DEFAULT_ERROR_KNOWLEDGE`
+supplies generic hints.
 
 ### Functions
 
@@ -1041,8 +1058,8 @@ This orchestrates the analysis pipeline.
 
 - `_safe_predict_issue_types()`: prevents model errors from crashing request
 - `_combine_confidence()`: combines ML, locator, and parse quality
-- `_prediction_to_localized_result()`: enriches finding with ML metadata
-- `_localize_ml_positive_prediction()`: selects AST locator
+- `_finalize_finding()`: enriches finding with detection metadata
+- `_detect_for_spec()`: runs one catalog entry (ML-gated or rule-only)
 - `analyze_code()`: full parse -> features -> ML -> locator -> hints flow
 
 Files with completeness below `0.35` are suppressed.
@@ -1674,7 +1691,7 @@ If parser crashes or completeness is below `0.35`, analyzer returns no diagnosti
 For each positive category:
 
 ```text
-TARGET_LOCATORS[error_type](parse_result)
+ERROR_CATALOG[error_type].locator(parse_result)
 ```
 
 The locator finds exact AST node, line, column, and code context.

@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.analysis.error_catalog import validate_catalog
 from app.analysis.parser_utils import parse_java_code
 from app.models import AnalyzeRequest, AnalyzeResponse
 from app.api.routes.auth import router as auth_router
@@ -20,6 +21,10 @@ from app.services.evaluation_logger import log_analysis_event
 
 
 def create_app(*, storage=None) -> FastAPI:
+    # Fail at startup if any error-catalog entry is half registered
+    # (missing model file, locator, or knowledge-base hints).
+    validate_catalog()
+
     @asynccontextmanager
     async def lifespan(lifespan_app: FastAPI):
         if storage is not None:

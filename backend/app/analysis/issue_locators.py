@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import List
 
 from app.models import DetectionResult, ParseResult
 from app.analysis.parser_utils import (
@@ -162,26 +162,3 @@ def locate_array_length_index_misuses(parse_result: ParseResult) -> List[Detecti
             )
 
     return _deduplicate(findings)
-
-
-TARGET_LOCATORS: dict[str, Callable[[ParseResult], List[DetectionResult]]] = {
-    "OFF_BY_ONE_LOOP_BOUNDARY": locate_off_by_one_loop_boundaries,
-    "INCORRECT_CONDITIONAL_OPERATOR": locate_incorrect_conditional_operators,
-    "ARRAY_LENGTH_INDEX_MISUSE": locate_array_length_index_misuses,
-}
-
-
-def _first_or_none(results: List[DetectionResult]) -> Optional[DetectionResult]:
-    return results[0] if results else None
-
-
-def locate_off_by_one_loop_boundary(parse_result: ParseResult) -> Optional[DetectionResult]:
-    return _first_or_none(locate_off_by_one_loop_boundaries(parse_result))
-
-
-def locate_incorrect_conditional_operator(parse_result: ParseResult) -> Optional[DetectionResult]:
-    return _first_or_none(locate_incorrect_conditional_operators(parse_result))
-
-
-def locate_array_length_index_misuse(parse_result: ParseResult) -> Optional[DetectionResult]:
-    return _first_or_none(locate_array_length_index_misuses(parse_result))
