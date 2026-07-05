@@ -85,5 +85,324 @@
         "if statement correctness"
       ]
     }
+  },
+  "string_comparison": {
+    "lesson": {
+      "lesson_id": "lesson_strings_01",
+      "title": "Comparing Strings the Right Way",
+      "summary": "Explains why == compares object references while .equals() compares the actual characters of two strings.",
+      "estimated_duration_minutes": 7,
+      "learning_objectives": [
+        "Understand that strings are objects, not primitive values.",
+        "Distinguish reference equality (==) from content equality (.equals()).",
+        "Choose the correct comparison for string values."
+      ],
+      "recommended_steps": [
+        "Review what a String variable actually stores.",
+        "Compare two equal-text strings with == and with .equals().",
+        "Rewrite the failing comparison using .equals()."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_strings_01",
+      "title": "String Comparison Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "reference vs content equality",
+        "using .equals() correctly",
+        "string object behavior"
+      ]
+    }
+  },
+  "loop_control": {
+    "lesson": {
+      "lesson_id": "lesson_loop_control_01",
+      "title": "Loop Counters and Direction",
+      "summary": "Shows how the loop condition and update step must work together so the counter moves toward the stopping point.",
+      "estimated_duration_minutes": 8,
+      "learning_objectives": [
+        "Read a for-loop's start, condition, and update as one unit.",
+        "Predict whether a counter moves toward or away from the bound.",
+        "Fix loops whose update contradicts their condition."
+      ],
+      "recommended_steps": [
+        "Write down the counter value for the first three iterations.",
+        "Check whether the values approach the loop bound.",
+        "Flip the update direction and trace again."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_loop_control_01",
+      "title": "Loop Direction Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "counter direction",
+        "condition and update agreement",
+        "loop termination"
+      ]
+    }
+  },
+  "control_flow": {
+    "lesson": {
+      "lesson_id": "lesson_control_flow_01",
+      "title": "How return Ends a Method",
+      "summary": "Explains that return immediately leaves the method, so statements placed after it can never run.",
+      "estimated_duration_minutes": 6,
+      "learning_objectives": [
+        "Understand that return exits the method at once.",
+        "Spot statements that can never be reached.",
+        "Reorder logic so every needed statement runs before return."
+      ],
+      "recommended_steps": [
+        "Trace the method line by line until the return.",
+        "Mark which lines execution can still reach.",
+        "Move or remove the unreachable statements."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_control_flow_01",
+      "title": "Control Flow Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "return behavior",
+        "unreachable code",
+        "statement ordering"
+      ]
+    }
+  },
+  "switch_statements": {
+    "lesson": {
+      "lesson_id": "lesson_switch_01",
+      "title": "Switch Cases and Fall-Through",
+      "summary": "Covers how execution continues into the next case unless a break stops it, and when fall-through is intentional.",
+      "estimated_duration_minutes": 8,
+      "learning_objectives": [
+        "Explain how a switch chooses its starting case.",
+        "Predict what runs when a case has no break.",
+        "Decide where break statements belong."
+      ],
+      "recommended_steps": [
+        "Pick one input value and walk through the switch by hand.",
+        "Note every statement that runs before the switch ends.",
+        "Add break statements where the flow should stop."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_switch_01",
+      "title": "Switch Fall-Through Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "case selection",
+        "fall-through behavior",
+        "break placement"
+      ]
+    }
+  },
+  "statement_structure": {
+    "lesson": {
+      "lesson_id": "lesson_statements_01",
+      "title": "Semicolons, Blocks, and What a Condition Controls",
+      "summary": "Shows how a stray semicolon after if, for, or while creates an empty body so the condition controls nothing.",
+      "estimated_duration_minutes": 6,
+      "learning_objectives": [
+        "Recognize that a lone semicolon is a complete empty statement.",
+        "Identify exactly which statement a condition controls.",
+        "Spot stray semicolons that silently change program flow."
+      ],
+      "recommended_steps": [
+        "Look at the first character after the closing parenthesis.",
+        "Say out loud what the condition actually controls.",
+        "Remove the stray semicolon and re-check the block."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_statements_01",
+      "title": "Statement Structure Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "empty statements",
+        "condition scope",
+        "block structure"
+      ]
+    }
+  },
+  "assignment_logic": {
+    "lesson": {
+      "lesson_id": "lesson_assignment_01",
+      "title": "What an Assignment Actually Does",
+      "summary": "Reviews how assignment copies the right-hand value into the left-hand variable, and why assigning a variable to itself changes nothing.",
+      "estimated_duration_minutes": 5,
+      "learning_objectives": [
+        "Describe the direction of an assignment.",
+        "Spot assignments that have no effect.",
+        "Check that each assignment uses the intended source value."
+      ],
+      "recommended_steps": [
+        "Read the assignment from right to left.",
+        "State what value the variable holds before and after.",
+        "Correct the side that should reference something else."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_assignment_01",
+      "title": "Assignment Logic Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "assignment direction",
+        "no-effect statements",
+        "variable tracing"
+      ]
+    }
+  },
+  "boolean_logic": {
+    "lesson": {
+      "lesson_id": "lesson_boolean_01",
+      "title": "AND, OR, and Conditions That Are Always True",
+      "summary": "Explains how && and || combine checks, and why OR-ing two different inequalities on the same variable is always true.",
+      "estimated_duration_minutes": 8,
+      "learning_objectives": [
+        "Evaluate compound conditions with sample values.",
+        "Recognize conditions that can never be false.",
+        "Choose between && and || based on the intended meaning."
+      ],
+      "recommended_steps": [
+        "Pick three sample values and evaluate each side of the condition.",
+        "Check whether any value makes the whole condition false.",
+        "Rewrite the condition with the operator that matches the intent."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_boolean_01",
+      "title": "Boolean Logic Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "AND vs OR",
+        "always-true conditions",
+        "truth evaluation"
+      ]
+    }
+  },
+  "immutable_strings": {
+    "lesson": {
+      "lesson_id": "lesson_immutable_strings_01",
+      "title": "Why Strings Never Change",
+      "summary": "Shows that String methods return a brand-new string, so ignoring the returned value silently discards the result.",
+      "estimated_duration_minutes": 6,
+      "learning_objectives": [
+        "Understand that Java strings are immutable.",
+        "Recognize when a method result is being discarded.",
+        "Assign string method results back to a variable."
+      ],
+      "recommended_steps": [
+        "Print the string before and after the method call.",
+        "Find where the returned value should be stored.",
+        "Assign the result and verify the change."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_immutable_strings_01",
+      "title": "Immutable Strings Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "string immutability",
+        "return values",
+        "assignment of results"
+      ]
+    }
+  },
+  "arithmetic_operations": {
+    "lesson": {
+      "lesson_id": "lesson_arithmetic_01",
+      "title": "Division, Modulo, and Zero",
+      "summary": "Covers what happens when an integer is divided by zero and how to guard divisors before dividing.",
+      "estimated_duration_minutes": 6,
+      "learning_objectives": [
+        "Explain why integer division by zero crashes a program.",
+        "Identify risky divisors in an expression.",
+        "Guard divisions with a zero check when needed."
+      ],
+      "recommended_steps": [
+        "Circle the divisor in the failing expression.",
+        "Decide what value the divisor should really be.",
+        "Add a check or fix the constant before dividing."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_arithmetic_01",
+      "title": "Division and Modulo Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "division by zero",
+        "modulo behavior",
+        "guarding divisors"
+      ]
+    }
+  },
+  "loop_initialization": {
+    "lesson": {
+      "lesson_id": "lesson_loop_init_01",
+      "title": "Loop Start Values and First Checks",
+      "summary": "Explains that a loop condition is tested before the first iteration, so a wrong starting value can skip the loop entirely.",
+      "estimated_duration_minutes": 6,
+      "learning_objectives": [
+        "Know when a loop condition is evaluated.",
+        "Test the condition with the starting value by hand.",
+        "Match the start value and bound to the intended range."
+      ],
+      "recommended_steps": [
+        "Plug the starting value into the condition.",
+        "Decide whether the body should run at least once.",
+        "Adjust the start value or bound so the range is correct."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_loop_init_01",
+      "title": "Loop Initialization Quiz",
+      "question_count": 4,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "first condition check",
+        "start values",
+        "loop ranges"
+      ]
+    }
+  },
+  "loop_termination": {
+    "lesson": {
+      "lesson_id": "lesson_loop_term_01",
+      "title": "Making Loops Stop",
+      "summary": "Shows that a while loop only ends when something inside the body changes its condition, and how to spot loops that never can.",
+      "estimated_duration_minutes": 8,
+      "learning_objectives": [
+        "List the variables a loop condition depends on.",
+        "Find the statement that changes each condition variable.",
+        "Fix loops whose condition can never become false."
+      ],
+      "recommended_steps": [
+        "Underline every variable used in the while condition.",
+        "Search the loop body for lines that change those variables.",
+        "Add or fix the update so the loop can finish."
+      ]
+    },
+    "quiz": {
+      "quiz_id": "quiz_loop_term_01",
+      "title": "Loop Termination Quiz",
+      "question_count": 5,
+      "passing_score_percent": 70,
+      "focus_points": [
+        "condition variables",
+        "loop updates",
+        "infinite loop prevention"
+      ]
+    }
   }
 }

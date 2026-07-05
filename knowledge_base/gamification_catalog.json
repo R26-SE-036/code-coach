@@ -31,5 +31,126 @@
       "boolean conditions",
       "branch reasoning"
     ]
+  },
+  "string_comparison": {
+    "game_id": "game_strings_match_01",
+    "game_type": "bug_hunt",
+    "title": "String Comparison Showdown",
+    "estimated_duration_minutes": 7,
+    "focus_points": [
+      "reference vs content equality",
+      "using .equals()",
+      "string comparisons"
+    ]
+  },
+  "loop_control": {
+    "game_id": "game_loop_direction_01",
+    "game_type": "loop_tracer",
+    "title": "Runaway Loop Rescue",
+    "estimated_duration_minutes": 8,
+    "focus_points": [
+      "counter direction",
+      "condition and update agreement",
+      "loop termination"
+    ]
+  },
+  "control_flow": {
+    "game_id": "game_control_flow_01",
+    "game_type": "code_ordering",
+    "title": "Reachable or Not?",
+    "estimated_duration_minutes": 6,
+    "focus_points": [
+      "return behavior",
+      "unreachable code",
+      "statement ordering"
+    ]
+  },
+  "switch_statements": {
+    "game_id": "game_switch_fallthrough_01",
+    "game_type": "bug_hunt",
+    "title": "Switch Fall-Through Hunt",
+    "estimated_duration_minutes": 8,
+    "focus_points": [
+      "case selection",
+      "fall-through behavior",
+      "break placement"
+    ]
+  },
+  "statement_structure": {
+    "game_id": "game_stray_semicolon_01",
+    "game_type": "bug_hunt",
+    "title": "Spot the Stray Semicolon",
+    "estimated_duration_minutes": 6,
+    "focus_points": [
+      "empty statements",
+      "condition scope",
+      "block structure"
+    ]
+  },
+  "assignment_logic": {
+    "game_id": "game_assignment_detective_01",
+    "game_type": "debug_challenge",
+    "title": "Assignment Detective",
+    "estimated_duration_minutes": 5,
+    "focus_points": [
+      "assignment direction",
+      "no-effect statements",
+      "variable tracing"
+    ]
+  },
+  "boolean_logic": {
+    "game_id": "game_truth_table_01",
+    "game_type": "condition_debug",
+    "title": "Truth Table Challenge",
+    "estimated_duration_minutes": 8,
+    "focus_points": [
+      "AND vs OR",
+      "always-true conditions",
+      "truth evaluation"
+    ]
+  },
+  "immutable_strings": {
+    "game_id": "game_vanishing_uppercase_01",
+    "game_type": "bug_hunt",
+    "title": "The Vanishing Uppercase",
+    "estimated_duration_minutes": 6,
+    "focus_points": [
+      "string immutability",
+      "return values",
+      "assignment of results"
+    ]
+  },
+  "arithmetic_operations": {
+    "game_id": "game_safe_division_01",
+    "game_type": "debug_challenge",
+    "title": "Divide Safely",
+    "estimated_duration_minutes": 6,
+    "focus_points": [
+      "division by zero",
+      "modulo behavior",
+      "guarding divisors"
+    ]
+  },
+  "loop_initialization": {
+    "game_id": "game_loop_never_ran_01",
+    "game_type": "loop_tracer",
+    "title": "The Loop That Never Ran",
+    "estimated_duration_minutes": 6,
+    "focus_points": [
+      "first condition check",
+      "start values",
+      "loop ranges"
+    ]
+  },
+  "loop_termination": {
+    "game_id": "game_escape_infinite_01",
+    "game_type": "loop_tracer",
+    "title": "Escape the Infinite Loop",
+    "estimated_duration_minutes": 8,
+    "focus_points": [
+      "condition variables",
+      "loop updates",
+      "infinite loop prevention"
+    ]
   }
 }
