@@ -5,11 +5,11 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # shared data model
-#Purpose:
-# defines request and response structures
-# defines database view models
-# defines analysis models
-# keeps API contracts consistent
+# Purpose:
+#  defines request and response structures
+#  defines database view models
+#  defines analysis models
+#  keeps API contracts consistent
 
 
 # request body for code analysis

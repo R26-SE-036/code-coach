@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, List
 
 import joblib
 import pandas as pd
+
+from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
 
 
 @dataclass
@@ -14,42 +15,20 @@ class MLPrediction:
     predicted_positive: bool
 
 
-BACKEND_ROOT = Path(__file__).resolve().parents[2]
-MODELS_DIR = BACKEND_ROOT / "models"
-
-TARGET_SPECS = {
-    "has_off_by_one": {
-        "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
-        "model_file": "has_off_by_one__logistic_regression.joblib",
-        "threshold": 0.65,
-    },
-    "has_incorrect_conditional": {
-        "error_type": "INCORRECT_CONDITIONAL_OPERATOR",
-        "model_file": "has_incorrect_conditional__logistic_regression.joblib",
-        "threshold": 0.65,
-    },
-    "has_array_length_index_misuse": {
-        "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
-        "model_file": "has_array_length_index_misuse__logistic_regression.joblib",
-        "threshold": 0.65,
-    },
-}
-
 _LOADED_MODELS: Dict[str, object] = {}
 
 
-def _get_model(target_column: str):
-    if target_column in _LOADED_MODELS:
-        return _LOADED_MODELS[target_column]
+def _get_model(spec: ErrorTypeSpec):
+    if spec.target_column in _LOADED_MODELS:
+        return _LOADED_MODELS[spec.target_column]
 
-    spec = TARGET_SPECS[target_column]
-    model_path = MODELS_DIR / spec["model_file"]
+    model_path = MODELS_DIR / spec.model_file
 
     if not model_path.exists():
         raise FileNotFoundError(f"Model file not found: {model_path}")
 
     model = joblib.load(model_path)
-    _LOADED_MODELS[target_column] = model
+    _LOADED_MODELS[spec.target_column] = model
     return model
 
 
@@ -66,25 +45,23 @@ def _build_feature_frame(model, feature_dict: Dict[str, float]) -> pd.DataFrame:
 
     return pd.DataFrame([row], columns=expected_columns)
 
-# It loads trained .joblib models and predicts probabilities for:
-# - OFF_BY_ONE_LOOP_BOUNDARY
-# - INCORRECT_CONDITIONAL_OPERATOR
-# - ARRAY_LENGTH_INDEX_MISUSE
+# It loads the trained .joblib model for every ml_gated entry in the error
+# catalog and predicts the probability that the issue type is present.
 # ML decides whether the issue type is likely present. It does not directly find the line number.
 def predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPrediction]:
     predictions: List[MLPrediction] = []
 
-    for target_column, spec in TARGET_SPECS.items():
-        model = _get_model(target_column)
+    for spec in ml_gated_specs():
+        model = _get_model(spec)
         x = _build_feature_frame(model, feature_dict)
 
         probability = float(model.predict_proba(x)[0][1])
-        predicted_positive = probability >= spec["threshold"]
+        predicted_positive = probability >= spec.ml_threshold
 
         predictions.append(
             MLPrediction(
-                error_type=spec["error_type"],
-                target_column=target_column,
+                error_type=spec.error_type,
+                target_column=spec.target_column,
                 probability=round(probability, 4),
                 predicted_positive=predicted_positive,
             )

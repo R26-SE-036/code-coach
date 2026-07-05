@@ -311,7 +311,7 @@ load train/validation/test CSV files
 -> identify numeric feature columns
 -> convert features and labels to numeric values
 -> build Logistic Regression, Random Forest, and SVM pipelines
--> for each of the three targets:
+-> for each of the three ML-gated targets:
      train each model
      evaluate on validation data
      evaluate on test data
@@ -382,10 +382,11 @@ Although nine models exist, runtime currently uses only the Logistic Regression 
 This is configured in:
 
 ```text
-backend/app/analysis/ml_engine.py
+backend/app/analysis/error_catalog.py
 ```
 
-`TARGET_SPECS` maps each target to:
+`ERROR_CATALOG` holds one `ErrorTypeSpec` per error type, which for ML-gated
+entries includes:
 
 - public error type
 - Logistic Regression `.joblib` file
@@ -517,7 +518,8 @@ final confidence = 0.83 * 0.70 = 0.581
 
 ## 18. Important ML Limitations
 
-- Only three target categories are supported.
+- Fifteen error types are detected in total, but only the original three are
+  ML-gated; the other twelve are rule-only AST detectors with no trained model.
 - The models use file-level engineered features, not token sequences.
 - ML predicts category presence, not source span.
 - The AST locator still uses deterministic patterns.
@@ -983,14 +985,28 @@ maximum total penalty = 0.80
 - `_extract_general_ast_features()`: general structure counts
 - `extract_features()`: returns complete feature dictionary
 
-## 36. `backend/app/analysis/ml_engine.py`
+## 36. `backend/app/analysis/error_catalog.py` and `ml_engine.py`
+
+### `error_catalog.py`
+
+The single registry for every detectable error type:
+
+- `ErrorTypeSpec`: one error type's full definition (detection mode, locator,
+  model file, threshold)
+- `ERROR_CATALOG`: dict of all registered error types
+- `detection_mode`: `"ml_gated"` (ML model gates the locator) or
+  `"rule_only"` (AST locator runs on its own, no model needed)
+- `validate_catalog()`: called at app startup; fails loudly if an entry is
+  missing its model file or knowledge-base hints
+
+### `ml_engine.py`
 
 - `MLPrediction`: one model's runtime result
-- `TARGET_SPECS`: model file, public error type, threshold
 - `_LOADED_MODELS`: in-memory cache
 - `_get_model()`: load/cache model
 - `_build_feature_frame()`: align runtime features with trained columns
-- `predict_issue_types()`: produce three probabilities and decisions
+- `predict_issue_types()`: produce a probability and decision for every
+  ml_gated catalog entry
 
 ## 37. `backend/app/analysis/issue_locators.py`
 
@@ -1010,9 +1026,8 @@ Locators:
 - `locate_incorrect_conditional_operators()`: finds assignment expressions inside `if` or `while`
 - `locate_array_length_index_misuses()`: finds direct `array[array.length]`
 
-`TARGET_LOCATORS` maps an error type to its locator.
-
-Single-result wrappers return the first result for compatibility.
+Each locator is registered against its error type in
+`error_catalog.ERROR_CATALOG`.
 
 ## 38. `backend/app/analysis/hint_engine.py`
 
@@ -1024,9 +1039,12 @@ Contains:
 - explanation key
 - three hints
 
-### Embedded knowledge
+### Knowledge source
 
-`EMBEDDED_ERROR_KNOWLEDGE_BASE` is a fallback if the external JSON cannot be loaded.
+`knowledge_base/code_coach_errors.json` is the single source of truth for
+hints. `validate_catalog()` checks at startup that every registered error
+type has an entry; if a lookup still misses, `DEFAULT_ERROR_KNOWLEDGE`
+supplies generic hints.
 
 ### Functions
 
@@ -1041,8 +1059,8 @@ This orchestrates the analysis pipeline.
 
 - `_safe_predict_issue_types()`: prevents model errors from crashing request
 - `_combine_confidence()`: combines ML, locator, and parse quality
-- `_prediction_to_localized_result()`: enriches finding with ML metadata
-- `_localize_ml_positive_prediction()`: selects AST locator
+- `_finalize_finding()`: enriches finding with detection metadata
+- `_detect_for_spec()`: runs one catalog entry (ML-gated or rule-only)
 - `analyze_code()`: full parse -> features -> ML -> locator -> hints flow
 
 Files with completeness below `0.35` are suppressed.
@@ -1674,7 +1692,7 @@ If parser crashes or completeness is below `0.35`, analyzer returns no diagnosti
 For each positive category:
 
 ```text
-TARGET_LOCATORS[error_type](parse_result)
+ERROR_CATALOG[error_type].locator(parse_result)
 ```
 
 The locator finds exact AST node, line, column, and code context.
@@ -1794,7 +1812,7 @@ Keystroke
 
 ## 62. Explain the Architecture in One Minute
 
-> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and uses three scikit-learn Logistic Regression models to estimate the probability of the three target error categories. Predictions above 0.65 are passed to deterministic AST locators that identify the exact line and column. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
+> Code Coach has a TypeScript VS Code extension and a Python FastAPI backend. The extension observes Java document changes and uses a 900 millisecond debounce before sending the full current file to an authenticated analysis endpoint. The backend validates the JWT and learning session, parses Java using Tree-sitter, extracts AST-based numeric features, and detects fifteen logical error types registered in a single error catalog. Three of them are ML-gated: scikit-learn Logistic Regression models estimate the probability of each category, and predictions above 0.65 are passed to deterministic AST locators that identify the exact line and column. The other twelve are rule-only types whose AST locators run directly without a model. The analyzer combines ML probability, locator confidence, and parse completeness. The hint engine attaches concept, guidance, and targeted hints from a JSON knowledge base. The backend then synchronizes active and resolved diagnostics, creates learning signals for the wider Code Guru platform, and returns JSON. The extension displays the results as VS Code diagnostics, decorations, hovers, CodeLens actions, and Coach Panel content.
 
 ## 63. Why Use ML and AST Together?
 

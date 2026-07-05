@@ -25,5 +25,113 @@
       "guidance": "Compare the number of elements with the final usable index.",
       "targeted": "Check whether the array length is being used directly as an index."
     }
+  },
+  "STRING_EQUALITY_WITH_OPERATOR": {
+    "concept_tag": "string_comparison",
+    "explanation_key": "string_compared_with_operator",
+    "hints": {
+      "concept": "Strings are objects, so == asks whether two variables point to the same object, not whether the text matches.",
+      "guidance": "Think about the difference between comparing object references and comparing the characters inside two strings.",
+      "targeted": "Check whether this comparison should use the .equals() method instead of == or !=."
+    }
+  },
+  "LOOP_UPDATE_WRONG_DIRECTION": {
+    "concept_tag": "loop_control",
+    "explanation_key": "loop_counter_moves_away_from_bound",
+    "hints": {
+      "concept": "A loop only finishes when its counter eventually makes the condition false.",
+      "guidance": "Follow the counter value for a few iterations and see whether it moves toward or away from the loop bound.",
+      "targeted": "Check whether the update step moves the counter in the direction the condition expects."
+    }
+  },
+  "UNREACHABLE_CODE_AFTER_RETURN": {
+    "concept_tag": "control_flow",
+    "explanation_key": "statement_after_return",
+    "hints": {
+      "concept": "A return statement immediately ends the method; nothing after it in the same block can run.",
+      "guidance": "Trace the method line by line and note the exact point where execution leaves the method.",
+      "targeted": "Check whether the statements after this return were meant to run before it."
+    }
+  },
+  "MISSING_BREAK_IN_SWITCH": {
+    "concept_tag": "switch_statements",
+    "explanation_key": "switch_case_falls_through",
+    "hints": {
+      "concept": "In a switch, execution continues into the next case unless something like break stops it.",
+      "guidance": "Walk through what happens after this case's statements finish and which case runs next.",
+      "targeted": "Check whether this case should end with a break before the next case begins."
+    }
+  },
+  "EMPTY_CONDITIONAL_BODY": {
+    "concept_tag": "statement_structure",
+    "explanation_key": "semicolon_terminates_condition",
+    "hints": {
+      "concept": "A semicolon on its own is a complete, empty statement.",
+      "guidance": "Look closely at what the condition actually controls when a semicolon comes right after the closing parenthesis.",
+      "targeted": "Check whether the semicolon right after the condition should be removed so the block below belongs to it."
+    }
+  },
+  "SELF_ASSIGNMENT": {
+    "concept_tag": "assignment_logic",
+    "explanation_key": "variable_assigned_to_itself",
+    "hints": {
+      "concept": "An assignment stores the value on the right into the variable on the left.",
+      "guidance": "Compare both sides of this assignment and think about what actually changes after it runs.",
+      "targeted": "Check whether one side of this assignment should be a different variable or expression."
+    }
+  },
+  "ALWAYS_TRUE_OR_CONDITION": {
+    "concept_tag": "boolean_logic",
+    "explanation_key": "or_of_inequalities_always_true",
+    "hints": {
+      "concept": "An OR condition is true when at least one side is true.",
+      "guidance": "Pick a few sample values for the variable and evaluate each side of the OR to see if the whole condition can ever be false.",
+      "targeted": "Check whether this condition should combine the two checks with && instead of ||."
+    }
+  },
+  "IGNORED_STRING_METHOD_RESULT": {
+    "concept_tag": "immutable_strings",
+    "explanation_key": "string_method_result_discarded",
+    "hints": {
+      "concept": "Strings in Java never change; their methods build and return a brand-new string.",
+      "guidance": "Think about where the new string produced by this method call actually goes.",
+      "targeted": "Check whether the result of this call should be assigned back to a variable."
+    }
+  },
+  "DIVISION_BY_ZERO_LITERAL": {
+    "concept_tag": "arithmetic_operations",
+    "explanation_key": "integer_division_by_zero",
+    "hints": {
+      "concept": "Dividing an integer by zero is not a number Java can produce; it stops the program instead.",
+      "guidance": "Look at the value on the right side of this division or modulo operation.",
+      "targeted": "Check whether the divisor here should be something other than 0."
+    }
+  },
+  "CONSTANT_FALSE_LOOP_CONDITION": {
+    "concept_tag": "loop_initialization",
+    "explanation_key": "loop_condition_false_at_start",
+    "hints": {
+      "concept": "A loop's condition is checked before the first iteration; if it is false, the body never runs.",
+      "guidance": "Plug the starting value of the counter into the condition and evaluate it by hand.",
+      "targeted": "Check whether the starting value and the loop bound are the wrong way around."
+    }
+  },
+  "DUPLICATE_IF_ELSE_CONDITION": {
+    "concept_tag": "conditional_logic",
+    "explanation_key": "repeated_condition_in_chain",
+    "hints": {
+      "concept": "In an if / else-if chain, only the first branch whose condition is true will run.",
+      "guidance": "Compare each condition in this chain and think about which branch handles which situation.",
+      "targeted": "Check whether this repeated condition should test a different value or range."
+    }
+  },
+  "WHILE_VARIABLE_NOT_UPDATED": {
+    "concept_tag": "loop_termination",
+    "explanation_key": "while_condition_never_changes",
+    "hints": {
+      "concept": "A while loop only stops when something inside the loop makes its condition false.",
+      "guidance": "List the variables used in the condition and find the line inside the loop that changes any of them.",
+      "targeted": "Check whether the loop body should update the variable used in the while condition."
+    }
   }
 }
