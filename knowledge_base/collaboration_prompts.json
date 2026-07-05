@@ -46,5 +46,181 @@
       "prompt_text": "Check whether the condition uses the correct operator and whether the reviewer comment explains why that operator is appropriate.",
       "target_role": "reviewer"
     }
+  },
+  "string_comparison": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Explain Reference vs Content Equality",
+      "prompt_text": "Ask the driver to explain what == compares for two String variables and how that differs from what .equals() checks.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the String Comparison Fix",
+      "prompt_text": "Check whether the fix uses .equals() for string content and whether the explanation covers why == was wrong here.",
+      "target_role": "reviewer"
+    }
+  },
+  "loop_control": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Trace the Counter Direction",
+      "prompt_text": "Have the driver write the counter value for the first three iterations and say whether it moves toward the loop bound.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Loop Update Fix",
+      "prompt_text": "Review whether the update step now moves the counter toward the stopping condition and whether the trace supports it.",
+      "target_role": "reviewer"
+    }
+  },
+  "control_flow": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Find Where the Method Ends",
+      "prompt_text": "Ask the driver to trace the method aloud and point to the exact line where execution leaves it, then say which lines can never run.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Statement Order",
+      "prompt_text": "Check whether all needed statements now run before the return and whether any dead code remains after it.",
+      "target_role": "reviewer"
+    }
+  },
+  "switch_statements": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Walk One Value Through the Switch",
+      "prompt_text": "Have the driver pick one input value and list every statement the switch runs for it, including any fall-through.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Break Placement",
+      "prompt_text": "Review whether each case now ends where intended and whether any remaining fall-through is deliberate and commented.",
+      "target_role": "reviewer"
+    }
+  },
+  "statement_structure": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Say What the Condition Controls",
+      "prompt_text": "Ask the driver to state exactly which statement the if controls, then look at the first character after the closing parenthesis.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Statement Structure",
+      "prompt_text": "Check whether the stray semicolon is gone and the block below now belongs to the condition as intended.",
+      "target_role": "reviewer"
+    }
+  },
+  "assignment_logic": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Read the Assignment Right to Left",
+      "prompt_text": "Ask the driver to read the assignment from right to left and state what the variable holds before and after the line runs.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Assignment Fix",
+      "prompt_text": "Review whether the assignment now uses the intended source value and actually changes the program state.",
+      "target_role": "reviewer"
+    }
+  },
+  "boolean_logic": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Test the Condition with Sample Values",
+      "prompt_text": "Have the driver pick three sample values and evaluate the whole condition for each, checking whether it can ever be false.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Boolean Operator Choice",
+      "prompt_text": "Check whether the corrected condition uses && or || to match the intended meaning and rejects the right values.",
+      "target_role": "reviewer"
+    }
+  },
+  "immutable_strings": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Follow the Returned String",
+      "prompt_text": "Ask the driver where the new string returned by this method call goes, and what the original variable holds afterwards.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the String Result Handling",
+      "prompt_text": "Review whether the method result is now assigned and used, and whether the explanation mentions string immutability.",
+      "target_role": "reviewer"
+    }
+  },
+  "arithmetic_operations": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Check Every Divisor",
+      "prompt_text": "Ask the driver to circle each divisor in the expression and explain what happens if any of them is zero at runtime.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Division Guard",
+      "prompt_text": "Check whether the divisor is now correct or guarded, and whether the fix handles the zero case sensibly.",
+      "target_role": "reviewer"
+    }
+  },
+  "loop_initialization": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Evaluate the First Condition Check",
+      "prompt_text": "Have the driver plug the loop's starting value into the condition and say whether the body runs even once.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Loop Range",
+      "prompt_text": "Review whether the start value and bound now describe the intended range and the loop runs the expected number of times.",
+      "target_role": "reviewer"
+    }
+  },
+  "loop_termination": {
+    "pair_prompt": {
+      "prompt_type": "reasoning_prompt",
+      "collaboration_mode": "pair_programming",
+      "title": "Find What Changes the Condition",
+      "prompt_text": "Ask the driver to underline the variables in the while condition and point to the line inside the loop that changes any of them.",
+      "target_role": "navigator"
+    },
+    "peer_review_prompt": {
+      "prompt_type": "peer_review_focus",
+      "collaboration_mode": "peer_review",
+      "title": "Review the Loop Exit",
+      "prompt_text": "Check whether the loop body now updates a condition variable so the loop is guaranteed to finish.",
+      "target_role": "reviewer"
+    }
   }
 }
