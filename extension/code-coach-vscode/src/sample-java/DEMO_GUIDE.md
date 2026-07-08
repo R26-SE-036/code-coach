@@ -106,5 +106,5 @@ Re-check by pasting the file content into the analyzer:
 
 ```
 cd backend
-.venv\Scripts\python.exe -c "import sys; sys.path.insert(0,'.'); from app.analysis.analyzer import analyze_code; from pathlib import Path; [print(d.line, d.error_type, d.confidence) for d in analyze_code(Path('../viva-demo/BankAccountSimulator.java').read_text(encoding='utf-8'))]"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0,'.'); from app.analysis.analyzer import analyze_code; from pathlib import Path; [print(d.line, d.error_type, d.confidence) for d in analyze_code(Path('../extension/code-coach-vscode/src/sample-java/BankAccountSimulator.java').read_text(encoding='utf-8'))]"
 ```
