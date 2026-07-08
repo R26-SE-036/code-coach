@@ -1,4 +1,4 @@
-# Code Coach Complete Project Guide
+ Code Coach Complete Project Guide
 
 This guide explains the complete Code Coach project from first principles. It is written for someone who needs to understand the implementation, explain it in a viva, and trace how data moves through the system.
 
