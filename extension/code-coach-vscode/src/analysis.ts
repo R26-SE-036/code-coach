@@ -418,7 +418,11 @@ export async function runAnalysisForEditor(
 }
 
 // ── Auto analysis ──
-// waits for 900ms to debounce instead of every key stroke
+// The debounced entry point called by extension.ts on every keystroke / editor
+// switch. Instead of analyzing immediately, it (re)starts a 900ms timer per
+// document (DEBOUNCE_DELAY_MS, from constants.ts); only when typing pauses does
+// the timer fire runAnalysisForEditor() in silent mode. Clearing the previous
+// timer on each call is what collapses a burst of keystrokes into one request.
 export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextEditor | undefined): void {
   if (!editor) { return; }
   const document = editor.document;
