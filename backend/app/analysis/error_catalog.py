@@ -142,6 +142,8 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
 }
 
 
+# Called by ml_engine.predict_issue_types(): the only error types that need a
+# trained model loaded and scored. Currently the 3 original types.
 def ml_gated_specs() -> list[ErrorTypeSpec]:
     return [
         spec
@@ -150,6 +152,8 @@ def ml_gated_specs() -> list[ErrorTypeSpec]:
     ]
 
 
+# The 12 pure-AST error types (no model). Provided for symmetry/introspection;
+# analyzer actually iterates the whole ERROR_CATALOG and branches per spec.
 def rule_only_specs() -> list[ErrorTypeSpec]:
     return [
         spec
@@ -163,6 +167,12 @@ def validate_catalog() -> None:
 
     A missing model file or hints entry would otherwise surface as silently
     dropped diagnostics or generic fallback hints at analysis time.
+
+    Called by main.py during app startup. It cross-checks the catalog against
+    the other two "sources of truth": the model files on disk (MODELS_DIR) and
+    hint_engine.ERROR_KNOWLEDGE_BASE (loaded from the knowledge_base JSON). This
+    is what keeps the three registries in sync now that adding an error type
+    only touches this file plus its locator and its JSON hint entry.
     """
     from app.analysis.hint_engine import ERROR_KNOWLEDGE_BASE
 

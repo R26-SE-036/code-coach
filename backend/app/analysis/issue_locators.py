@@ -1,3 +1,28 @@
+"""The locators: find the EXACT line/column of each error by walking the tree.
+
+Pipeline position: this is where a bug's precise location is decided. Every
+`locate_*` function takes a ParseResult (the tree from parser_utils) and returns
+a list of DetectionResult — one per spot in the code that matches its pattern.
+
+How these get called: error_catalog.py points each error type at one locator
+here (spec.locator = locate_...). analyzer._detect_for_spec() then runs it:
+  - rule_only types  -> locator runs directly (deterministic, no ML involved),
+  - ml_gated types   -> locator runs ONLY after the ML model said "likely present".
+So the same kind of function serves both modes; the catalog decides the mode.
+
+What each locator does NOT do: it does not attach hints, ids, or final
+confidence. It reports a raw DetectionResult (error_type, line, column, a
+locator_confidence, a message). analyzer refines the confidence and hint_engine
+adds the hints afterwards.
+
+Shape of every locator (they all follow this template):
+    root = parse_result.tree.root_node
+    for node in collect_nodes_by_type(root, "<some_node_type>"):
+        if <this node matches the buggy pattern>:
+            findings.append(_result(...))
+    return _deduplicate(findings)
+"""
+
 from typing import List
 
 from app.models import DetectionResult, ParseResult
@@ -29,6 +54,11 @@ def _node_context(node, source_bytes: bytes) -> str:
     return _first_line(get_node_text(node, source_bytes))
 
 
+# Shared factory: build one DetectionResult from the node that pinpoints the bug.
+# `node` decides the reported line/column (via node_to_span logic); `context_node`
+# (if given) supplies the human-readable code snippet shown in the editor.
+# locator_confidence is how sure the RULE is (hand-set per pattern, e.g. 0.95);
+# analyzer later blends it with any ML probability into the final confidence.
 def _result(
     error_type: str,
     node,
@@ -51,6 +81,9 @@ def _result(
     )
 
 
+# Same physical bug can be reached by more than one tree walk; this drops
+# repeats keyed on (error_type, line, column, snippet). Every locator returns
+# its findings through here so VS Code never shows two underlines on one spot.
 def _deduplicate(results: List[DetectionResult]) -> List[DetectionResult]:
     deduplicated: List[DetectionResult] = []
     seen: set[tuple[str, int, int, str]] = set()
@@ -70,6 +103,9 @@ def _deduplicate(results: List[DetectionResult]) -> List[DetectionResult]:
     return deduplicated
 
 
+# [ml_gated] Matches: a for-loop whose condition uses "<=" together with
+# ".length" (e.g. i <= a.length), which runs one iteration too far. Only
+# reached when the OFF_BY_ONE model has already flagged the file.
 def locate_off_by_one_loop_boundaries(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -99,6 +135,9 @@ def locate_off_by_one_loop_boundaries(parse_result: ParseResult) -> List[Detecti
     return _deduplicate(findings)
 
 
+# [ml_gated] Matches: an assignment ("=") used inside an if/while condition
+# where "==" was meant (e.g. if(ready = true)). Only reached when the
+# INCORRECT_CONDITIONAL model has flagged the file.
 def locate_incorrect_conditional_operators(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -134,6 +173,10 @@ def locate_incorrect_conditional_operators(parse_result: ParseResult) -> List[De
     return _deduplicate(findings)
 
 
+# [ml_gated] Matches: indexing an array with its own .length (e.g. a[a.length]),
+# always one past the last valid index. Only reached when the
+# ARRAY_LENGTH_INDEX model has flagged the file. (This is the type whose file-
+# level ML gate can suppress a real bug the locator would otherwise catch.)
 def locate_array_length_index_misuses(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -164,6 +207,8 @@ def locate_array_length_index_misuses(parse_result: ParseResult) -> List[Detecti
     return _deduplicate(findings)
 
 
+# Shared helper: read the operator symbol ("==", "<=", "/", "||", "=") out of a
+# binary_expression or assignment node. Many rule-only locators branch on this.
 def _binary_operator(node) -> str:
     operator_node = node.child_by_field_name("operator")
     if operator_node is not None:
@@ -171,6 +216,9 @@ def _binary_operator(node) -> str:
     return node.children[1].type if len(node.children) >= 2 else ""
 
 
+# Shared helper: strip surrounding parentheses so ((x != 1)) is treated the same
+# as x != 1. Lets locators match the real inner expression regardless of how the
+# student wrapped it.
 def _unwrap_parentheses(node):
     while node is not None and node.type == "parenthesized_expression":
         inner = None
@@ -183,6 +231,9 @@ def _unwrap_parentheses(node):
     return node
 
 
+# Shared helper for the string-equality locator: find every variable declared as
+# a String (locals, parameters, fields). Comparing two of those with == is the
+# classic beginner bug, so this builds the set of names to watch for.
 def _collect_string_variable_names(root, source_bytes: bytes) -> set[str]:
     names: set[str] = set()
     declaration_types = (
@@ -210,6 +261,8 @@ def _collect_string_variable_names(root, source_bytes: bytes) -> set[str]:
     return names
 
 
+# [rule_only] Matches: comparing strings with == or != (a string literal, or two
+# known String variables) instead of .equals(). Skips comparisons against null.
 def locate_string_equality_with_operator(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -251,6 +304,8 @@ def locate_string_equality_with_operator(parse_result: ParseResult) -> List[Dete
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: a for-loop that counts the wrong way for its condition
+# (i < 10 but i-- , or i > 0 but i++), so it never reaches the bound.
 def locate_loop_update_wrong_directions(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -289,6 +344,9 @@ def locate_loop_update_wrong_directions(parse_result: ParseResult) -> List[Detec
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: any statement that sits after a return in the same block,
+# so it can never execute. Walks each block and flags the statement following
+# the first return.
 def locate_unreachable_code_after_return(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -325,6 +383,9 @@ _SWITCH_EXIT_STATEMENTS = {
 }
 
 
+# [rule_only] Matches: a switch case (other than the last) whose body does not
+# end in break/return/throw/continue/yield, so it falls through. Empty stacked
+# labels (case 1: case 2:) are intentionally skipped.
 def locate_missing_breaks_in_switch(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -361,6 +422,9 @@ def locate_missing_breaks_in_switch(parse_result: ParseResult) -> List[Detection
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: a stray semicolon right after an if/while/for header
+# (e.g. if(x > 0); ), which makes the body empty so the condition controls
+# nothing.
 def locate_empty_conditional_bodies(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -389,6 +453,8 @@ def locate_empty_conditional_bodies(parse_result: ParseResult) -> List[Detection
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: assigning a variable to itself (x = x), where the left and
+# right text are identical, so the statement does nothing.
 def locate_self_assignments(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -417,6 +483,9 @@ def locate_self_assignments(parse_result: ParseResult) -> List[DetectionResult]:
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: x != A || x != B where A and B are different constants —
+# always true because a value can't equal both, so the guard is meaningless
+# (the classic "|| should have been &&" bug).
 def locate_always_true_or_conditions(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -489,6 +558,9 @@ _IMMUTABLE_STRING_METHODS = {
 }
 
 
+# [rule_only] Matches: calling an immutable-String method (toUpperCase, trim,
+# substring, replace, ...) as a standalone statement, throwing away the new
+# string it returns. Strings never change in place, so the call has no effect.
 def locate_ignored_string_method_results(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -522,6 +594,9 @@ def locate_ignored_string_method_results(parse_result: ParseResult) -> List[Dete
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: dividing or modding by the literal 0 (x / 0, x % 0),
+# which throws ArithmeticException at runtime. Severity could be raised to
+# "error" here since it always crashes.
 def locate_division_by_zero_literals(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -562,6 +637,9 @@ _COMPARISON_CHECKS = {
 }
 
 
+# [rule_only] Matches: a for-loop whose counter starts at a literal that already
+# fails the condition (e.g. for(i=10; i<5; i++)), so the body never runs. Uses
+# _COMPARISON_CHECKS above to actually evaluate the first check.
 def locate_constant_false_loop_conditions(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -620,6 +698,9 @@ def locate_constant_false_loop_conditions(parse_result: ParseResult) -> List[Det
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: an else-if that repeats a condition already tested earlier
+# in the same if/else-if chain, so that branch can never run. Walks each chain
+# from its head and remembers conditions it has seen (whitespace-normalized).
 def locate_duplicate_if_else_conditions(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes
@@ -662,6 +743,10 @@ def locate_duplicate_if_else_conditions(parse_result: ParseResult) -> List[Detec
     return _deduplicate(findings)
 
 
+# [rule_only] Matches: a while-loop whose condition variables are never changed
+# in the body and which has no break/return/throw — a likely infinite loop.
+# Deliberately skips conditions that call methods or read fields (those could
+# change in ways this simple check can't see), to avoid false alarms.
 def locate_while_variables_not_updated(parse_result: ParseResult) -> List[DetectionResult]:
     root = parse_result.tree.root_node
     source_bytes = parse_result.source_bytes

@@ -1,3 +1,23 @@
+"""The last step: wrap a located finding into the Diagnostic sent to VS Code.
+
+Pipeline position: runs at the very end of analyze_code(), after a DetectionResult
+has been produced and its confidence finalized. It attaches the teaching content:
+the concept tag, the explanation key, and the 3-level HintSet (concept / guidance
+/ targeted) the student sees when hovering the yellow underline.
+
+Where the hints come from: knowledge_base/code_coach_errors.json, loaded once at
+import time into ERROR_KNOWLEDGE_BASE (keyed by error_type). That JSON is the
+single source of truth for hint text; error_catalog.validate_catalog() checks at
+startup that every registered error type has an entry, so a missing entry fails
+loudly instead of silently falling back to the generic default.
+
+Data flow:
+    DetectionResult (from a locator, refined by analyzer)
+      -> look up its error_type in ERROR_KNOWLEDGE_BASE
+      -> build a stable diagnostic_id (hash of type+line+column+context)
+      -> Diagnostic (returned)  ->  serialized to JSON  ->  VS Code underline+hints
+"""
+
 import hashlib
 import json
 from pathlib import Path
@@ -48,10 +68,16 @@ DEFAULT_ERROR_KNOWLEDGE = ErrorKnowledge(
 )
 
 
+# Look up the hints for one error type, falling back to the generic default if
+# it is somehow missing (validate_catalog normally prevents that at startup).
 def get_error_knowledge(error_type: str) -> ErrorKnowledge:
     return ERROR_KNOWLEDGE_BASE.get(error_type, DEFAULT_ERROR_KNOWLEDGE)
 
 
+# Build a STABLE id from the bug's identity (type + line + column + snippet).
+# Same bug in the same place always hashes to the same "cc_..." id, which lets
+# the service layer recognize a recurring mistake across analyses (used for the
+# repeat-struggle tracking sent to the downstream Study Guider).
 def _diagnostic_id_for(finding: DetectionResult) -> str:
     stable_key = "|".join(
         [
@@ -64,9 +90,13 @@ def _diagnostic_id_for(finding: DetectionResult) -> str:
     digest = hashlib.sha1(stable_key.encode("utf-8")).hexdigest()[:12]
     return f"cc_{digest}"
 
-# It loads hint templates from: knowledge_base\code_coach_errors.json
-# Then it creates the final diagnostic with containing:
-# diagnostic ID, error type, line and column, confidence, message, code context, concept tag, explanation key, detection engine, ML probability, locator confidence, concept hint, guidance hint, targeted hint
+# THE public entry point, called once per finding by analyzer.analyze_code().
+# Merges two things into the final Diagnostic:
+#   - detection facts from the finding (where/how it was found, confidence),
+#   - teaching content from the knowledge base (concept_tag, explanation_key,
+#     3-level hints).
+# The returned Diagnostic is exactly what travels back through the service and
+# route layers to the extension.
 def build_diagnostic(finding: DetectionResult) -> Diagnostic:
     knowledge = get_error_knowledge(finding.error_type)
 

@@ -1,3 +1,25 @@
+/**
+ * The client half of the analysis spine: editor text -> backend -> underlines.
+ *
+ * This is the VS Code mirror of the backend's analyzer.py. It takes the Java in
+ * the active editor, sends it to POST /api/v1/code-coach/analyze, and renders
+ * the diagnostics that come back as squiggly underlines, decorations, and hints.
+ *
+ * The full round trip (traced in Session 2):
+ *   scheduleAutoAnalysis()  (debounce 900ms; also called from extension.ts events)
+ *     -> runAnalysisForEditor()   (the main runner)
+ *          -> ensureAuthenticated / ensureLearningSession   (auth.ts)
+ *          -> requestAnalyze()  ->  authorizedRequestJson()  (api.ts)  -> BACKEND
+ *          -> applyEditorFeedback()   (turn the JSON into VS Code Diagnostics)
+ *
+ * Who it depends on:
+ *   - api.ts    -> authorizedRequestJson (the actual HTTP call, with auth token)
+ *   - auth.ts   -> ensureAuthenticated, ensureLearningSession, trackLearningEvent
+ *   - ui/*      -> decorations, status bar, coach panel rendering
+ *
+ * Note: it never builds URLs or attaches tokens itself — that is api.ts's job.
+ * It only decides WHAT to send and WHAT to do with the response.
+ */
 import * as vscode from "vscode";
 import {
   AnalyzeResponse,
@@ -14,6 +36,10 @@ import { buildDecorationOptions } from "./ui/decorations";
 
 // ── Range & severity helpers ──
 
+// Convert a backend diagnostic's 1-based line/column into a VS Code Range
+// (0-based). This is the client-side counterpart to the +1 that parser_utils
+// did on the backend: the backend counts from 1, VS Code counts from 0, so the
+// two meet here. The Range is what tells VS Code exactly which text to underline.
 export function createRangeFromDiagnostic(
   document: vscode.TextDocument,
   diagnostic: DiagnosticItem,
@@ -83,6 +109,12 @@ export function clearFeedbackForDocument(
 
 // ── Apply editor feedback ──
 
+// THE rendering step: turn the backend's DiagnosticItem[] into what the user
+// actually sees. For each item it builds a vscode.Diagnostic (the underline +
+// the "message. Hint: ..." on hover) and pushes it into state.diagnosticCollection
+// — the collection created once in extension.ts. It also caches the raw items in
+// state.lastDiagnosticsByUri so hint navigation and the coach panel can reuse
+// them without re-calling the backend.
 function applyEditorFeedback(
   state: ExtensionState,
   editor: vscode.TextEditor,
@@ -132,6 +164,11 @@ function hintTextForLevel(diagnostic: DiagnosticItem, level: "concept" | "guidan
   }
 }
 
+// Show one hint (concept/guidance/targeted) for the diagnostic at `index`, move
+// the cursor to it, and refresh the coach panel. Crucially, it also reports the
+// interaction to the backend via trackLearningEvent (auth.ts): every hint the
+// student opens becomes a learning event, which is how the downstream Study
+// Guider later detects hint-dependence and repeated struggle.
 async function showHintAtIndex(
   state: ExtensionState,
   editor: vscode.TextEditor,
@@ -218,6 +255,11 @@ function writeAnalysisOutput(state: ExtensionState, result: AnalyzeResponse): vo
 
 // ── Request analyze ──
 
+// The one function that actually calls the analysis endpoint. It assembles the
+// POST body {language, code, learning_session_id, enable_logging} and hands it
+// to authorizedRequestJson (api.ts), which adds the base URL + Bearer token and
+// does the fetch. The <AnalyzeResponse> generic is the client's mirror of the
+// backend AnalyzeResponse model (status, timings, diagnostics[]).
 async function requestAnalyze(state: ExtensionState, code: string, learningSessionId: string): Promise<AnalyzeResponse> {
   return authorizedRequestJson<AnalyzeResponse>(state, "/api/v1/code-coach/analyze", {
     method: "POST",
@@ -231,6 +273,14 @@ async function requestAnalyze(state: ExtensionState, code: string, learningSessi
 
 // ── Main analysis runner ──
 
+// THE main runner — the client-side equivalent of backend analyze_code(). Order:
+//   1. bail out if the file isn't Java (isSupportedDocument) or is empty,
+//   2. make sure the user is signed in (ensureAuthenticated, auth.ts),
+//   3. make sure a learning session exists (ensureLearningSession, auth.ts),
+//   4. requestAnalyze() -> backend,   (with a retry if the session 404/409'd),
+//   5. applyEditorFeedback() to render, or clear feedback if nothing was found.
+// The `options` flag distinguishes manual runs (showPopup: progress + popups)
+// from the silent auto-analysis triggered by typing.
 export async function runAnalysisForEditor(
   state: ExtensionState,
   editor: vscode.TextEditor,
@@ -368,7 +418,7 @@ export async function runAnalysisForEditor(
 }
 
 // ── Auto analysis ──
-// waits fir 900ms to debounce instead of every key stroke
+// waits for 900ms to debounce instead of every key stroke
 export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextEditor | undefined): void {
   if (!editor) { return; }
   const document = editor.document;

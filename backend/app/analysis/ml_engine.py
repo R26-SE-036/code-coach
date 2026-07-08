@@ -1,3 +1,29 @@
+"""The ML gate: given a feature row, say which ml_gated errors are likely present.
+
+Pipeline position: sits above feature_extractor and is driven by analyzer.
+It answers ONE question per ml_gated error type: "does this file probably
+contain this kind of bug?" — a yes/no plus a probability. It never says WHERE
+the bug is; that is the AST locator's job (issue_locators.py).
+
+Data flow:
+    feature_dict (from feature_extractor)
+      -> for each ml_gated spec in the catalog:
+           load its trained .joblib model (cached)
+           line the feature_dict up with the model's expected columns
+           model.predict_proba -> probability
+           probability >= spec.ml_threshold -> predicted_positive
+      -> list of MLPrediction (returned)
+
+Who reads the catalog: ml_gated_specs() and MODELS_DIR both come from
+error_catalog.py, so the catalog is the single place that decides which models
+exist, which file each loads, and what threshold gates it.
+
+Who consumes the output: analyzer._safe_predict_issue_types() calls this, then
+_detect_for_spec() uses predicted_positive to decide whether to even run the
+locator. If this raises, analyzer swallows it and simply produces no ml_gated
+diagnostics (fail-safe, never crashes the request).
+"""
+
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -7,6 +33,8 @@ import pandas as pd
 from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
 
 
+# The object this file hands back to analyzer, one per ml_gated error type.
+# predicted_positive is the gate: analyzer only runs the locator when it is True.
 @dataclass
 class MLPrediction:
     error_type: str
@@ -15,9 +43,14 @@ class MLPrediction:
     predicted_positive: bool
 
 
+# Models are loaded from disk once and cached here (loading joblib files is slow;
+# the API stays warm across requests). Keyed by target_column.
 _LOADED_MODELS: Dict[str, object] = {}
 
 
+# Lazy-load and cache the trained model for one error type. The filename and
+# location come from the catalog spec (spec.model_file) + MODELS_DIR, so which
+# model is used is decided in error_catalog.py, not here.
 def _get_model(spec: ErrorTypeSpec):
     if spec.target_column in _LOADED_MODELS:
         return _LOADED_MODELS[spec.target_column]
@@ -32,6 +65,11 @@ def _get_model(spec: ErrorTypeSpec):
     return model
 
 
+# CRITICAL alignment step. A scikit-learn model expects its feature columns in
+# the exact names and order it was trained on (model.feature_names_in_). The
+# feature_dict from feature_extractor may have extra keys or a different order,
+# so this picks out the expected columns, fills any missing one with 0, and
+# builds a single-row DataFrame. Get this wrong and the model reads garbage.
 def _build_feature_frame(model, feature_dict: Dict[str, float]) -> pd.DataFrame:
     expected_columns = list(getattr(model, "feature_names_in_", []))
 
@@ -45,9 +83,13 @@ def _build_feature_frame(model, feature_dict: Dict[str, float]) -> pd.DataFrame:
 
     return pd.DataFrame([row], columns=expected_columns)
 
-# It loads the trained .joblib model for every ml_gated entry in the error
-# catalog and predicts the probability that the issue type is present.
-# ML decides whether the issue type is likely present. It does not directly find the line number.
+# THE public entry point. Loops over ml_gated_specs() from the catalog and
+# scores the feature row against each model. predict_proba[0][1] is the model's
+# probability for the "positive" class (issue present). Comparing it to the
+# per-target spec.ml_threshold gives predicted_positive.
+#
+# Returns one MLPrediction per ml_gated type. It decides IF each issue type is
+# likely present; it never finds the line number — that is issue_locators' job.
 def predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPrediction]:
     predictions: List[MLPrediction] = []
 

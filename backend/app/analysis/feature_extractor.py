@@ -1,3 +1,24 @@
+"""Turn a Java file into a flat dict of numbers (the ML feature vector).
+
+Pipeline position: sits between parser_utils (below) and ml_engine (above).
+The ML models cannot read source code or a tree — they only understand a fixed
+row of numbers. This file produces that row.
+
+Data flow:
+    code (str)
+      -> parse_java_code_safe()        (from parser_utils; note it re-parses
+                                         here, independently of analyzer's parse)
+      -> count AST constructs           (for-loops, if-conditions, array access,
+                                         node depth, "<=" with ".length", etc.)
+      -> feature_dict {name: number}    (returned)
+
+Who consumes the output: analyzer.analyze_code() passes this dict to
+ml_engine.predict_issue_types(), which lines the keys up against the exact
+feature columns each trained model expects. So the feature NAMES here must stay
+in sync with the columns the models were trained on (train_baselines.py).
+Only the 3 ml_gated error types use these features; rule_only types ignore them.
+"""
+
 from typing import Any, Dict, List, Optional
 
 from app.analysis.parser_utils import (
@@ -51,6 +72,10 @@ def _count_logical_operators(text: str) -> int:
     return text.count("&&") + text.count("||")
 
 
+# Features about for-loops. These are the signals the OFF_BY_ONE model leans on
+# most: does a loop condition use "<=" together with ".length"? how big is the
+# loop body? does the body index into an array? Each returned key becomes one
+# column in the feature row.
 def _extract_for_loop_features(root_node, source_bytes: bytes) -> Dict[str, Any]:
     for_nodes = collect_nodes_by_type(root_node, "for_statement")
 
@@ -105,6 +130,10 @@ def _extract_for_loop_features(root_node, source_bytes: bytes) -> Dict[str, Any]
     }
 
 
+# Features about if-conditions. The key signal for the INCORRECT_CONDITIONAL
+# model is assignment_inside_if_condition_count (a "=" where "==" was meant,
+# e.g. if(ready = true)). Also counts equality operators, boolean literals,
+# and &&/|| usage in conditions.
 def _extract_if_features(root_node, source_bytes: bytes) -> Dict[str, Any]:
     if_nodes = collect_nodes_by_type(root_node, "if_statement")
 
@@ -137,6 +166,10 @@ def _extract_if_features(root_node, source_bytes: bytes) -> Dict[str, Any]:
     }
 
 
+# Features about array indexing. The key signal for the ARRAY_LENGTH_INDEX
+# model is array_index_uses_length_directly_count: writing a[a.length], which is
+# always one past the last valid index. Also counts how many distinct arrays
+# are touched.
 def _extract_array_access_features(root_node, source_bytes: bytes) -> Dict[str, Any]:
     array_access_nodes = collect_nodes_by_type(root_node, "array_access")
 
@@ -168,6 +201,9 @@ def _extract_array_access_features(root_node, source_bytes: bytes) -> Dict[str, 
     }
 
 
+# Broad "shape of the code" features: how many classes/methods/loops/returns,
+# how deep the tree is, how many nodes total. These give the models context
+# (a tiny snippet vs. a large method) that sharpens the specific signals above.
 def _extract_general_ast_features(root_node) -> Dict[str, Any]:
     method_nodes = collect_nodes_by_type(root_node, "method_declaration")
     class_nodes = collect_nodes_by_type(root_node, "class_declaration")
@@ -190,16 +226,13 @@ def _extract_general_ast_features(root_node) -> Dict[str, Any]:
     }
 
 
-# it created numeric features such as:
-# number of lines
-# AST node count
-# parse completeness
-# number of for statements
-# whether loop condition uses .length
-# whether loop condition uses <=
-# assignment inside if condition count
-# array access count
-# direct array.length index usage count
+# THE public entry point. Parses the code, then merges the four feature groups
+# above with some base counts (lines, chars, parse health) into ONE flat dict.
+# If parsing crashed it returns only the base features. The returned dict is
+# what ml_engine.predict_issue_types() scores against each model.
+#
+# Note: this parses independently of analyzer's own parse_java_code_safe() call.
+# Same input code, so same tree — just computed a second time here for features.
 def extract_features(code: str) -> Dict[str, Any]:
     parse_result = parse_java_code_safe(code)
 
