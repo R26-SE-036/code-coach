@@ -15,7 +15,7 @@ ax.axis("off")
 
 C = {
     "client":  "#E8F0FE", "client_edge":  "#1A56DB",
-    "aws":     "#FFF4E5", "aws_edge":     "#B45309",
+    "aws":     "#E7F3EF", "aws_edge":     "#0B7285",
     "fb":      "#FEF9E7", "fb_edge":      "#B7950B",
     "inner":   "#FFFFFF", "inner_edge":   "#64748B",
     "pipe":    "#EEF6EE", "pipe_edge":    "#2F855A",
@@ -81,8 +81,8 @@ text(26.8, 80.0, "installs / updates", size=7.2, color=C["client_edge"], weight=
 
 # ============================================================ AWS NODE
 box(56, 26, 84, 70, C["aws"], C["aws_edge"], lw=2)
-text(58, 94.5, "«execution environment»  AWS — ECS on Fargate", size=10.5, weight="bold", color=C["aws_edge"])
-text(58, 91.3, "Docker container  (python:3.12-slim, 527 MB)  ·  config via env vars: JWT_SECRET, FIREBASE_*", size=8)
+text(58, 94.5, "«execution environment»  Google Cloud — Cloud Run  (region: asia-south1)", size=10.5, weight="bold", color=C["aws_edge"])
+text(58, 91.3, "Docker container (python:3.12-slim, 527 MB) · scales to zero · automatic HTTPS · env vars: JWT_SECRET, FIREBASE_PROJECT_ID", size=8)
 
 # FastAPI app container
 box(58, 29, 80, 59, C["inner"], C["aws_edge"])
@@ -162,7 +162,7 @@ box(2, 3, 46, 17.5, C["future"], C["future_edge"], lw=1.4, ls="--")
 text(4, 19, "«planned»  Other CodeGuru microservices", size=9.5, weight="bold", color="#6B7280")
 text(4, 16, "Study Guider · Gamification Engine · Pair Review Studio\nseparate repos · separate Firebase projects (DB-per-service)",
      size=7.4, color="#6B7280")
-text(4, 10.2, "inter-service events over Pub/Sub or RabbitMQ\n(contract: remediation.triggered, learning events)", size=7.4, color="#6B7280", style="italic")
+text(4, 10.2, "inter-service events over Google Pub/Sub (or RabbitMQ)\n(contract: remediation.triggered, learning events)", size=7.4, color="#6B7280", style="italic")
 
 # ============================================================ CROSS-NODE ARROWS
 arrow(48.6, 62, 55.4, 62, color="#1F2937", lw=2.2, size=14)
@@ -171,7 +171,7 @@ text(52, 63.6, "JSON REST", size=7, ha="center", color="#1F2937", weight="bold")
 text(52, 60.2, "Bearer JWT", size=7, ha="center", color="#1F2937", weight="bold")
 
 arrow(98, 29, 98, 21.2, color=C["fb_edge"], lw=2.0, size=12)
-text(100.3, 24.3, "google-cloud-firestore\nservice account / ADC", size=7.2, color=C["fb_edge"], weight="bold")
+text(100.3, 24.3, "google-cloud-firestore\nADC — same project, no key file", size=7.2, color=C["fb_edge"], weight="bold")
 
 arrow(48.6, 12, 55.4, 12, color="#9CA3AF", lw=1.6, size=10, ls="--")
 text(52, 14.6, "planned\nevents", size=6.8, ha="center", color="#9CA3AF")
