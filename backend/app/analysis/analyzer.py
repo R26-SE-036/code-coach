@@ -17,6 +17,7 @@ Nothing above this file knows how detection works; nothing below it knows about
 the request. analyze_code() is the seam between the two.
 """
 
+import logging
 from typing import Dict, List, Optional
 
 from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec
@@ -26,6 +27,8 @@ from app.analysis.ml_engine import MLPrediction, predict_issue_types
 from app.models import DetectionResult, Diagnostic, ParseResult
 from app.analysis.parser_utils import parse_java_code_safe
 
+logger = logging.getLogger(__name__)
+
 MIN_FILE_COMPLETENESS = 0.35
 ML_CONFIDENCE_WEIGHT = 0.8
 LOCATOR_CONFIDENCE_WEIGHT = 0.2
@@ -33,12 +36,17 @@ LOCATOR_CONFIDENCE_WEIGHT = 0.2
 
 # Fail-safe wrapper around ml_engine.predict_issue_types(). If a model file is
 # missing or prediction throws, this returns [] instead of crashing the request,
-# so a broken model just means "no ml_gated diagnostics", never a 500. (Trade-off:
-# failures are currently silent — a logged warning here is a planned improvement.)
+# so a broken model just means "no ml_gated diagnostics", never a 500.
 def _safe_predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPrediction]:
     try:
         return predict_issue_types(feature_dict)
     except Exception:
+        # Fail safe but never fail SILENT: without this log line a broken
+        # model file would make every ml_gated diagnostic vanish with no
+        # trace anywhere.
+        logger.exception(
+            "ML gate prediction failed; ml_gated diagnostics disabled for this request"
+        )
         return []
 
 
