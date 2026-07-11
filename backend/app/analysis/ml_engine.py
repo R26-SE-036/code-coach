@@ -108,5 +108,4 @@ def predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPrediction]:
                 predicted_positive=predicted_positive,
             )
         )
-
     return predictions

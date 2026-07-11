@@ -20,7 +20,7 @@ public class BankAccountSimulator {
         }
 
         double fee = monthlyFee(balance);
-        System.out.println("Monthly account fee: Rs. " + fee)
+        System.out.println("Monthly account fee: Rs. " + fee);
 
         int emailsSent = 0;
         while (emailsSent < 3) {

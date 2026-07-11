@@ -8,7 +8,7 @@ public class InventoryReportTool {
 
         validateCategory(2);
         warnLowStock(items, stock);
-        printStockReport(items, stock)
+        printStockReport(items, stock);
 
         System.out.println("Average units per delivery: " + averagePerDelivery(stock));
 

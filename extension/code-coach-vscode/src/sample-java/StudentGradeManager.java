@@ -8,7 +8,7 @@ public class StudentGradeManager {
 
         for (int i = 0; i < marks.length; i++) {
             String grade = gradeFor(marks[i]);
-            System.out.println(students[i] + " scored " + marks[i] + " -> grade " + grade)
+            System.out.println(students[i] + " scored " + marks[i] + " -> grade " + grade);
         }
 
         verifyRecord(new String("Chathura"));

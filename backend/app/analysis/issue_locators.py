@@ -111,16 +111,16 @@ def locate_off_by_one_loop_boundaries(parse_result: ParseResult) -> List[Detecti
     source_bytes = parse_result.source_bytes
     findings: List[DetectionResult] = []
 
-    for_nodes = collect_nodes_by_type(root, "for_statement")
+    for_nodes = collect_nodes_by_type(root, "for_statement") # 1. every for-loop
 
     for for_node in for_nodes:
-        condition_node = for_node.child_by_field_name("condition")
+        condition_node = for_node.child_by_field_name("condition") # 2. its condition slot
         if condition_node is None:
             continue
 
-        condition_text = _node_text(condition_node, source_bytes)
+        condition_text = _node_text(condition_node, source_bytes) # 3. the TEXT of it
 
-        if "<=" in condition_text and ".length" in condition_text:
+        if "<=" in condition_text and ".length" in condition_text: # 4. crude string check
             findings.append(
                 _result(
                     "OFF_BY_ONE_LOOP_BOUNDARY",
@@ -381,7 +381,6 @@ _SWITCH_EXIT_STATEMENTS = {
     "continue_statement",
     "yield_statement",
 }
-
 
 # [rule_only] Matches: a switch case (other than the last) whose body does not
 # end in break/return/throw/continue/yield, so it falls through. Empty stacked
