@@ -972,14 +972,27 @@ class MongoStorage:
         )
         return [_copy_document(document) or {} for document in cursor]
 
-# It decides whether to use MongoDB or in-memory storage based on configuration.
-def build_storage() -> InMemoryStorage | MongoStorage:
+# Picks the storage backend from configuration: Firestore when a service
+# account key is configured, MongoDB when a URI is set, in-memory otherwise
+# (development fallback — data does NOT survive a restart).
+def build_storage():
     settings = get_settings()
 
-    if settings.mongodb_uri:
+    if settings.firebase_credentials_path:
+        # Imported lazily so google-cloud-firestore is only required when used.
+        from app.db.firestore_storage import FirestoreStorage
+
+        storage = FirestoreStorage(
+            settings.firebase_credentials_path,
+            settings.firebase_project_id,
+        )
+        print(f"Storage backend: Firestore (project={storage.client.project})")
+    elif settings.mongodb_uri:
         storage = MongoStorage(settings.mongodb_uri, settings.mongodb_db_name)
+        print(f"Storage backend: MongoDB (db={settings.mongodb_db_name})")
     else:
         storage = InMemoryStorage()
+        print("Storage backend: in-memory (WARNING: data is lost on restart)")
 
     storage.create_indexes()
     return storage

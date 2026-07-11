@@ -15,6 +15,13 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Storage backend selection (checked in this order by build_storage):
+    # 1. Firestore — set firebase_credentials_path to a service account key
+    # 2. MongoDB   — set mongodb_uri
+    # 3. In-memory — fallback for local development; data is LOST on restart
+    firebase_credentials_path: Optional[str] = None
+    firebase_project_id: Optional[str] = None
+
     mongodb_uri: Optional[str] = None
     mongodb_db_name: str = "code-guru"
 
