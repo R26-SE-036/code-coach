@@ -37,7 +37,18 @@ from typing import Dict, List, Optional, Tuple
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATA_ROOT = PROJECT_ROOT / "data" / "ml"
 RAW_SNIPPETS_DIR = DATA_ROOT / "raw_snippets"
+GENERATED_SNIPPETS_DIR = DATA_ROOT / "raw_snippets_generated"
 METADATA_FILE = DATA_ROOT / "metadata" / "snippet_index.csv"
+
+# The corpus can come from more than one root. Each root carries its own
+# source_type (provenance is a first-class column — split_dataset.py holds all
+# manual_curated units out as the test set once synthetic rows exist) and an
+# id prefix so snippet_ids never collide across roots.
+# (root directory, source_type, snippet_id prefix)
+SOURCE_ROOTS = [
+    (RAW_SNIPPETS_DIR, "manual_curated", ""),
+    (GENERATED_SNIPPETS_DIR, "synthetic_generated", "gen_"),
+]
 
 DEFAULT_SOURCE_TYPE = "manual_curated"
 
@@ -143,6 +154,17 @@ def _trailing_number(file_stem: str) -> Optional[str]:
     return match.group(1) if match else None
 
 
+def _slug(file_stem: str) -> str:
+    """CamelCase stem -> snake_case id. `Clean001` -> `clean_001`,
+    `GenCleanFallThrough001` -> `gen_clean_fall_through_001`.
+
+    Used for clean snippets, whose stems vary — the trailing number alone is
+    not unique across different stem families."""
+    with_breaks = re.sub(r"(?<=[a-z])(?=[A-Z])", "_", file_stem)
+    with_breaks = re.sub(r"(?<=[A-Za-z])(?=[0-9])", "_", with_breaks)
+    return with_breaks.lower()
+
+
 def _relative_path(java_file: Path) -> str:
     # Always POSIX-style forward slashes so the CSV is identical on Windows/Unix.
     return java_file.relative_to(PROJECT_ROOT).as_posix()
@@ -168,11 +190,14 @@ def _zeros() -> Dict[str, str]:
 
 def _collect_category_rows(
     category: Category,
+    root_dir: Path,
+    source_type: str,
+    id_prefix: str,
     existing: Dict[str, Dict[str, str]],
     pair_counter: List[int],
 ) -> List[Dict[str, str]]:
     """Build all buggy/fixed rows for one category, paired by filename number."""
-    category_dir = RAW_SNIPPETS_DIR / category.folder
+    category_dir = root_dir / category.folder
 
     # Map number -> {role: java_file}, so a buggy/fixed pair shares a pair_group.
     by_number: Dict[str, Dict[str, Path]] = {}
@@ -196,11 +221,17 @@ def _collect_category_rows(
         # buggy first, then fixed (matches the existing file ordering).
         if "buggy" in roles:
             rows.append(
-                _make_bug_row(category, number, roles["buggy"], pair_group, existing)
+                _make_bug_row(
+                    category, number, roles["buggy"], pair_group,
+                    existing, source_type, id_prefix,
+                )
             )
         if "fixed" in roles:
             rows.append(
-                _make_fix_row(category, number, roles["fixed"], pair_group, existing)
+                _make_fix_row(
+                    category, number, roles["fixed"], pair_group,
+                    existing, source_type, id_prefix,
+                )
             )
 
     return rows
@@ -218,8 +249,9 @@ def _preserved(existing: Dict[str, Dict[str, str]], snippet_id: str, field: str,
 
 
 def _make_bug_row(category: Category, number: str, java_file: Path,
-                  pair_group: str, existing: Dict[str, Dict[str, str]]) -> Dict[str, str]:
-    snippet_id = f"{category.id_prefix}_bug_{number}"
+                  pair_group: str, existing: Dict[str, Dict[str, str]],
+                  source_type: str, id_prefix: str) -> Dict[str, str]:
+    snippet_id = f"{id_prefix}{category.id_prefix}_bug_{number}"
     row = {
         "snippet_id": snippet_id,
         "file_path": _relative_path(java_file),
@@ -229,7 +261,7 @@ def _make_bug_row(category: Category, number: str, java_file: Path,
         **_zeros(),
         "pair_group": pair_group,
         "pair_role": "buggy",
-        "source_type": _preserved(existing, snippet_id, "source_type", DEFAULT_SOURCE_TYPE),
+        "source_type": _preserved(existing, snippet_id, "source_type", source_type),
         "notes": _preserved(existing, snippet_id, "notes", category.buggy_note),
     }
     row[category.flag_column] = "1"
@@ -237,8 +269,9 @@ def _make_bug_row(category: Category, number: str, java_file: Path,
 
 
 def _make_fix_row(category: Category, number: str, java_file: Path,
-                  pair_group: str, existing: Dict[str, Dict[str, str]]) -> Dict[str, str]:
-    snippet_id = f"{category.id_prefix}_fix_{number}"
+                  pair_group: str, existing: Dict[str, Dict[str, str]],
+                  source_type: str, id_prefix: str) -> Dict[str, str]:
+    snippet_id = f"{id_prefix}{category.id_prefix}_fix_{number}"
     return {
         "snippet_id": snippet_id,
         "file_path": _relative_path(java_file),
@@ -248,27 +281,29 @@ def _make_fix_row(category: Category, number: str, java_file: Path,
         **_zeros(),
         "pair_group": pair_group,
         "pair_role": "fixed",
-        "source_type": _preserved(existing, snippet_id, "source_type", DEFAULT_SOURCE_TYPE),
+        "source_type": _preserved(existing, snippet_id, "source_type", source_type),
         "notes": _preserved(existing, snippet_id, "notes", category.fixed_note),
     }
 
 
-def _collect_clean_rows(existing: Dict[str, Dict[str, str]]) -> List[Dict[str, str]]:
-    clean_dir = RAW_SNIPPETS_DIR / CLEAN_FOLDER
+def _collect_clean_rows(
+    root_dir: Path,
+    source_type: str,
+    existing: Dict[str, Dict[str, str]],
+) -> List[Dict[str, str]]:
+    clean_dir = root_dir / CLEAN_FOLDER
     if not clean_dir.is_dir():
         return []
 
-    numbered: List[Tuple[str, Path]] = []
-    for java_file in clean_dir.glob("*.java"):
-        number = _trailing_number(java_file.stem)
-        if number is None:
+    rows: List[Dict[str, str]] = []
+    for java_file in sorted(clean_dir.glob("*.java"), key=lambda p: p.stem):
+        if _trailing_number(java_file.stem) is None:
             print(f"  ! skipping (no number in name): {java_file.name}")
             continue
-        numbered.append((number, java_file))
-
-    rows: List[Dict[str, str]] = []
-    for number, java_file in sorted(numbered, key=lambda item: item[0]):
-        snippet_id = f"clean_{number}"
+        # Clean ids come from the FULL stem, not the trailing number alone:
+        # generated clean families (GenCleanFallThrough001, GenCleanScanner001)
+        # share numbers. Manual stems are unaffected: Clean001 -> clean_001.
+        snippet_id = _slug(java_file.stem)
         rows.append(
             {
                 "snippet_id": snippet_id,
@@ -279,7 +314,7 @@ def _collect_clean_rows(existing: Dict[str, Dict[str, str]]) -> List[Dict[str, s
                 **_zeros(),
                 "pair_group": "",  # clean snippets are standalone units
                 "pair_role": "clean",
-                "source_type": _preserved(existing, snippet_id, "source_type", DEFAULT_SOURCE_TYPE),
+                "source_type": _preserved(existing, snippet_id, "source_type", source_type),
                 "notes": _preserved(
                     existing, snippet_id, "notes", f"clean snippet {java_file.stem}"
                 ),
@@ -296,10 +331,20 @@ def build_rows() -> List[Dict[str, str]]:
 
     rows: List[Dict[str, str]] = []
     pair_counter = [0]  # shared, mutable so pair_group numbering is global + ascending
-    for category in sorted(CATEGORIES, key=lambda c: c.order):
-        rows.extend(_collect_category_rows(category, existing, pair_counter))
 
-    rows.extend(_collect_clean_rows(existing))
+    # Manual root first so the hand-curated block of the CSV stays stable.
+    for root_dir, source_type, id_prefix in SOURCE_ROOTS:
+        if not root_dir.is_dir():
+            continue
+        for category in sorted(CATEGORIES, key=lambda c: c.order):
+            rows.extend(
+                _collect_category_rows(
+                    category, root_dir, source_type, id_prefix,
+                    existing, pair_counter,
+                )
+            )
+        rows.extend(_collect_clean_rows(root_dir, source_type, existing))
+
     return rows
 
 

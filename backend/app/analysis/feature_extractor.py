@@ -90,6 +90,7 @@ def _extract_for_loop_features(root_node, source_bytes: bytes) -> Dict[str, Any]
     loop_condition_contains_geq = 0
     loop_condition_contains_length = 0
     loop_condition_off_by_one_pattern_count = 0
+    loop_condition_leq_bare_length_count = 0
 
     for_node_with_array_access_count = 0
     max_for_loop_body_size = 0
@@ -99,6 +100,23 @@ def _extract_for_loop_features(root_node, source_bytes: bytes) -> Dict[str, Any]
         body_node = for_node.child_by_field_name("body")
 
         condition_text = _safe_text(condition_node, source_bytes)
+
+        # STRUCTURAL off-by-one signal: `i <= arr.length` where the right side
+        # is a bare field_access node. The text-contains pattern below cannot
+        # tell this real bug apart from the CORRECT `i <= arr.length - 1`
+        # (whose right side is a binary_expression); this feature can.
+        if (
+            condition_node is not None
+            and condition_node.type == "binary_expression"
+            and "<=" in condition_text
+        ):
+            right_node = condition_node.child_by_field_name("right")
+            if (
+                right_node is not None
+                and right_node.type == "field_access"
+                and _safe_text(right_node, source_bytes).endswith(".length")
+            ):
+                loop_condition_leq_bare_length_count += 1
 
         if "<=" in condition_text:
             loop_condition_contains_leq += 1
@@ -130,6 +148,7 @@ def _extract_for_loop_features(root_node, source_bytes: bytes) -> Dict[str, Any]
         "loop_condition_contains_geq": loop_condition_contains_geq,
         "loop_condition_contains_length": loop_condition_contains_length,
         "loop_condition_off_by_one_pattern_count": loop_condition_off_by_one_pattern_count,
+        "loop_condition_leq_bare_length_count": loop_condition_leq_bare_length_count,
         "for_node_with_array_access_count": for_node_with_array_access_count,
         "max_for_loop_body_size": max_for_loop_body_size,
     }

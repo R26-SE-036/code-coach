@@ -1,10 +1,49 @@
 # Runbook — Promoting a rule_only Type to ml_gated
 
-> **What this is:** the complete solo-workflow for turning
-> MISSING_BREAK_IN_SWITCH and WHILE_VARIABLE_NOT_UPDATED into ml_gated types.
-> All the code plumbing is DONE — the pipeline already knows about both
-> targets and skips them gracefully until data exists. Your job is the data;
-> this document is the checklist.
+> ## ✅ UPDATE (2026-07-11): this promotion is COMPLETE
+>
+> Instead of hand-authoring snippets, the data came from a **verified
+> generator**: `python -m app.dev_tools.generate_snippets` (seed 42) produced
+> **2,010 files** — 170 minimal pairs per target with 1–9 methods per class,
+> the bug at a random position, plus 190 intentional negatives and 120 cleans.
+> Every file was auto-verified at generation: parse completeness 1.0 and the
+> fired-locator set exactly equal to the expected set.
+>
+> The 210 hand-curated manual snippets became a **held-out test set**
+> (split_dataset.py routes all `manual_curated` units to test whenever
+> synthetic rows exist), so test F1 answers: *"does a synthetically-trained
+> model work on human-written code?"*
+>
+> **Final calibration (all 5 targets ml_gated, margin-midpoint thresholds):**
+>
+> | target | model | threshold | margin | val F1 | test F1 |
+> |---|---|---|---|---|---|
+> | has_off_by_one | LR | 0.5295 | 0.94 | 1.0 | 0.973 |
+> | has_incorrect_conditional | LR | 0.5008 | 0.99 | 1.0 | 0.982 |
+> | has_array_length_index_misuse | LR | 0.504 | 0.99 | 1.0 | 0.973 |
+> | has_missing_break | LR | 0.5202 | 0.95 | 1.0 | 1.0 |
+> | has_while_not_updated | LR | 0.5027 | 0.99 | 1.0 | 1.0 |
+>
+> **Three measured results worth memorizing for the viva:**
+> 1. **The OOD failure is fixed.** Session 4's buggy loop in a big 5-method
+>    file scored 0.0328 with the old small-snippet models; with size-diverse
+>    training it scores **0.9989** — same as the small file.
+> 2. **The gate makes the judgment the rule can't.** Intentional commented
+>    fall-through: rule fires, gate prob **0.0244** → silent. Unintentional
+>    missing break: gate prob **0.9955** → flagged.
+> 3. **The intentional negatives exposed crude features.** With
+>    `i <= arr.length - 1` negatives in training, off_by_one's classes
+>    OVERLAPPED (margin 0.0) — because the text-contains features couldn't
+>    tell the bug from the correct boundary any better than the rule. One
+>    structural feature (`loop_condition_leq_bare_length_count`: right side
+>    of `<=` is a bare field_access) reopened the margin to 0.94.
+>
+> To regenerate the whole corpus + models from scratch (from `backend/`):
+> generate_snippets → build_snippet_index → build_dataset → split_dataset →
+> train_baselines → calibrate_thresholds → copy values into ERROR_CATALOG.
+>
+> The rest of this document is the original plan, kept for the data-design
+> reasoning (the three-kinds rule, what negatives teach, failure modes).
 
 ## Why these two (and not the other ten)
 

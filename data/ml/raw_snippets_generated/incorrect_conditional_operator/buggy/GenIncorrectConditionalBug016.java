@@ -1,0 +1,30 @@
+public class GenIncorrectConditionalBug016 {
+    static String join1(String[] parts) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            builder.append(parts[i]);
+            builder.append(",");
+        }
+        return builder.toString();
+    }
+
+    static boolean matches(boolean open, boolean enabled) {
+        if (open = enabled) {
+            return true;
+        }
+        return false;
+    }
+
+    static int clamp2(int value, int low, int high) {
+        if (value < low) {
+            return low;
+        } else if (value > high) {
+            return high;
+        }
+        return value;
+    }
+
+    static boolean isEven3(int stock) {
+        return stock % 2 == 0;
+    }
+}

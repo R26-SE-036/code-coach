@@ -16,12 +16,18 @@ it, using only a form with 35 numeric boxes: rooms, windows, floors... They
 must guess "does this house have a leaky roof?" from the form alone. That's
 the model's life.
 
-> **Update (July 2026):** the extractor now emits **51** numbers — 16 switch/
-> while features were added for the MISSING_BREAK / WHILE_NOT_UPDATED
-> promotion (see [doc 08](08_promoting_rule_to_ml.md)). The 3 original models
-> still see only their 35 training columns: `_build_feature_frame` aligns each
-> model to `feature_names_in_` and ignores columns it never trained on.
-> Everything below remains true for those models.
+> **Update (July 2026):** the extractor now emits **52** numbers — 16 switch/
+> while features plus a structural off-by-one signal were added for the
+> MISSING_BREAK / WHILE_NOT_UPDATED promotion (see
+> [doc 08](08_promoting_rule_to_ml.md)), and all 5 ml_gated models were
+> retrained on a 2,010-file size-diverse synthetic corpus.
+> **The out-of-distribution failure documented below is now FIXED**: the same
+> big-file experiment scores 0.9989 instead of 0.0328, because training files
+> now range from 1 to 9 methods. Keep reading — the experiment remains the
+> best explanation of WHY file-level features are fragile, and the fix
+> (diverse training data) only narrows the gap; truly unusual file shapes can
+> still drift out of distribution. Candidate-level scoring remains the
+> principled fix.
 
 ## The 35 numbers (measured from your real extractor)
 

@@ -1,5 +1,19 @@
 # Code Coach — Learning Sessions Study Guide
 
+> **⚠️ System changed on 2026-07-11 (after docs 01–07 were written).** Where
+> the older docs disagree with this list, this list wins:
+> - **5 ml_gated types** now (not 3): MISSING_BREAK_IN_SWITCH and
+>   WHILE_VARIABLE_NOT_UPDATED were promoted; 10 types remain rule_only.
+> - **52 features** now (not 35): switch/while families + one structural
+>   off-by-one signal were added.
+> - Training data is a **2,010-file synthetic corpus** (generate_snippets.py,
+>   seed 42); the 210 manual snippets are a held-out test set.
+> - New thresholds: 0.5295 / 0.5008 / 0.504 / 0.5202 / 0.5027 (all
+>   margin-midpoint; margins 0.94–0.99).
+> - The Session-4 OOD failure (0.9941→0.0328 in big files) is **fixed** by
+>   size-diverse training data: the same experiment now scores 0.9989 in both.
+> Full story: [08_promoting_rule_to_ml.md](08_promoting_rule_to_ml.md).
+
 These documents capture everything from Sessions 1–5 of your learning plan.
 They are written to be re-read months later and still make sense. Each one
 mixes plain English (the intuition) with the technical detail (the exact
@@ -46,7 +60,7 @@ on one part of it:
         ▼                                      ▼
  tree-sitter parses text into an AST    feature_extractor turns the SAME code
  (a tree of typed nodes)                into whole-file numbers (35 at first;
-                                        51 since the switch/while features — doc 08)
+                                        52 since the switch/while features — doc 08)
         │                                      │
         │                                      ▼
         │                              ml_engine scores the numbers with
@@ -56,8 +70,8 @@ on one part of it:
         │                                      │
         ▼                                      ▼
  FOR EACH of the 15 error types in ERROR_CATALOG:
-   • rule_only (12 types):  AST locator runs directly on the tree
-   • ml_gated  (3 types):   locator runs ONLY IF probability >= threshold
+   • rule_only (10 types):  AST locator runs directly on the tree
+   • ml_gated  (5 types):   locator runs ONLY IF probability >= threshold
         │
         ▼
  locator finds the EXACT line/column → hint_engine attaches 3-level hints

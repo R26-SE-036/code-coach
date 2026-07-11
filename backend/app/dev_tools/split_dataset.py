@@ -125,13 +125,39 @@ def _allocate_unit_counts(total_units: int) -> Tuple[int, int, int]:
     return train_count, val_count, test_count
 
 
+HOLDOUT_SOURCE_TYPE = "manual_curated"
+
+
+def _unit_source_type(unit: List[Dict[str, str]]) -> str:
+    return (unit[0].get("source_type") or "").strip()
+
+
 def _split_units_stratified(
     units: List[List[Dict[str, str]]],
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[Dict[str, str]]]:
     rng = random.Random(RANDOM_SEED)
 
+    # Provenance-aware holdout: when a synthetic corpus exists, EVERY
+    # manual_curated unit goes to the TEST split. Models then train and
+    # calibrate purely on generated data, and the test metric answers the
+    # honest question: "does this work on code a human actually wrote?"
+    # With no synthetic rows (the original setup), behavior is unchanged.
+    manual_units = [u for u in units if _unit_source_type(u) == HOLDOUT_SOURCE_TYPE]
+    synthetic_units = [u for u in units if _unit_source_type(u) != HOLDOUT_SOURCE_TYPE]
+
+    if synthetic_units and manual_units:
+        split_pool = synthetic_units
+        holdout_units = manual_units
+        print(
+            f"Holdout mode: {len(manual_units)} manual units -> TEST; "
+            f"{len(synthetic_units)} synthetic units -> stratified 70/15/15."
+        )
+    else:
+        split_pool = units
+        holdout_units = []
+
     buckets: DefaultDict[str, List[List[Dict[str, str]]]] = defaultdict(list)
-    for unit in units:
+    for unit in split_pool:
         buckets[_get_unit_label(unit)].append(unit)
 
     for label_units in buckets.values():
@@ -148,6 +174,8 @@ def _split_units_stratified(
         train_units.extend(label_units[:train_count])
         val_units.extend(label_units[train_count:train_count + val_count])
         test_units.extend(label_units[train_count + val_count:train_count + val_count + test_count])
+
+    test_units.extend(holdout_units)
 
     rng.shuffle(train_units)
     rng.shuffle(val_units)

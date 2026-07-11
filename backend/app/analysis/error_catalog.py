@@ -61,15 +61,15 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         locator=locate_off_by_one_loop_boundaries,
         target_column="has_off_by_one",
         model_file="has_off_by_one__logistic_regression.joblib",
-        ml_threshold=0.6321,
+        ml_threshold=0.5295,
     ),
     "INCORRECT_CONDITIONAL_OPERATOR": ErrorTypeSpec(
         error_type="INCORRECT_CONDITIONAL_OPERATOR",
         detection_mode="ml_gated",
         locator=locate_incorrect_conditional_operators,
         target_column="has_incorrect_conditional",
-        model_file="has_incorrect_conditional__random_forest.joblib",
-        ml_threshold=0.285,
+        model_file="has_incorrect_conditional__logistic_regression.joblib",
+        ml_threshold=0.5008,
     ),
     "ARRAY_LENGTH_INDEX_MISUSE": ErrorTypeSpec(
         error_type="ARRAY_LENGTH_INDEX_MISUSE",
@@ -77,7 +77,7 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         locator=locate_array_length_index_misuses,
         target_column="has_array_length_index_misuse",
         model_file="has_array_length_index_misuse__logistic_regression.joblib",
-        ml_threshold=0.5371,
+        ml_threshold=0.504,
     ),
     "STRING_EQUALITY_WITH_OPERATOR": ErrorTypeSpec(
         error_type="STRING_EQUALITY_WITH_OPERATOR",
@@ -94,10 +94,16 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         detection_mode="rule_only",
         locator=locate_unreachable_code_after_return,
     ),
+    # Promoted from rule_only: intentional fall-through is a legal idiom the
+    # rule cannot judge; the gate learned the distinction from commented /
+    # stacked-label negatives in the synthetic corpus.
     "MISSING_BREAK_IN_SWITCH": ErrorTypeSpec(
         error_type="MISSING_BREAK_IN_SWITCH",
-        detection_mode="rule_only",
+        detection_mode="ml_gated",
         locator=locate_missing_breaks_in_switch,
+        target_column="has_missing_break",
+        model_file="has_missing_break__logistic_regression.joblib",
+        ml_threshold=0.5202,
     ),
     "EMPTY_CONDITIONAL_BODY": ErrorTypeSpec(
         error_type="EMPTY_CONDITIONAL_BODY",
@@ -134,16 +140,22 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         detection_mode="rule_only",
         locator=locate_duplicate_if_else_conditions,
     ),
+    # Promoted from rule_only: loop state can change through side effects the
+    # rule cannot track; the gate learned from Scanner-style and
+    # while(true)+break negatives in the synthetic corpus.
     "WHILE_VARIABLE_NOT_UPDATED": ErrorTypeSpec(
         error_type="WHILE_VARIABLE_NOT_UPDATED",
-        detection_mode="rule_only",
+        detection_mode="ml_gated",
         locator=locate_while_variables_not_updated,
+        target_column="has_while_not_updated",
+        model_file="has_while_not_updated__logistic_regression.joblib",
+        ml_threshold=0.5027,
     ),
 }
 
 
 # Called by ml_engine.predict_issue_types(): the only error types that need a
-# trained model loaded and scored. Currently the 3 original types.
+# trained model loaded and scored. Currently 5 types (3 original + 2 promoted).
 def ml_gated_specs() -> list[ErrorTypeSpec]:
     return [
         spec
