@@ -51,24 +51,34 @@ from app.db.storage import (
 class FirestoreStorage:
     def __init__(
         self,
-        credentials_path: str,
+        credentials_path: Optional[str] = None,
         project_id: Optional[str] = None,
     ) -> None:
-        key_path = Path(credentials_path)
-        if not key_path.is_absolute():
-            key_path = Path.cwd() / key_path
-        if not key_path.exists():
-            raise FileNotFoundError(
-                f"Firebase service account key not found: {key_path}\n"
-                "Generate one in the Firebase console (Project settings -> "
-                "Service accounts -> Generate new private key) and save it "
-                "at that path. See docs/firebase-setup.md."
-            )
-
         kwargs: dict[str, Any] = {}
         if project_id:
             kwargs["project"] = project_id
-        self.client = firestore.Client.from_service_account_json(str(key_path), **kwargs)
+
+        if credentials_path:
+            # Local development: authenticate with an explicit service
+            # account key file (docs/firebase-setup.md).
+            key_path = Path(credentials_path)
+            if not key_path.is_absolute():
+                key_path = Path.cwd() / key_path
+            if not key_path.exists():
+                raise FileNotFoundError(
+                    f"Firebase service account key not found: {key_path}\n"
+                    "Generate one in the Firebase console (Project settings -> "
+                    "Service accounts -> Generate new private key) and save it "
+                    "at that path. See docs/firebase-setup.md."
+                )
+            self.client = firestore.Client.from_service_account_json(
+                str(key_path), **kwargs
+            )
+        else:
+            # Deployed on Google Cloud (e.g. Cloud Run): no key file — the
+            # service's own identity is picked up via Application Default
+            # Credentials. Only FIREBASE_PROJECT_ID needs to be set.
+            self.client = firestore.Client(**kwargs)
 
     def close(self) -> None:
         self.client.close()

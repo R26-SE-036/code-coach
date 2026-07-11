@@ -978,8 +978,10 @@ class MongoStorage:
 def build_storage():
     settings = get_settings()
 
-    if settings.firebase_credentials_path:
+    if settings.firebase_credentials_path or settings.firebase_project_id:
         # Imported lazily so google-cloud-firestore is only required when used.
+        # Key file for local dev; project id alone suffices on Google Cloud
+        # (Application Default Credentials).
         from app.db.firestore_storage import FirestoreStorage
 
         storage = FirestoreStorage(
