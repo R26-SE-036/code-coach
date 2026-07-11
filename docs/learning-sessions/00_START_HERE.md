@@ -40,6 +40,7 @@ files, functions, and numbers), because in the viva you need both.
 | [06_file_and_method_reference.md](06_file_and_method_reference.md) | all | Every important file and function, one line each |
 | [07_glossary_and_quiz.md](07_glossary_and_quiz.md) | all | Plain-English definitions + viva-style self-test |
 | [08_promoting_rule_to_ml.md](08_promoting_rule_to_ml.md) | runbook | Solo checklist: author data + train + calibrate to promote MISSING_BREAK and WHILE_NOT_UPDATED to ml_gated |
+| [09_how_probability_is_computed.md](09_how_probability_is_computed.md) | 9 | Open the black box: sigmoid(w·x+b) verified by hand, the real learned weights, calibration + latency measurements |
 
 ## The one-picture summary of the whole system
 
