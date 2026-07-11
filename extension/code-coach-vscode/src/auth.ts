@@ -1,3 +1,26 @@
+/**
+ * Auth workflows + learning-session lifecycle + learning-event tracking.
+ *
+ * This file owns the "who is the user and what session are they in" side of the
+ * extension. Three groups of functions:
+ *   1. Identity   — createAccount / signIn / signOut / restoreAuthSession /
+ *                   ensureAuthenticated. These drive the input-box prompts and
+ *                   then call the /api/v1/auth/* endpoints.
+ *   2. Session    — ensureLearningSession lazily creates a learning session so
+ *                   the backend can group a student's diagnostics over time.
+ *   3. Telemetry  — trackLearningEvent / createLearningEvent fire /api/v1/events
+ *                   whenever the student sees or navigates a hint.
+ *
+ * How it splits work with api.ts:
+ *   - api.ts does the actual HTTP + token storage (requestJson,
+ *     authorizedRequestJson, storeAuthResponse, clearStoredAuthState).
+ *   - auth.ts orchestrates WHEN to call them and what to prompt the user for.
+ *
+ * Callers: extension.ts commands (Sign In / Create Account / Sign Out) and
+ * analysis.ts (ensureAuthenticated + ensureLearningSession before an analyze,
+ * trackLearningEvent after a hint). The scheduleAutoAnalysis import re-kicks
+ * analysis right after a successful login so feedback appears immediately.
+ */
 import * as vscode from "vscode";
 import {
   AuthResponse,
@@ -43,6 +66,10 @@ async function promptValue(
 
 // ── Account creation ──
 
+// Prompt for name/email/password, POST /api/v1/auth/register (via requestJson —
+// no token exists yet), then hand the response to storeAuthResponse (api.ts) to
+// persist tokens and set currentUser. Ends by kicking scheduleAutoAnalysis so
+// the open file gets analyzed right away.
 export async function createAccount(state: ExtensionState): Promise<void> {
   try {
     const fullName = await promptValue({
@@ -119,6 +146,8 @@ export async function createAccount(state: ExtensionState): Promise<void> {
 
 // ── Sign in ──
 
+// Same shape as createAccount but hits /api/v1/auth/login with an existing
+// identifier + password. storeAuthResponse then saves the returned tokens.
 export async function signIn(state: ExtensionState): Promise<void> {
   try {
     const identifier = await promptValue({
@@ -191,6 +220,11 @@ export async function signOut(state: ExtensionState): Promise<void> {
 
 // ── Session restore ──
 
+// Silent re-login on startup: if tokens are already in secret storage, call
+// /api/v1/auth/me to confirm they're still valid and rehydrate currentUser.
+// Called once from extension.ts activate(), and again as a fallback inside
+// ensureAuthenticated. authorizedRequestJson handles a stale access token by
+// refreshing it under the hood, so a returning user usually skips the prompts.
 export async function restoreAuthSession(
   state: ExtensionState,
 ): Promise<boolean> {
@@ -228,6 +262,10 @@ export async function restoreAuthSession(
 
 // ── Ensure authenticated ──
 
+// The gate analysis.ts calls before every analyze. Fast path: currentUser is
+// already set. Otherwise try a silent restoreAuthSession; only if that fails
+// AND showPrompt is true does it interrupt the user with a Sign In / Create
+// Account choice. Auto-analysis passes showPrompt=false so typing never nags.
 export async function ensureAuthenticated(
   state: ExtensionState,
   showPrompt: boolean,
@@ -261,6 +299,11 @@ export async function ensureAuthenticated(
 
 // ── Learning session management ──
 
+// Lazily get-or-create the learning session id that ties a run of analyses
+// together on the backend. Returns the cached id if present; otherwise POSTs
+// /api/v1/learning-sessions and caches the new id on state + workspaceState.
+// analysis.ts calls this right before requestAnalyze and passes the id along,
+// so every diagnostic the backend stores is attributed to this session.
 export async function ensureLearningSession(
   state: ExtensionState,
 ): Promise<string | undefined> {
@@ -321,6 +364,11 @@ export async function createLearningEvent(
   );
 }
 
+// Fire-and-forget wrapper around createLearningEvent: analysis.ts calls this
+// each time a hint is shown or navigated. It returns void (doesn't block the UI)
+// and swallows errors — telemetry must never break the analysis flow. These
+// events are the raw material the backend turns into struggle/hint-dependence
+// signals for the downstream Study Guider.
 export function trackLearningEvent(
   state: ExtensionState,
   event: LearningEventRequest,

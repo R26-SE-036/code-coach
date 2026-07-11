@@ -1,3 +1,24 @@
+/**
+ * The HTTP plumbing layer: the only file that actually talks to the backend.
+ *
+ * Everything that reaches the FastAPI server goes through here. It owns three
+ * concerns nobody else should duplicate:
+ *   1. Building the request  — getBackendUrl() + fetch in requestJson().
+ *   2. Authentication        — authorizedRequestJson() attaches the Bearer
+ *                              access token and, on a 401, transparently
+ *                              refreshes it (refreshAuthSession) and retries once.
+ *   3. Token / auth state    — storeAuthResponse / clearStoredAuthState keep the
+ *                              access+refresh tokens in VS Code's secret storage
+ *                              and currentUser on the shared ExtensionState.
+ *
+ * Who calls in:
+ *   - analysis.ts -> authorizedRequestJson (the analyze request)
+ *   - auth.ts     -> requestJson (login/register, no token yet) and
+ *                    authorizedRequestJson (me/logout/sessions/events)
+ *
+ * The auth-state helpers live in THIS file (not auth.ts) on purpose — see the
+ * note near storeAuthResponse — to avoid an import cycle between api and auth.
+ */
 import * as vscode from "vscode";
 import {
   ApiError,
@@ -71,6 +92,10 @@ export async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
+// The lowest-level call: prefix the path with the backend URL, fetch, and either
+// return the parsed JSON as type T or throw an ApiError carrying the status code.
+// Used directly ONLY for endpoints that need no token yet (login, register,
+// refresh). Everything else goes through authorizedRequestJson below.
 export async function requestJson<T>(
   path: string,
   init: RequestInit,
@@ -84,6 +109,10 @@ export async function requestJson<T>(
   return (await response.json()) as T;
 }
 
+// Trade the stored refresh token for a fresh access token (when the old one
+// expired). On success it re-stores the new tokens; on failure it wipes auth
+// state so the user is treated as signed out. Called automatically by
+// authorizedRequestJson on a 401 — the student never sees the expiry.
 export async function refreshAuthSession(
   state: ExtensionState,
 ): Promise<boolean> {
@@ -111,6 +140,11 @@ export async function refreshAuthSession(
   }
 }
 
+// THE workhorse used for every authenticated call (analyze, me, logout,
+// sessions, events). It reads the access token from secret storage, adds the
+// Authorization: Bearer header, and delegates to requestJson. If the server
+// says 401, it refreshes the token once (refreshAuthSession) and retries with
+// allowRefresh=false so a genuinely-dead session can't loop forever.
 export async function authorizedRequestJson<T>(
   state: ExtensionState,
   path: string,
@@ -156,6 +190,9 @@ export async function clearLearningSession(
   await state.context.workspaceState.update(LEARNING_SESSION_KEY, undefined);
 }
 
+// The "sign everything out" reset: delete both tokens from secret storage, drop
+// currentUser, and clear every cached diagnostic/decoration off the screen.
+// Called on explicit sign-out (auth.ts) and whenever a refresh fails.
 export async function clearStoredAuthState(
   state: ExtensionState,
 ): Promise<void> {
@@ -178,6 +215,10 @@ export async function clearStoredAuthState(
   updateAnalysisStatusBar(state);
 }
 
+// The "sign in succeeded" counterpart: persist the access + refresh tokens into
+// secret storage and set currentUser. Called by auth.ts after login, register,
+// and refresh. This is the single place tokens are written, which is why it
+// lives in api.ts alongside the code that reads them.
 export async function storeAuthResponse(
   state: ExtensionState,
   payload: AuthResponse,

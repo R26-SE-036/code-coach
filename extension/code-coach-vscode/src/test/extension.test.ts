@@ -169,7 +169,7 @@ suite("Code Coach Extension Flow", () => {
       "..",
       "src",
       "sample-java",
-      "Test2.java",
+      "BankAccountSimulator.java",
     );
     const document = await vscode.workspace.openTextDocument(javaFilePath);
     await vscode.window.showTextDocument(document);

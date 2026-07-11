@@ -1,3 +1,23 @@
+/**
+ * Entry point / composition root of the extension.
+ *
+ * VS Code calls activate() once when the extension wakes up. This file does the
+ * wiring only — it holds almost no logic of its own. Its three jobs:
+ *   1. Build the single shared ExtensionState object that every other file reads
+ *      and mutates (current user, learning session, caches, VS Code handles).
+ *   2. Register the commands (Sign In, Analyze, Next Hint, ...) and point each at
+ *      a function in auth.ts or analysis.ts.
+ *   3. Register the event listeners that fire analysis automatically (typing,
+ *      switching editors) by calling scheduleAutoAnalysis() in analysis.ts.
+ *
+ * Who it talks to:
+ *   - auth.ts      -> signIn / signOut / createAccount / restoreAuthSession
+ *   - analysis.ts  -> runAnalysisForEditor / scheduleAutoAnalysis / hint nav
+ *   - ui/*         -> status bars, decorations, panel, sidebar, code lens
+ *
+ * Nothing here calls the backend directly; that happens downstream in analysis.ts
+ * and api.ts. This file is where user/editor events ENTER the system.
+ */
 import * as vscode from "vscode";
 import { AuthUser, DiagnosticItem, ExtensionState } from "./types";
 import { USER_STATE_KEY, LEARNING_SESSION_KEY } from "./constants";
@@ -19,9 +39,14 @@ import { CoachCodeLensProvider } from "./ui/codeLensProvider";
 import { CoachCodeActionProvider } from "./ui/codeActionProvider";
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("Code Coach extension has been activated.");
 
   // ── Build shared state ──
+  // THE single source of runtime truth for the whole extension. One instance is
+  // created here and threaded (by reference) into every command, listener, and
+  // helper. When analysis.ts caches diagnostics or auth.ts sets currentUser,
+  // they are writing into THIS object. Note the two VS Code handles that matter
+  // most downstream: diagnosticCollection (the yellow underlines) and
+  // warningDecorationType (the highlight styling) — both defined once, here.
   const state: ExtensionState = {
     currentUser:
       context.globalState.get<AuthUser | undefined>(USER_STATE_KEY) ?? undefined,
@@ -120,6 +145,10 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // ── Register commands ──
+  // Each command id (declared in package.json, invoked from the palette, panel
+  // buttons, or keybindings) is bound to a handler here. The handlers are thin:
+  // they mostly just call into auth.ts (signIn/createAccount/signOut) or
+  // analysis.ts (runAnalysisForEditor / showHintForActiveEditor), passing `state`.
   const startCommand = vscode.commands.registerCommand("code-coach-vscode.start", () => {
     const action = state.currentUser ? "Analyze Current File" : "Sign In";
     void vscode.window.showInformationMessage(
@@ -200,6 +229,11 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // ── Event listeners ──
+  // This is the automatic (non-command) trigger path. Every keystroke fires
+  // onDidChangeTextDocument; switching files fires onDidChangeActiveTextEditor.
+  // Both funnel into scheduleAutoAnalysis() in analysis.ts, which debounces
+  // 900ms before actually analyzing. This is the start of the request spine you
+  // traced in Session 2.
   const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument((event) => {
     if (event.contentChanges.length === 0) { return; }
     const activeEditor = vscode.window.activeTextEditor;

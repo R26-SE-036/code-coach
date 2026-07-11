@@ -1,0 +1,24 @@
+public class GenMissingBreakBug034 {
+    static String describeTicket(int code) {
+        String label = "";
+        switch (code) {
+            case 1:
+                label = "closed";
+                break;
+            case 2:
+                label = "draft";
+                break;
+            case 3:
+                label = "active";
+                break;
+            case 4:
+                label = "expired";
+            case 5:
+                label = "final";
+                break;
+            default:
+                label = "queued";
+        }
+        return label;
+    }
+}

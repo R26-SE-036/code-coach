@@ -24,6 +24,8 @@ TARGET_COLUMNS = [
     "has_off_by_one",
     "has_incorrect_conditional",
     "has_array_length_index_misuse",
+    "has_missing_break",
+    "has_while_not_updated",
 ]
 
 METADATA_COLUMNS = {
@@ -32,13 +34,11 @@ METADATA_COLUMNS = {
     "language",
     "primary_label",
     "is_clean",
-    "has_off_by_one",
-    "has_incorrect_conditional",
-    "has_array_length_index_misuse",
     "pair_group",
     "pair_role",
     "source_type",
     "notes",
+    *TARGET_COLUMNS,
 }
 
 METRICS_OUTPUT_FILE = MODELS_DIR / "baseline_metrics_v1.csv"
@@ -190,6 +190,14 @@ def main() -> None:
             f"Val positives: {y_val.sum()} / {len(y_val)} | "
             f"Test positives: {y_test.sum()} / {len(y_test)}"
         )
+
+        # A target with no positives in one of the splits cannot be trained or
+        # honestly evaluated (sklearn cannot fit a single-class problem).
+        # Promotion candidates sit here until their snippets are authored.
+        if y_train.sum() == 0 or y_val.sum() == 0 or y_test.sum() == 0:
+            print("  Skipping: no positive examples yet — author snippets first.")
+            print()
+            continue
 
         for model_name, model in models.items():
             model.fit(x_train, y_train)
