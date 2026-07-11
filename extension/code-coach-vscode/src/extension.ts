@@ -27,9 +27,8 @@ import {
   scheduleAutoAnalysis,
   showHintForActiveEditor,
   clearTimerForUri,
-  focusDiagnostic,
   clearFeedbackForDocument,
-  navigatePanelHint,
+  handleCoachPanelMessage,
 } from "./analysis";
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
@@ -57,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
     activeHintIndexByUri: new Map(),
     debounceTimers: new Map(),
     activeAnalysisUriKey: undefined,
+    lastSupportedUriKey: undefined,
+    lastPanelHtml: undefined,
     coachPanel: undefined,
     sidebarProvider: undefined,
     codeLensProvider: undefined,
@@ -111,35 +112,20 @@ export function activate(context: vscode.ExtensionContext) {
       { enableScripts: true, retainContextWhenHidden: true },
     );
 
-    state.coachPanel.onDidDispose(() => { state.coachPanel = undefined; });
-
-    state.coachPanel.webview.onDidReceiveMessage((message: { command?: string }) => {
-      switch (message.command) {
-        case "signIn":
-          void vscode.commands.executeCommand("code-coach-vscode.signIn");
-          break;
-        case "createAccount":
-          void vscode.commands.executeCommand("code-coach-vscode.createAccount");
-          break;
-        case "signOut":
-          void vscode.commands.executeCommand("code-coach-vscode.signOut");
-          break;
-        case "analyze":
-          void vscode.commands.executeCommand("code-coach-vscode.analyzeCurrentFile");
-          break;
-        case "panelPrevious":
-          navigatePanelHint(state, -1);
-          break;
-        case "panelNext":
-          navigatePanelHint(state, 1);
-          break;
-        case "openOutput":
-          state.outputChannel.show(true);
-          break;
-        default:
-          break;
-      }
+    // A fresh webview starts blank — invalidate the HTML cache so the first
+    // updateCoachPanel below always assigns, even if the state is unchanged
+    // since a previous panel instance was disposed.
+    state.lastPanelHtml = undefined;
+    state.coachPanel.onDidDispose(() => {
+      state.coachPanel = undefined;
+      state.lastPanelHtml = undefined;
     });
+
+    state.coachPanel.webview.onDidReceiveMessage(
+      (message: { command?: string; index?: number }) => {
+        handleCoachPanelMessage(state, message);
+      },
+    );
 
     updateCoachPanel(state);
   }
@@ -183,7 +169,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   const analyzeCommand = vscode.commands.registerCommand(
     "code-coach-vscode.analyzeCurrentFile", async () => {
-      const editor = vscode.window.activeTextEditor;
+      let editor = vscode.window.activeTextEditor;
+      if ((!editor || !isSupportedDocument(editor.document)) && state.lastSupportedUriKey) {
+        // Clicking the panel's Analyze button focuses the webview and clears
+        // activeTextEditor — fall back to the last Java file still visible.
+        editor = vscode.window.visibleTextEditors.find(
+          (candidate) => candidate.document.uri.toString() === state.lastSupportedUriKey,
+        );
+      }
       if (!editor) {
         vscode.window.showErrorMessage("Open a Java file to analyze it with Code Coach.");
         return;

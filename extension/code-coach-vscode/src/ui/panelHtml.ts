@@ -16,18 +16,46 @@ function formatProbability(value?: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+function formatTime(iso: string): string {
+  const parsed = new Date(iso);
+  return isNaN(parsed.getTime()) ? "" : parsed.toLocaleTimeString();
+}
+
+// One horizontal confidence bar; renders nothing when the value is absent
+// (rule_only diagnostics have no ML probability).
+function confidenceBar(label: string, value: number | undefined): string {
+  if (value === undefined) { return ""; }
+  const pct = Math.max(0, Math.min(100, Math.round(value * 100)));
+  return `
+    <div class="conf-row">
+      <span class="conf-label">${escapeHtml(label)}</span>
+      <div class="conf-bar"><div class="conf-fill" style="width:${pct}%"></div></div>
+      <span class="conf-val">${pct}%</span>
+    </div>`;
+}
+
 export function getCoachPanelState(state: ExtensionState): CoachPanelState {
+  // Prefer the active editor; when the webview itself has focus (the user just
+  // clicked a panel button) activeTextEditor is undefined, so fall back to the
+  // last Java file the user worked in instead of blanking the panel.
   const editor = vscode.window.activeTextEditor;
-  const isSupported = !!editor && isSupportedDocument(editor.document);
-  if (!editor || !isSupported) {
+  let fileUri: vscode.Uri | undefined;
+  if (editor && isSupportedDocument(editor.document)) {
+    fileUri = editor.document.uri;
+  } else if (state.lastSupportedUriKey) {
+    fileUri = vscode.Uri.parse(state.lastSupportedUriKey);
+  }
+
+  if (!fileUri) {
     return { signedIn: !!state.currentUser, userLabel: state.currentUser?.full_name, isSupportedFile: false, diagnostics: [], activeIndex: 0 };
   }
-  const uriKey = editor.document.uri.toString();
+
+  const uriKey = fileUri.toString();
   const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
   const activeIndex = Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, Math.max(0, diagnostics.length - 1));
   return {
     signedIn: !!state.currentUser, userLabel: state.currentUser?.full_name,
-    fileLabel: vscode.workspace.asRelativePath(editor.document.uri, false),
+    fileLabel: vscode.workspace.asRelativePath(fileUri, false),
     isSupportedFile: true, diagnostics, activeIndex,
     activeDiagnostic: diagnostics[activeIndex],
     snapshot: state.lastAnalysisSnapshotByUri.get(uriKey),
@@ -92,11 +120,39 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
       </div>`;
   } else {
     const sevClass = active?.severity === "error" ? "sev-error" : active?.severity === "information" ? "sev-info" : "sev-warning";
+    const navDisabled = count < 2 ? " disabled" : "";
+
+    // Dot indicators (hidden for large counts where they would overflow).
+    const dots = count > 1 && count <= 12
+      ? `<div class="nav-dots">${s.diagnostics.map((_, k) =>
+          `<button class="dot-nav${k === s.activeIndex ? " active" : ""}" data-command="panelSelect" data-index="${k}" title="Issue ${k + 1}" aria-label="Go to issue ${k + 1}"></button>`,
+        ).join("")}</div>`
+      : "";
+
+    const bars = [
+      confidenceBar("ML gate", active?.ml_probability),
+      confidenceBar("Locator", active?.locator_confidence),
+    ].join("");
+    const confBlock = bars.trim()
+      ? `<div class="conf-block"><div class="conf-title">Detection confidence</div>${bars}</div>`
+      : "";
+
+    const overallPct = active ? `${Math.round(active.confidence * 100)}%` : "—";
+
     content = `
       <div class="card issue-card">
+        <div class="nav-bar">
+          <button class="icon-btn" data-command="panelPrevious" title="Previous issue (←)" aria-label="Previous issue"${navDisabled}>‹</button>
+          <div class="nav-center">
+            <span class="nav-pos">Issue ${escapeHtml(idx)}</span>
+            ${dots}
+          </div>
+          <button class="icon-btn" data-command="panelNext" title="Next issue (→)" aria-label="Next issue"${navDisabled}>›</button>
+        </div>
+
         <div class="issue-top">
           <div class="issue-title-group">
-            <span class="eyebrow">Issue ${escapeHtml(idx)}</span>
+            <span class="eyebrow">Detected issue</span>
             <h2>${escapeHtml(active?.error_type ?? "Issue")}</h2>
           </div>
           <span class="sev-pill ${sevClass}">${escapeHtml(active?.severity ?? "warning")}</span>
@@ -106,9 +162,11 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
         <div class="stat-row">
           <div class="stat"><span class="stat-label">Line</span><span class="stat-value">${escapeHtml(String(active?.line ?? "—"))}</span></div>
           <div class="stat"><span class="stat-label">Concept</span><span class="stat-value">${escapeHtml(active?.concept_tag ?? "—")}</span></div>
-          <div class="stat"><span class="stat-label">ML</span><span class="stat-value">${escapeHtml(formatProbability(active?.ml_probability))}</span></div>
-          <div class="stat"><span class="stat-label">Locator</span><span class="stat-value">${escapeHtml(formatProbability(active?.locator_confidence))}</span></div>
+          <div class="stat"><span class="stat-label">Engine</span><span class="stat-value">${escapeHtml(active?.detection_engine ?? "—")}</span></div>
+          <div class="stat"><span class="stat-label">Confidence</span><span class="stat-value">${escapeHtml(overallPct)}</span></div>
         </div>
+
+        ${confBlock}
 
         <div class="hint-block hint-concept">
           <div class="hint-header"><span class="hint-icon">💡</span><h3>Concept Hint</h3></div>
@@ -124,9 +182,20 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
         </div>
 
         <div class="btn-row">
+          <button class="btn btn-secondary" data-command="panelGoto"><span class="btn-icon">↪</span> Jump to Line ${escapeHtml(String(active?.line ?? ""))}</button>
           <button class="btn btn-ghost" data-command="openOutput">Open Output</button>
         </div>
-      </div>`;
+      </div>
+      ${count > 1 ? `
+      <div class="card list-card">
+        <div class="list-title">All issues in this file (${count})</div>
+        ${s.diagnostics.map((d, k) => `
+        <button class="issue-row${k === s.activeIndex ? " active" : ""}" data-command="panelSelect" data-index="${k}">
+          <span class="row-idx">${k + 1}</span>
+          <span class="row-line">L${d.line}</span>
+          <span class="row-type">${escapeHtml(d.error_type)}</span>
+        </button>`).join("")}
+      </div>` : ""}`;
   }
 
   const userLine = s.signedIn ? `Signed in as <strong>${escapeHtml(s.userLabel ?? "student")}</strong>` : "Not signed in";
@@ -289,14 +358,68 @@ body{
 }
 .btn-ghost:hover{color:var(--vscode-foreground);border-color:var(--vscode-panel-border)}
 
-.btn-nav{
-  flex:1;justify-content:center;
-  background:color-mix(in srgb,var(--vscode-editor-background) 70%,var(--vscode-button-background) 30%);
-  color:var(--vscode-foreground);border:1px solid color-mix(in srgb,var(--vscode-panel-border) 50%,transparent);
+/* ── Issue navigation bar ── */
+.nav-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:6px 8px;border-radius:8px;
+  background:color-mix(in srgb,var(--vscode-editor-background) 78%,var(--vscode-sideBar-background) 22%);
+  border:1px solid color-mix(in srgb,var(--vscode-panel-border) 30%,transparent);
 }
-.btn-nav:hover{background:color-mix(in srgb,var(--vscode-editor-background) 55%,var(--vscode-button-background) 45%)}
+.icon-btn{
+  width:28px;height:28px;border-radius:6px;border:1px solid color-mix(in srgb,var(--vscode-panel-border) 50%,transparent);
+  background:transparent;color:var(--vscode-foreground);cursor:pointer;
+  font-size:16px;line-height:1;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transition:all .15s ease;flex-shrink:0;
+}
+.icon-btn:hover:not([disabled]){background:color-mix(in srgb,var(--vscode-button-background) 25%,transparent);transform:scale(1.06)}
+.icon-btn[disabled]{opacity:.35;cursor:default}
+.nav-center{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.nav-pos{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--vscode-descriptionForeground)}
+.nav-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.dot-nav{
+  width:8px;height:8px;border-radius:50%;border:none;padding:0;cursor:pointer;
+  background:color-mix(in srgb,var(--vscode-descriptionForeground) 40%,transparent);
+  transition:all .15s ease;
+}
+.dot-nav:hover{background:var(--vscode-descriptionForeground);transform:scale(1.25)}
+.dot-nav.active{background:#3b82f6;transform:scale(1.3)}
 
-.nav-row{gap:6px}
+/* ── Confidence bars ── */
+.conf-block{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;
+  background:color-mix(in srgb,var(--vscode-editor-background) 78%,var(--vscode-sideBar-background) 22%);
+  border:1px solid color-mix(in srgb,var(--vscode-panel-border) 30%,transparent);
+}
+.conf-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--vscode-descriptionForeground);font-weight:600}
+.conf-row{display:flex;align-items:center;gap:8px}
+.conf-label{font-size:11px;color:var(--vscode-descriptionForeground);width:56px;flex-shrink:0}
+.conf-bar{flex:1;height:6px;border-radius:3px;overflow:hidden;
+  background:color-mix(in srgb,var(--vscode-descriptionForeground) 18%,transparent)}
+.conf-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#60a5fa);transition:width .3s ease}
+.conf-val{font-size:11px;font-weight:600;width:34px;text-align:right;flex-shrink:0}
+
+/* ── Issue list ── */
+.list-card{gap:6px;padding:12px}
+.list-title{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--vscode-descriptionForeground);font-weight:700;padding:0 2px 4px}
+.issue-row{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  padding:7px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;
+  background:transparent;color:var(--vscode-foreground);
+  border:1px solid transparent;transition:all .12s ease;
+}
+.issue-row:hover{background:color-mix(in srgb,var(--vscode-button-background) 15%,transparent)}
+.issue-row.active{
+  background:color-mix(in srgb,var(--vscode-button-background) 22%,transparent);
+  border-color:color-mix(in srgb,#3b82f6 45%,transparent);
+}
+.row-idx{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;
+  background:color-mix(in srgb,var(--vscode-descriptionForeground) 20%,transparent);
+}
+.issue-row.active .row-idx{background:#3b82f6;color:#fff}
+.row-line{font-family:var(--vscode-editor-font-family);font-size:11px;color:var(--vscode-descriptionForeground);flex-shrink:0;width:34px}
+.row-type{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 
 /* ── Footer ── */
 .footer{
@@ -354,30 +477,45 @@ body{
     ${content}
     <div class="footer">
       <span class="dot"></span>
-      <span>Session: ${escapeHtml(sess.substring(0, 12))}${sess.length > 12 ? "…" : ""}</span>
+      <span>Session: ${escapeHtml(sess.substring(0, 12))}${sess.length > 12 ? "…" : ""}${s.snapshot ? ` · analyzed ${escapeHtml(formatTime(s.snapshot.analyzedAt))} · ${escapeHtml(formatDuration(s.snapshot.analysisDurationMs))}` : ""}</span>
     </div>
   </div>
   <script>
     const vscode=acquireVsCodeApi();
+    function send(command,index){
+      vscode.postMessage(index===undefined?{command:command}:{command:command,index:index});
+    }
     for(const el of document.querySelectorAll("[data-command]")){
       el.addEventListener("click",()=>{
         const cmd=el.getAttribute("data-command");
-        if(cmd)vscode.postMessage({command:cmd});
+        if(!cmd)return;
+        const idx=el.getAttribute("data-index");
+        send(cmd,idx===null?undefined:Number(idx));
       });
     }
+    // Keyboard navigation while the panel has focus
+    window.addEventListener("keydown",(e)=>{
+      if(e.key==="ArrowLeft"){send("panelPrevious");}
+      else if(e.key==="ArrowRight"){send("panelNext");}
+    });
   </script>
 </body>
 </html>`;
 }
 
 export function updateCoachPanel(state: ExtensionState): void {
-  if (state.coachPanel) {
-    state.coachPanel.title = "Code Coach";
-    state.coachPanel.webview.html = buildCoachPanelHtml(state);
+  // Build ONCE and share between panel and sidebar; reassigning webview.html
+  // tears down the whole DOM (flicker + lost scroll), so both surfaces skip
+  // the assignment when nothing actually changed. updateAnalysisStatusBar
+  // calls this on every editor event, so the skip path is the common path.
+  const html = buildCoachPanelHtml(state);
+
+  if (state.coachPanel && state.lastPanelHtml !== html) {
+    state.coachPanel.webview.html = html;
+    state.lastPanelHtml = html;
   }
 
-  // Also refresh the sidebar if it exists
   if (state.sidebarProvider) {
-    state.sidebarProvider.refresh();
+    state.sidebarProvider.refresh(html);
   }
 }

@@ -108,6 +108,8 @@ export type AnalysisSnapshot = {
   firstMessage?: string;
   firstLine?: number;
   learningSessionId?: string;
+  /** document.version at analysis time — lets tab switches reuse cached results. */
+  documentVersion?: number;
 };
 
 export type CoachPanelState = {
@@ -147,6 +149,14 @@ export type ExtensionState = {
   activeHintIndexByUri: Map<string, number>;
   debounceTimers: Map<string, ReturnType<typeof setTimeout>>;
   activeAnalysisUriKey: string | undefined;
+  /**
+   * Last Java file the user worked in. Webview clicks steal focus and make
+   * vscode.window.activeTextEditor undefined, so panel state and hint
+   * navigation fall back to this instead of going blank / no-op.
+   */
+  lastSupportedUriKey: string | undefined;
+  /** Cache of the last HTML pushed to the coach panel — skip identical reassigns. */
+  lastPanelHtml: string | undefined;
   coachPanel: vscode.WebviewPanel | undefined;
   sidebarProvider: CoachSidebarProvider | undefined;
   codeLensProvider: CoachCodeLensProvider | undefined;
