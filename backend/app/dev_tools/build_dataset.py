@@ -10,9 +10,32 @@ METADATA_FILE = DATA_ROOT / "metadata" / "snippet_index.csv"
 EXTRACTED_DIR = DATA_ROOT / "extracted"
 
 MASTER_OUTPUT_FILE = EXTRACTED_DIR / "features_v1.csv"
-OFF_BY_ONE_OUTPUT_FILE = EXTRACTED_DIR / "off_by_one_binary_v1.csv"
-INCORRECT_CONDITIONAL_OUTPUT_FILE = EXTRACTED_DIR / "incorrect_conditional_binary_v1.csv"
-ARRAY_INDEX_OUTPUT_FILE = EXTRACTED_DIR / "array_length_index_binary_v1.csv"
+
+# One binary dataset per ML target: target_column -> output file.
+TARGET_BINARY_OUTPUTS = {
+    "has_off_by_one": EXTRACTED_DIR / "off_by_one_binary_v1.csv",
+    "has_incorrect_conditional": EXTRACTED_DIR / "incorrect_conditional_binary_v1.csv",
+    "has_array_length_index_misuse": EXTRACTED_DIR / "array_length_index_binary_v1.csv",
+    "has_missing_break": EXTRACTED_DIR / "missing_break_binary_v1.csv",
+    "has_while_not_updated": EXTRACTED_DIR / "while_not_updated_binary_v1.csv",
+}
+
+# Columns that describe a snippet rather than measure its code. These must be
+# excluded from the feature columns of the binary datasets — letting a has_*
+# label column leak in as a "feature" would poison training (the model would
+# read the answer key instead of the code).
+METADATA_COLUMNS = {
+    "snippet_id",
+    "file_path",
+    "language",
+    "primary_label",
+    "is_clean",
+    "pair_group",
+    "pair_role",
+    "source_type",
+    "notes",
+    *TARGET_BINARY_OUTPUTS.keys(),
+}
 
 
 def _read_metadata_rows() -> List[Dict[str, str]]:
@@ -40,20 +63,22 @@ def _load_code_from_row(row: Dict[str, str]) -> str:
 
 
 def _normalize_metadata(row: Dict[str, str]) -> Dict[str, str]:
-    return {
+    normalized = {
         "snippet_id": row.get("snippet_id", "").strip(),
         "file_path": row.get("file_path", "").strip(),
         "language": row.get("language", "").strip(),
         "primary_label": row.get("primary_label", "").strip(),
         "is_clean": row.get("is_clean", "").strip(),
-        "has_off_by_one": row.get("has_off_by_one", "").strip(),
-        "has_incorrect_conditional": row.get("has_incorrect_conditional", "").strip(),
-        "has_array_length_index_misuse": row.get("has_array_length_index_misuse", "").strip(),
         "pair_group": row.get("pair_group", "").strip(),
         "pair_role": row.get("pair_role", "").strip(),
         "source_type": row.get("source_type", "").strip(),
         "notes": row.get("notes", "").strip(),
     }
+    # Target flags: default missing columns to "0" so an older snippet_index.csv
+    # (without the newer has_* columns) still builds cleanly.
+    for target_column in TARGET_BINARY_OUTPUTS:
+        normalized[target_column] = (row.get(target_column) or "0").strip() or "0"
+    return normalized
 
 
 def _build_master_rows() -> List[Dict[str, object]]:
@@ -94,29 +119,14 @@ def _build_binary_dataset(
 ) -> List[Dict[str, object]]:
     binary_rows: List[Dict[str, object]] = []
 
-    metadata_columns = {
-        "snippet_id",
-        "file_path",
-        "language",
-        "primary_label",
-        "is_clean",
-        "has_off_by_one",
-        "has_incorrect_conditional",
-        "has_array_length_index_misuse",
-        "pair_group",
-        "pair_role",
-        "source_type",
-        "notes",
-    }
-
     for row in master_rows:
         binary_row: Dict[str, object] = {}
 
         for key, value in row.items():
-            if key not in metadata_columns:
+            if key not in METADATA_COLUMNS:
                 binary_row[key] = value
 
-        binary_row["target"] = int(row[target_column])
+        binary_row["target"] = int(str(row.get(target_column) or "0").strip() or "0")
         binary_row["snippet_id"] = row["snippet_id"]
         binary_row["primary_label"] = row["primary_label"]
 
@@ -130,25 +140,14 @@ def main() -> None:
 
     master_rows = _build_master_rows()
     _write_csv(MASTER_OUTPUT_FILE, master_rows)
-
-    off_by_one_rows = _build_binary_dataset(master_rows, "has_off_by_one")
-    incorrect_conditional_rows = _build_binary_dataset(
-        master_rows,
-        "has_incorrect_conditional",
-    )
-    array_index_rows = _build_binary_dataset(
-        master_rows,
-        "has_array_length_index_misuse",
-    )
-
-    _write_csv(OFF_BY_ONE_OUTPUT_FILE, off_by_one_rows)
-    _write_csv(INCORRECT_CONDITIONAL_OUTPUT_FILE, incorrect_conditional_rows)
-    _write_csv(ARRAY_INDEX_OUTPUT_FILE, array_index_rows)
-
     print(f"Master dataset written to: {MASTER_OUTPUT_FILE}")
-    print(f"Off-by-one binary dataset written to: {OFF_BY_ONE_OUTPUT_FILE}")
-    print(f"Incorrect conditional binary dataset written to: {INCORRECT_CONDITIONAL_OUTPUT_FILE}")
-    print(f"Array index binary dataset written to: {ARRAY_INDEX_OUTPUT_FILE}")
+
+    for target_column, output_file in TARGET_BINARY_OUTPUTS.items():
+        binary_rows = _build_binary_dataset(master_rows, target_column)
+        _write_csv(output_file, binary_rows)
+        positives = sum(int(row["target"]) for row in binary_rows)
+        print(f"{target_column}: {positives} positives -> {output_file.name}")
+
     print(f"Total rows processed: {len(master_rows)}")
 
 

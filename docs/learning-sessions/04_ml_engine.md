@@ -16,6 +16,13 @@ it, using only a form with 35 numeric boxes: rooms, windows, floors... They
 must guess "does this house have a leaky roof?" from the form alone. That's
 the model's life.
 
+> **Update (July 2026):** the extractor now emits **51** numbers — 16 switch/
+> while features were added for the MISSING_BREAK / WHILE_NOT_UPDATED
+> promotion (see [doc 08](08_promoting_rule_to_ml.md)). The 3 original models
+> still see only their 35 training columns: `_build_feature_frame` aligns each
+> model to `feature_names_in_` and ignores columns it never trained on.
+> Everything below remains true for those models.
+
 ## The 35 numbers (measured from your real extractor)
 
 For `class A{ void m(int[] a){ for(int i=0; i<=a.length; i++){ ... } } }`

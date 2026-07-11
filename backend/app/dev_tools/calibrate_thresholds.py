@@ -35,6 +35,8 @@ TARGET_COLUMNS = [
     "has_off_by_one",
     "has_incorrect_conditional",
     "has_array_length_index_misuse",
+    "has_missing_break",
+    "has_while_not_updated",
 ]
 
 CANDIDATE_MODEL_NAMES = ["logistic_regression", "random_forest", "svm"]
@@ -112,10 +114,27 @@ def main() -> None:
     calibration: dict[str, dict] = {}
 
     for target in TARGET_COLUMNS:
+        print(f"=== {target} ===")
+
+        # Skip targets that are not trainable yet (promotion candidates whose
+        # snippets / models don't exist).
+        missing_models = [
+            f"{target}__{name}.joblib"
+            for name in CANDIDATE_MODEL_NAMES
+            if not (MODELS_DIR / f"{target}__{name}.joblib").exists()
+        ]
+        if missing_models:
+            print(f"  Skipping: model(s) not trained yet ({missing_models[0]} missing).")
+            print()
+            continue
+
         y_val = val_df[target].astype(int).tolist()
         y_test = test_df[target].astype(int).tolist()
+        if sum(y_val) == 0 or sum(y_test) == 0:
+            print("  Skipping: no positive validation/test examples for this target.")
+            print()
+            continue
 
-        print(f"=== {target} ===")
         candidates = []
 
         for model_name in CANDIDATE_MODEL_NAMES:

@@ -20,7 +20,7 @@
         "model_file": "has_off_by_one__logistic_regression.joblib",
         "threshold": 0.6321,
         "margin": 0.7219,
-        "latency_ms": 0.0659,
+        "latency_ms": 0.0434,
         "val": {
           "precision": 1.0,
           "recall": 1.0,
@@ -37,7 +37,7 @@
         "model_file": "has_off_by_one__svm.joblib",
         "threshold": 0.5114,
         "margin": 0.6772,
-        "latency_ms": 0.0775,
+        "latency_ms": 0.0726,
         "val": {
           "precision": 1.0,
           "recall": 1.0,
@@ -54,7 +54,7 @@
         "model_file": "has_off_by_one__random_forest.joblib",
         "threshold": 0.4825,
         "margin": 0.645,
-        "latency_ms": 0.2744,
+        "latency_ms": 0.3566,
         "val": {
           "precision": 1.0,
           "recall": 1.0,
@@ -89,7 +89,7 @@
         "model_file": "has_incorrect_conditional__random_forest.joblib",
         "threshold": 0.285,
         "margin": 0.0,
-        "latency_ms": 0.241,
+        "latency_ms": 0.2605,
         "val": {
           "precision": 0.8,
           "recall": 1.0,
@@ -102,28 +102,11 @@
         }
       },
       {
-        "model_name": "logistic_regression",
-        "model_file": "has_incorrect_conditional__logistic_regression.joblib",
-        "threshold": 0.2438,
-        "margin": 0.0,
-        "latency_ms": 0.028,
-        "val": {
-          "precision": 0.75,
-          "recall": 0.75,
-          "f1": 0.75
-        },
-        "test": {
-          "precision": 1.0,
-          "recall": 1.0,
-          "f1": 1.0
-        }
-      },
-      {
         "model_name": "svm",
         "model_file": "has_incorrect_conditional__svm.joblib",
         "threshold": 0.0554,
         "margin": 0.0,
-        "latency_ms": 0.0439,
+        "latency_ms": 0.0317,
         "val": {
           "precision": 0.75,
           "recall": 0.75,
@@ -133,6 +116,23 @@
           "precision": 0.8333,
           "recall": 1.0,
           "f1": 0.9091
+        }
+      },
+      {
+        "model_name": "logistic_regression",
+        "model_file": "has_incorrect_conditional__logistic_regression.joblib",
+        "threshold": 0.2438,
+        "margin": 0.0,
+        "latency_ms": 0.0637,
+        "val": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1": 0.75
+        },
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         }
       }
     ]
@@ -158,7 +158,7 @@
         "model_file": "has_array_length_index_misuse__logistic_regression.joblib",
         "threshold": 0.5371,
         "margin": 0.5276,
-        "latency_ms": 0.0303,
+        "latency_ms": 0.0283,
         "val": {
           "precision": 1.0,
           "recall": 1.0,
@@ -175,7 +175,7 @@
         "model_file": "has_array_length_index_misuse__svm.joblib",
         "threshold": 0.5625,
         "margin": 0.5164,
-        "latency_ms": 0.0306,
+        "latency_ms": 0.0343,
         "val": {
           "precision": 1.0,
           "recall": 1.0,
@@ -192,7 +192,7 @@
         "model_file": "has_array_length_index_misuse__random_forest.joblib",
         "threshold": 0.575,
         "margin": 0.55,
-        "latency_ms": 0.2396,
+        "latency_ms": 0.2727,
         "val": {
           "precision": 1.0,
           "recall": 1.0,

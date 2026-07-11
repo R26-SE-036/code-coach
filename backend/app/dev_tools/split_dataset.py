@@ -24,11 +24,17 @@ assert abs(TRAIN_RATIO + VAL_RATIO + TEST_RATIO - 1.0) < 1e-9, (
     f"Split ratios must sum to 1.0, got {TRAIN_RATIO + VAL_RATIO + TEST_RATIO}"
 )
 
-TARGET_COLUMNS = [
-    "has_off_by_one",
-    "has_incorrect_conditional",
-    "has_array_length_index_misuse",
-]
+# Target column -> label used for stratified bucketing. Order matters: a unit
+# is labeled by the FIRST target it is positive for.
+TARGET_LABELS = {
+    "has_off_by_one": "OFF_BY_ONE_LOOP_BOUNDARY",
+    "has_incorrect_conditional": "INCORRECT_CONDITIONAL_OPERATOR",
+    "has_array_length_index_misuse": "ARRAY_LENGTH_INDEX_MISUSE",
+    "has_missing_break": "MISSING_BREAK_IN_SWITCH",
+    "has_while_not_updated": "WHILE_VARIABLE_NOT_UPDATED",
+}
+
+TARGET_COLUMNS = list(TARGET_LABELS.keys())
 
 
 def _read_rows(file_path: Path) -> List[Dict[str, str]]:
@@ -80,14 +86,9 @@ def _build_units(rows: List[Dict[str, str]]) -> List[List[Dict[str, str]]]:
 
 
 def _get_unit_label(unit: List[Dict[str, str]]) -> str:
-    if any(_to_int(row.get("has_off_by_one", "0")) == 1 for row in unit):
-        return "OFF_BY_ONE_LOOP_BOUNDARY"
-
-    if any(_to_int(row.get("has_incorrect_conditional", "0")) == 1 for row in unit):
-        return "INCORRECT_CONDITIONAL_OPERATOR"
-
-    if any(_to_int(row.get("has_array_length_index_misuse", "0")) == 1 for row in unit):
-        return "ARRAY_LENGTH_INDEX_MISUSE"
+    for target_column, label in TARGET_LABELS.items():
+        if any(_to_int(row.get(target_column, "0")) == 1 for row in unit):
+            return label
 
     return "NO_ISSUE"
 
@@ -185,6 +186,17 @@ def _validate_split_coverage(
         train_pos = _count_positive(train_rows, target_column)
         val_pos = _count_positive(val_rows, target_column)
         test_pos = _count_positive(test_rows, target_column)
+
+        # A target with no positives ANYWHERE simply has no data yet (e.g. a
+        # promotion candidate whose snippets are still being authored). Warn
+        # instead of failing so the rest of the pipeline keeps working.
+        if train_pos + val_pos + test_pos == 0:
+            print(
+                f"WARNING: no positive examples for {target_column} in any split "
+                "(no data authored yet?) — models for this target cannot be "
+                "trained until snippets exist."
+            )
+            continue
 
         if train_pos == 0:
             raise ValueError(f"Train split has zero positives for {target_column}")

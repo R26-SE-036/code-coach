@@ -39,21 +39,6 @@ DATA_ROOT = PROJECT_ROOT / "data" / "ml"
 RAW_SNIPPETS_DIR = DATA_ROOT / "raw_snippets"
 METADATA_FILE = DATA_ROOT / "metadata" / "snippet_index.csv"
 
-FIELDNAMES = [
-    "snippet_id",
-    "file_path",
-    "language",
-    "primary_label",
-    "is_clean",
-    "has_off_by_one",
-    "has_incorrect_conditional",
-    "has_array_length_index_misuse",
-    "pair_group",
-    "pair_role",
-    "source_type",
-    "notes",
-]
-
 DEFAULT_SOURCE_TYPE = "manual_curated"
 
 
@@ -108,11 +93,46 @@ CATEGORIES: List[Category] = [
         buggy_note="accesses array[array.length] directly (out of bounds)",
         fixed_note="corrected with .length - 1 as last valid index",
     ),
+    # --- Promotion candidates (rule_only -> ml_gated). Folders may be empty
+    # --- until data is authored; empty folders simply produce no rows.
+    Category(
+        folder="missing_break_in_switch",
+        order=3,
+        id_prefix="missing_break",
+        label="MISSING_BREAK_IN_SWITCH",
+        flag_column="has_missing_break",
+        buggy_note="case falls through without break (unintentional)",
+        fixed_note="every case ends with break/return",
+    ),
+    Category(
+        folder="while_variable_not_updated",
+        order=4,
+        id_prefix="while_no_update",
+        label="WHILE_VARIABLE_NOT_UPDATED",
+        flag_column="has_while_not_updated",
+        buggy_note="no condition variable changes inside the while body (infinite loop)",
+        fixed_note="condition variable updated inside the loop body",
+    ),
 ]
 
 CATEGORY_BY_FOLDER = {c.folder: c for c in CATEGORIES}
 
 ALL_FLAG_COLUMNS = [c.flag_column for c in CATEGORIES]
+
+# Derived from CATEGORIES so a new category's flag column can never be
+# forgotten here.
+FIELDNAMES = [
+    "snippet_id",
+    "file_path",
+    "language",
+    "primary_label",
+    "is_clean",
+    *ALL_FLAG_COLUMNS,
+    "pair_group",
+    "pair_role",
+    "source_type",
+    "notes",
+]
 
 CLEAN_FOLDER = "clean"
 

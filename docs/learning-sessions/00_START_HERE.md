@@ -25,6 +25,7 @@ files, functions, and numbers), because in the viva you need both.
 | [05_training_and_calibration.md](05_training_and_calibration.md) | 5 | Where the models come from and how each threshold line was chosen |
 | [06_file_and_method_reference.md](06_file_and_method_reference.md) | all | Every important file and function, one line each |
 | [07_glossary_and_quiz.md](07_glossary_and_quiz.md) | all | Plain-English definitions + viva-style self-test |
+| [08_promoting_rule_to_ml.md](08_promoting_rule_to_ml.md) | runbook | Solo checklist: author data + train + calibrate to promote MISSING_BREAK and WHILE_NOT_UPDATED to ml_gated |
 
 ## The one-picture summary of the whole system
 
@@ -44,7 +45,8 @@ on one part of it:
         │  (Session 3)                    (Session 4)
         ▼                                      ▼
  tree-sitter parses text into an AST    feature_extractor turns the SAME code
- (a tree of typed nodes)                into 35 whole-file numbers
+ (a tree of typed nodes)                into whole-file numbers (35 at first;
+                                        51 since the switch/while features — doc 08)
         │                                      │
         │                                      ▼
         │                              ml_engine scores the numbers with
