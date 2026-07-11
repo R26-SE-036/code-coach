@@ -41,6 +41,7 @@ files, functions, and numbers), because in the viva you need both.
 | [07_glossary_and_quiz.md](07_glossary_and_quiz.md) | all | Plain-English definitions + viva-style self-test |
 | [08_promoting_rule_to_ml.md](08_promoting_rule_to_ml.md) | runbook | Solo checklist: author data + train + calibrate to promote MISSING_BREAK and WHILE_NOT_UPDATED to ml_gated |
 | [09_how_probability_is_computed.md](09_how_probability_is_computed.md) | 9 | Open the black box: sigmoid(w·x+b) verified by hand, the real learned weights, calibration + latency measurements |
+| [10_candidate_level_features.md](10_candidate_level_features.md) | 10 | The known limitation: per-site false positives through an open gate (demonstrated), and the candidate-level fix — cite in the thesis limitations chapter |
 
 ## The one-picture summary of the whole system
 
