@@ -115,7 +115,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         )
 
         summary_response = self.client.get(
-            "/api/v1/users/me/diagnostic-summary",
+            "/api/v1/students/me/diagnostics/summary",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, summary_response.status_code)
@@ -167,7 +167,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
             )
 
         struggles_response = self.client.get(
-            "/api/v1/users/me/concept-struggles",
+            "/api/v1/students/me/struggling-concepts",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, struggles_response.status_code)
@@ -308,7 +308,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(2, all_events_response.json()["total"])
 
         summary_response = self.client.get(
-            "/api/v1/users/me/diagnostic-summary",
+            "/api/v1/students/me/diagnostics/summary",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, summary_response.status_code)
@@ -361,7 +361,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         )
 
         summary_response = self.client.get(
-            "/api/v1/users/me/diagnostic-summary",
+            "/api/v1/students/me/diagnostics/summary",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, summary_response.status_code)
@@ -375,7 +375,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertIn(top_concept["hint_dependency_level"], {"medium", "high"})
 
         struggles_response = self.client.get(
-            "/api/v1/users/me/concept-struggles",
+            "/api/v1/students/me/struggling-concepts",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, struggles_response.status_code)
@@ -518,7 +518,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(1, mastery_events_response.json()["total"])
 
         mastery_response = self.client.get(
-            "/api/v1/users/me/mastery",
+            "/api/v1/students/me/concept-mastery",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, mastery_response.status_code)
@@ -706,7 +706,7 @@ class Phase2LearningSignalTests(unittest.TestCase):
         self.assertEqual(1, completed_events.json()["total"])
 
         mastery_response = self.client.get(
-            "/api/v1/users/me/mastery",
+            "/api/v1/students/me/concept-mastery",
             headers={"Authorization": f"Bearer {access_token}"},
         )
         self.assertEqual(200, mastery_response.status_code)

@@ -120,7 +120,7 @@ class Phase1AuthAndPersistenceTests(unittest.TestCase):
         )
 
         my_diagnostics_response = self.client.get(
-            "/api/v1/diagnostics/me",
+            "/api/v1/students/me/diagnostics",
             params={
                 "learning_session_id": learning_session_id,
                 "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
@@ -155,7 +155,7 @@ class Phase1AuthAndPersistenceTests(unittest.TestCase):
         )
 
         resolved_response = self.client.get(
-            "/api/v1/diagnostics/me",
+            "/api/v1/students/me/diagnostics",
             params={
                 "learning_session_id": learning_session_id,
                 "status": "resolved",
@@ -195,7 +195,7 @@ class Phase1AuthAndPersistenceTests(unittest.TestCase):
         self.assertEqual(404, forbidden_response.status_code)
 
         second_user_diagnostics_response = self.client.get(
-            "/api/v1/diagnostics/me",
+            "/api/v1/students/me/diagnostics",
             headers={"Authorization": f"Bearer {second_access_token}"},
         )
         self.assertEqual(200, second_user_diagnostics_response.status_code)

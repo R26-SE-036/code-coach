@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.routes.diagnostics import _serialize_persisted_diagnostic
+from app.api.routes.students import _serialize_persisted_diagnostic
 from app.core.common import generate_prefixed_id, utcnow
 from app.core.dependencies import AuthContext, get_current_auth, get_storage
 from app.models import (
