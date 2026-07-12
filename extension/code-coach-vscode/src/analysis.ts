@@ -577,6 +577,55 @@ export function gotoActiveDiagnostic(state: ExtensionState): void {
 }
 
 /**
+ * Report the diagnostic as a false positive. The event lands in
+ * learningEvents (event_type: diagnostic_disputed) — the labeled data that
+ * measures the detector's real false-positive rate and feeds retraining.
+ */
+export function reportFalsePositive(
+  state: ExtensionState,
+  diagnostic: DiagnosticItem,
+  surface: "coach_panel" | "code_action",
+): void {
+  if (state.disputedDiagnosticIds.has(diagnostic.diagnostic_id)) {
+    void vscode.window.showInformationMessage(
+      "Code Coach: already recorded — thanks again.",
+    );
+    return;
+  }
+  state.disputedDiagnosticIds.add(diagnostic.diagnostic_id);
+
+  if (state.currentLearningSessionId) {
+    trackLearningEvent(state, {
+      learning_session_id: state.currentLearningSessionId,
+      event_type: "diagnostic_disputed",
+      concept_tag: diagnostic.concept_tag,
+      occurred_at: new Date().toISOString(),
+      payload: {
+        diagnostic_id: diagnostic.diagnostic_id, error_type: diagnostic.error_type,
+        explanation_key: diagnostic.explanation_key, line: diagnostic.line,
+        detection_engine: diagnostic.detection_engine,
+        ml_probability: diagnostic.ml_probability,
+        dispute_reason: "false_positive", surface,
+      },
+    });
+  }
+
+  void vscode.window.showInformationMessage(
+    "Code Coach: thanks — your report helps improve detection accuracy.",
+  );
+  updateCoachPanel(state);
+}
+
+function disputeActiveDiagnostic(state: ExtensionState): void {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const index = Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, diagnostics.length - 1);
+  reportFalsePositive(state, diagnostics[index], "coach_panel");
+}
+
+/**
  * ONE message handler shared by the coach panel and the sidebar webviews, so
  * the two surfaces can never drift apart in what their buttons do.
  */
@@ -610,6 +659,9 @@ export function handleCoachPanelMessage(
       break;
     case "panelGoto":
       gotoActiveDiagnostic(state);
+      break;
+    case "panelDispute":
+      disputeActiveDiagnostic(state);
       break;
     case "openOutput":
       state.outputChannel.show(true);

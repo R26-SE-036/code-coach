@@ -183,6 +183,9 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
 
         <div class="btn-row">
           <button class="btn btn-secondary" data-command="panelGoto"><span class="btn-icon">↪</span> Jump to Line ${escapeHtml(String(active?.line ?? ""))}</button>
+          ${active && state.disputedDiagnosticIds.has(active.diagnostic_id)
+            ? `<button class="btn btn-ghost btn-disputed" disabled>✓ Reported — thanks</button>`
+            : `<button class="btn btn-ghost" data-command="panelDispute" title="Tell us this warning is wrong — it improves detection">🚩 Not a real bug?</button>`}
           <button class="btn btn-ghost" data-command="openOutput">Open Output</button>
         </div>
       </div>
@@ -357,6 +360,7 @@ body{
   border:1px solid color-mix(in srgb,var(--vscode-panel-border) 40%,transparent);
 }
 .btn-ghost:hover{color:var(--vscode-foreground);border-color:var(--vscode-panel-border)}
+.btn-disputed{color:var(--vscode-terminal-ansiGreen);border-color:color-mix(in srgb,var(--vscode-terminal-ansiGreen) 40%,transparent);cursor:default}
 
 /* ── Issue navigation bar ── */
 .nav-bar{

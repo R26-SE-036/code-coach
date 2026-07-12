@@ -29,6 +29,7 @@ import {
   clearTimerForUri,
   clearFeedbackForDocument,
   handleCoachPanelMessage,
+  reportFalsePositive,
 } from "./analysis";
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
@@ -58,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
     activeAnalysisUriKey: undefined,
     lastSupportedUriKey: undefined,
     lastPanelHtml: undefined,
+    disputedDiagnosticIds: new Set(),
     coachPanel: undefined,
     sidebarProvider: undefined,
     codeLensProvider: undefined,
@@ -211,6 +213,11 @@ export function activate(context: vscode.ExtensionContext) {
     },
   );
 
+  const reportFalsePositiveCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.reportFalsePositive",
+    (diag: DiagnosticItem) => { reportFalsePositive(state, diag, "code_action"); },
+  );
+
   const openWalkthroughCommand = vscode.commands.registerCommand(
     "code-coach-vscode.openWalkthrough", () => {
       void vscode.commands.executeCommand(
@@ -273,7 +280,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
-    showCodeLensHintCommand, openWalkthroughCommand,
+    showCodeLensHintCommand, reportFalsePositiveCommand, openWalkthroughCommand,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
     sidebarRegistration, codeLensRegistration, codeLensProvider, codeActionRegistration,

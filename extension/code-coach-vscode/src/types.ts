@@ -157,6 +157,11 @@ export type ExtensionState = {
   lastSupportedUriKey: string | undefined;
   /** Cache of the last HTML pushed to the coach panel — skip identical reassigns. */
   lastPanelHtml: string | undefined;
+  /**
+   * diagnostic_ids the user reported as false positives this session — used
+   * to flip the report button to "Reported ✓" and avoid duplicate events.
+   */
+  disputedDiagnosticIds: Set<string>;
   coachPanel: vscode.WebviewPanel | undefined;
   sidebarProvider: CoachSidebarProvider | undefined;
   codeLensProvider: CoachCodeLensProvider | undefined;

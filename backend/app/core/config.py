@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     # Example: CORS_ALLOWED_ORIGINS=http://localhost:3000,https://codeguru.example.com
     cors_allowed_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:4200"
 
+    # Brute-force protection: attempts allowed per client IP, per endpoint,
+    # per window, on register/login/refresh. 10/min ≈ 14k guesses/day — far
+    # too slow for password cracking, generous for real users.
+    auth_rate_limit_attempts: int = 10
+    auth_rate_limit_window_seconds: int = 60
+
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600

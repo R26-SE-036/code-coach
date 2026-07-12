@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
+from app.core.rate_limit import SlidingWindowLimiter
 from app.analysis.error_catalog import validate_catalog
 from app.analysis.parser_utils import parse_java_code
 from app.models import AnalyzeRequest, AnalyzeResponse
@@ -44,6 +45,12 @@ def create_app(*, storage=None) -> FastAPI:
     app = FastAPI(title="Code Coach Backend", lifespan=lifespan)
     if storage is not None:
         app.state.storage = storage
+
+    settings = get_settings()
+    app.state.auth_limiter = SlidingWindowLimiter(
+        settings.auth_rate_limit_attempts,
+        settings.auth_rate_limit_window_seconds,
+    )
 
     # Browser-based clients (the CodeGuru website, teammates' frontends) are
     # blocked by the browser without this. Origins come from settings so the

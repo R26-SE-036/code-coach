@@ -83,6 +83,19 @@ export class CoachCodeActionProvider implements vscode.CodeActionProvider {
         command: "code-coach-vscode.openCoachPanel",
       };
       actions.push(panelAction);
+
+      // False-positive feedback — the labeled data that measures and
+      // improves detection accuracy.
+      const disputeAction = new vscode.CodeAction(
+        "🚩 Report false positive (this warning is wrong)",
+        vscode.CodeActionKind.QuickFix,
+      );
+      disputeAction.command = {
+        title: "Report False Positive",
+        command: "code-coach-vscode.reportFalsePositive",
+        arguments: [diag],
+      };
+      actions.push(disputeAction);
     }
 
     return actions;
