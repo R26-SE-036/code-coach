@@ -47,6 +47,13 @@ class ErrorTypeSpec:
     target_column: Optional[str] = None
     model_file: Optional[str] = None
     ml_threshold: float = 0.65
+    # CANDIDATE-level gating (upgrade of ml_gated): when set, the file-level
+    # gate is replaced by per-site scoring — the locator proposes every rule
+    # match and the candidate model accepts/rejects EACH site individually.
+    # Eliminates the file-level failure class where an open gate lets the
+    # crude locator flag correct sites (see docs/learning-sessions/10_*).
+    candidate_model_file: Optional[str] = None
+    candidate_ml_threshold: Optional[float] = None
 
 
 # Model choice and ml_threshold for ml_gated entries come from
@@ -62,6 +69,10 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         target_column="has_off_by_one",
         model_file="has_off_by_one__logistic_regression.joblib",
         ml_threshold=0.5295,
+        # Candidate-level gating (per-loop scoring); calibrated by
+        # app/dev_tools/train_candidate_model.py — margin 0.9888 on val.
+        candidate_model_file="candidate__has_off_by_one__logistic_regression.joblib",
+        candidate_ml_threshold=0.5041,
     ),
     "INCORRECT_CONDITIONAL_OPERATOR": ErrorTypeSpec(
         error_type="INCORRECT_CONDITIONAL_OPERATOR",
@@ -195,6 +206,19 @@ def validate_catalog() -> None:
             problems.append(
                 f"{key}: catalog key does not match spec error_type {spec.error_type!r}"
             )
+
+        if spec.candidate_model_file:
+            if spec.candidate_ml_threshold is None:
+                problems.append(f"{key}: candidate model set but no candidate_ml_threshold")
+            if not (MODELS_DIR / spec.candidate_model_file).exists():
+                problems.append(
+                    f"{key}: candidate model file not found: {spec.candidate_model_file}"
+                )
+            from app.analysis.candidate_extractor import CANDIDATE_EXTRACTORS
+            if spec.target_column not in CANDIDATE_EXTRACTORS:
+                problems.append(
+                    f"{key}: no candidate extractor registered for {spec.target_column}"
+                )
 
         if spec.detection_mode == "ml_gated":
             if not spec.target_column:

@@ -23,7 +23,12 @@ from typing import Dict, List, Optional
 from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec
 from app.analysis.feature_extractor import extract_features
 from app.analysis.hint_engine import build_diagnostic
-from app.analysis.ml_engine import MLPrediction, predict_issue_types
+from app.analysis.ml_engine import (
+    CandidatePrediction,
+    MLPrediction,
+    predict_candidates,
+    predict_issue_types,
+)
 from app.models import DetectionResult, Diagnostic, ParseResult
 from app.analysis.parser_utils import parse_java_code_safe
 
@@ -46,6 +51,21 @@ def _safe_predict_issue_types(feature_dict: Dict[str, float]) -> List[MLPredicti
         # trace anywhere.
         logger.exception(
             "ML gate prediction failed; ml_gated diagnostics disabled for this request"
+        )
+        return []
+
+
+def _safe_predict_candidates(
+    spec: ErrorTypeSpec, parse_result: ParseResult
+) -> List[CandidatePrediction]:
+    try:
+        return predict_candidates(spec, parse_result)
+    except Exception:
+        # Same fail-safe contract as the file gate: no candidates accepted
+        # (never unfiltered rule output), and the failure is logged.
+        logger.exception(
+            "Candidate gate prediction failed; %s diagnostics disabled for this request",
+            spec.error_type,
         )
         return []
 
@@ -116,6 +136,30 @@ def _detect_for_spec(
     parse_result: ParseResult,
     predictions_by_error_type: Dict[str, MLPrediction],
 ) -> List[DetectionResult]:
+    # CANDIDATE-gated (upgrade of ml_gated): the locator PROPOSES every rule
+    # match, then the per-site model DISPOSES each one individually. A real
+    # bug and a rule-matching-but-correct site in the same file now get
+    # separate verdicts — the file-level gate could not tell them apart.
+    if spec.detection_mode == "ml_gated" and spec.candidate_model_file:
+        candidates = _safe_predict_candidates(spec, parse_result)
+        accepted: List[DetectionResult] = []
+        for finding in spec.locator(parse_result):
+            match = next(
+                (c for c in candidates if c.line <= finding.line <= c.end_line),
+                None,
+            )
+            if match is None or not match.predicted_positive:
+                continue
+            accepted.append(
+                _finalize_finding(
+                    finding,
+                    parse_result,
+                    detection_engine="candidate_gated_ast_locator",
+                    ml_probability=match.probability,
+                )
+            )
+        return accepted
+
     if spec.detection_mode == "ml_gated":
         prediction = predictions_by_error_type.get(spec.error_type)
         if prediction is None or not prediction.predicted_positive:
