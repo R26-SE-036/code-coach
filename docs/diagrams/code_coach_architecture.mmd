@@ -16,7 +16,7 @@ flowchart TB
         MARKET -. "installs / updates" .-> EXT
     end
 
-    subgraph AWS["«execution environment» AWS — ECS on Fargate · Docker (python:3.12-slim, 527 MB)"]
+    subgraph GCP["«execution environment» Google Cloud — Cloud Run (asia-south1) · Docker (python:3.12-slim, 527 MB) · scales to zero · auto HTTPS"]
         subgraph BACKEND["«component» Code Coach Backend (FastAPI)"]
             ROUTES["API routes /api/v1<br/>auth · learning-sessions · code-coach/analyze<br/>diagnostics · events · dashboard"]
             CORE["core — Argon2id hashing, JWT HS256,<br/>refresh rotation, session revocation"]
@@ -40,5 +40,5 @@ flowchart TB
     OTHERS["«planned» Study Guider · Gamification ·<br/>Pair Review Studio (separate repos + DBs)"]
 
     API == "HTTPS / JSON REST<br/>Bearer JWT (1 h access, rotating refresh)" ==> ROUTES
-    STORAGE == "google-cloud-firestore<br/>(service account / ADC)" ==> COLS
-    SVc -. "planned events<br/>(Pub/Sub or RabbitMQ)" .-> OTHERS
+    STORAGE == "google-cloud-firestore<br/>(ADC — same project, no key file)" ==> COLS
+    SVc -. "planned events<br/>(Google Pub/Sub or RabbitMQ)" .-> OTHERS

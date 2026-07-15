@@ -1,5 +1,33 @@
 # Session 10 — Candidate-Level Features (the known limitation, and its fix)
 
+> ## ✅ UPDATE (2026-07-12): IMPLEMENTED for OFF_BY_ONE — predictions confirmed
+>
+> Candidate-level gating is now live for OFF_BY_ONE_LOOP_BOUNDARY, built as a
+> **comparison alongside** file-level (both preserved). Pipeline:
+> `candidate_extractor.py` (16 site-local features per for-loop) →
+> `build_candidate_dataset.py` (labels derived from locator-verified lines in
+> the EXISTING corpus — no new data; splits inherited, manual holdout intact:
+> 1,594 candidates, 198 positive, 41 rule-firing hard negatives) →
+> `train_candidate_model.py` (LR selected; margin **0.9888**; threshold
+> 0.5041) → analyzer: locator PROPOSES every rule match, the per-site model
+> DISPOSES each individually (`candidate_gated_ast_locator`).
+>
+> **Head-to-head results** (`evaluate_gating_architectures.py`):
+>
+> | Per-site metric | file-level | candidate-level |
+> |---|---|---|
+> | Held-out test split — F1 | 0.991 | **0.991** (identical: nothing lost) |
+> | Mixed-file challenge (50 files, bug + `<= length-1` together) — precision | **0.500** | **1.000** |
+> | Mixed-file challenge — recall / F1 | 1.000 / 0.667 | **1.000 / 1.000** |
+>
+> The demo below now yields ONE underline: line 4 flagged at p=0.9985,
+> line 10 silent. The failure class is eliminated by construction, exactly as
+> this document predicted before implementation. Extending to the other four
+> targets = one extractor function + one registry entry each.
+>
+> The rest of this document is preserved as written BEFORE implementation —
+> prediction first, result after is the honest scientific order.
+
 > **Goal:** understand the one failure class that file-level ML gating cannot
 > fix, be able to demonstrate it live, explain the architecture that would
 > eliminate it, and defend the decision NOT to build it (yet). This doc is

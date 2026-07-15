@@ -100,6 +100,10 @@
         "title": "Code Coach: Next Hint"
       },
       {
+        "command": "code-coach-vscode.reportFalsePositive",
+        "title": "Code Coach: Report False Positive"
+      },
+      {
         "command": "code-coach-vscode.openWalkthrough",
         "title": "Code Coach: Welcome Guide"
       }

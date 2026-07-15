@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.common import generate_prefixed_id, utcnow
 from app.core.config import get_settings
-from app.core.dependencies import AuthContext, get_current_auth, get_storage
+from app.core.dependencies import (
+    AuthContext,
+    enforce_auth_rate_limit,
+    get_current_auth,
+    get_storage,
+)
 from app.models import (
     AuthResponse,
     AuthSessionView,
@@ -107,6 +112,7 @@ def _auth_response(
 def register(
     payload: RegisterRequest,
     storage: Any = Depends(get_storage),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
 ) -> AuthResponse:
     normalized_email = _normalize_email(str(payload.email))
 
@@ -148,6 +154,7 @@ def register(
 def login(
     payload: LoginRequest,
     storage: Any = Depends(get_storage),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
 ) -> AuthResponse:
     identifier = payload.identifier.strip()
     user_document = storage.find_user_by_email(_normalize_email(identifier))
@@ -195,6 +202,7 @@ def me(auth: AuthContext = Depends(get_current_auth)) -> MeResponse:
 def refresh(
     payload: RefreshRequest,
     storage: Any = Depends(get_storage),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
 ) -> AuthResponse:
     refresh_token_hash = hash_refresh_token(payload.refresh_token)
     auth_session = storage.find_auth_session_by_refresh_hash(refresh_token_hash)

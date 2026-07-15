@@ -30,7 +30,9 @@ from typing import Dict, List
 import joblib
 import pandas as pd
 
+from app.analysis.candidate_extractor import CANDIDATE_EXTRACTORS, CandidateSite
 from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
+from app.models import ParseResult
 
 
 # The object this file hands back to analyzer, one per ml_gated error type.
@@ -82,6 +84,63 @@ def _build_feature_frame(model, feature_dict: Dict[str, float]) -> pd.DataFrame:
         row[col] = float(value)
 
     return pd.DataFrame([row], columns=expected_columns)
+
+# ----------------------------------------------------------- candidate gating
+
+# One scored site: where it is, how likely it is buggy, and the verdict.
+@dataclass
+class CandidatePrediction:
+    line: int
+    end_line: int
+    probability: float
+    predicted_positive: bool
+
+
+def _get_candidate_model(spec: ErrorTypeSpec):
+    cache_key = f"candidate:{spec.target_column}"
+    if cache_key in _LOADED_MODELS:
+        return _LOADED_MODELS[cache_key]
+
+    model_path = MODELS_DIR / (spec.candidate_model_file or "")
+    if not model_path.exists():
+        raise FileNotFoundError(f"Candidate model file not found: {model_path}")
+
+    model = joblib.load(model_path)
+    _LOADED_MODELS[cache_key] = model
+    return model
+
+
+def predict_candidates(spec: ErrorTypeSpec, parse_result: ParseResult) -> List[CandidatePrediction]:
+    """Score every candidate site of `spec`'s type in the file, individually.
+
+    This is the candidate-level upgrade of the file gate: instead of one
+    "somewhere in this file" probability, each site gets its own verdict, so
+    the flagged candidate IS the location.
+    """
+    extractor = CANDIDATE_EXTRACTORS[spec.target_column or ""]
+    sites: List[CandidateSite] = extractor(parse_result)
+    if not sites:
+        return []
+
+    model = _get_candidate_model(spec)
+    expected = list(getattr(model, "feature_names_in_", sites[0].features.keys()))
+    frame = pd.DataFrame(
+        [[float(site.features.get(col, 0.0)) for col in expected] for site in sites],
+        columns=expected,
+    )
+    probabilities = model.predict_proba(frame)[:, _positive_class_index(model)]
+    threshold = spec.candidate_ml_threshold or 0.5
+
+    return [
+        CandidatePrediction(
+            line=site.line,
+            end_line=site.end_line,
+            probability=round(float(probability), 4),
+            predicted_positive=bool(probability >= threshold),
+        )
+        for site, probability in zip(sites, probabilities)
+    ]
+
 
 # Index of the "issue present" class in the model's probability output.
 # predict_proba's columns follow model.classes_ order — for our 0/1 integer

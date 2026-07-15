@@ -138,7 +138,11 @@ function applyEditorFeedback(
   const decorationOptions = buildDecorationOptions(editor, backendDiagnostics, createRangeFromDiagnostic);
 
   state.lastDiagnosticsByUri.set(uriKey, backendDiagnostics);
-  state.activeHintIndexByUri.set(uriKey, 0);
+  state.lastSupportedUriKey = uriKey;
+  // Preserve the user's position in the hint list across auto re-analysis
+  // (only clamp if the new result has fewer diagnostics).
+  const previousIndex = state.activeHintIndexByUri.get(uriKey) ?? 0;
+  state.activeHintIndexByUri.set(uriKey, Math.min(previousIndex, backendDiagnostics.length - 1));
   state.diagnosticCollection.set(editor.document.uri, vscodeDiagnostics);
   editor.setDecorations(state.warningDecorationType, decorationOptions);
   updateAnalysisStatusBar(state, editor);
@@ -187,7 +191,9 @@ async function showHintAtIndex(
   const hintText = hintTextForLevel(diagnostic, options.level);
   const levelLabel = options.level.charAt(0).toUpperCase() + options.level.slice(1);
 
-  await vscode.window.showInformationMessage(
+  // Fire-and-forget: awaiting an info message blocks until the user dismisses
+  // it, which used to delay the learning-event tracking below by seconds.
+  void vscode.window.showInformationMessage(
     `Code Coach ${levelLabel.toLowerCase()} hint ${index + 1}/${diagnostics.length}: ${hintText}`,
   );
 
@@ -298,7 +304,9 @@ export async function runAnalysisForEditor(
     return;
   }
 
+  state.lastSupportedUriKey = document.uri.toString();
   const code = document.getText();
+  const documentVersion = document.version;
 
   if (!code.trim()) {
     clearFeedbackForDocument(state, document);
@@ -345,6 +353,7 @@ export async function runAnalysisForEditor(
         firstMessage: result.diagnostics[0]?.message,
         firstLine: result.diagnostics[0]?.line,
         learningSessionId: result.learning_session_id ?? learningSessionId,
+        documentVersion,
       });
 
       if (options.showOutput) { writeAnalysisOutput(state, result); state.outputChannel.show(true); }
@@ -427,6 +436,27 @@ export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextE
   if (!editor) { return; }
   const document = editor.document;
   if (!isSupportedDocument(document)) { clearFeedbackForDocument(state, document); return; }
+  state.lastSupportedUriKey = document.uri.toString();
+
+  // FAST PATH: switching back to a tab whose text has not changed since its
+  // last analysis. The results are already known — reapply the cached
+  // decorations (they are per-editor and vanish on tab switch) and skip the
+  // debounce + backend round trip entirely. document.version bumps on every
+  // edit, so any real change still goes through full analysis below.
+  const uriKey = document.uri.toString();
+  const snapshot = state.lastAnalysisSnapshotByUri.get(uriKey);
+  if (snapshot?.documentVersion === document.version) {
+    const cached = state.lastDiagnosticsByUri.get(uriKey);
+    if (cached && cached.length > 0) {
+      editor.setDecorations(
+        state.warningDecorationType,
+        buildDecorationOptions(editor, cached, createRangeFromDiagnostic),
+      );
+    }
+    updateAnalysisStatusBar(state, editor);
+    return;
+  }
+
   clearTimerForUri(state, document.uri);
   const timer = setTimeout(() => {
     void runAnalysisForEditor(state, editor, { showPopup: false, showOutput: false });
@@ -459,19 +489,186 @@ export function showHintForActiveEditor(state: ExtensionState, direction: 1 | -1
 }
 
 /**
+ * Resolve which file panel actions should operate on. When a webview button
+ * is clicked the webview takes focus and activeTextEditor is often undefined,
+ * so fall back to the last supported file the user worked in.
+ */
+export function resolvePanelUriKey(state: ExtensionState): string | undefined {
+  const editor = vscode.window.activeTextEditor;
+  if (editor && isSupportedDocument(editor.document)) {
+    return editor.document.uri.toString();
+  }
+  return state.lastSupportedUriKey;
+}
+
+function findVisibleEditorForUri(uriKey: string): vscode.TextEditor | undefined {
+  return vscode.window.visibleTextEditors.find(
+    (editor) => editor.document.uri.toString() === uriKey,
+  );
+}
+
+/** Set the active hint index, sync the editor cursor to it, refresh the panel. */
+function setPanelHintIndex(state: ExtensionState, uriKey: string, index: number): void {
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const bounded = Math.max(0, Math.min(index, diagnostics.length - 1));
+  state.activeHintIndexByUri.set(uriKey, bounded);
+
+  // Keep the code and the panel in sync: reveal the selected issue in the
+  // editor (without stealing focus from the panel the user is clicking in).
+  const editor = findVisibleEditorForUri(uriKey);
+  if (editor) { focusDiagnostic(editor, diagnostics[bounded]); }
+
+  updateCoachPanel(state);
+
+  if (state.currentLearningSessionId) {
+    const diagnostic = diagnostics[bounded];
+    trackLearningEvent(state, {
+      learning_session_id: state.currentLearningSessionId,
+      event_type: "hint_navigation_used",
+      concept_tag: diagnostic.concept_tag,
+      occurred_at: new Date().toISOString(),
+      payload: {
+        diagnostic_id: diagnostic.diagnostic_id, error_type: diagnostic.error_type,
+        explanation_key: diagnostic.explanation_key, hint_level: "concept",
+        direction: "panel_select", shown_index: bounded + 1,
+        total_diagnostics: diagnostics.length, source_command: "coach_panel",
+      },
+    });
+  }
+}
+
+/**
  * Silent hint navigation for the panel/sidebar buttons.
  * Updates the active index and refreshes the panel without showing a popup.
  */
 export function navigatePanelHint(state: ExtensionState, direction: 1 | -1): void {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || !isSupportedDocument(editor.document)) { return; }
-  const uriKey = editor.document.uri.toString();
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
   const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
   if (diagnostics.length === 0) { return; }
   const currentIndex = state.activeHintIndexByUri.get(uriKey) ?? 0;
   const nextIndex = (currentIndex + direction + diagnostics.length) % diagnostics.length;
-  state.activeHintIndexByUri.set(uriKey, nextIndex);
+  setPanelHintIndex(state, uriKey, nextIndex);
+}
+
+/** Jump directly to issue `index` (issue list rows / dot indicators). */
+export function selectPanelHint(state: ExtensionState, index: number): void {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
+  setPanelHintIndex(state, uriKey, index);
+}
+
+/** Reveal the active diagnostic's line in the editor ("Jump to line" button). */
+export function gotoActiveDiagnostic(state: ExtensionState): void {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const index = Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, diagnostics.length - 1);
+  const editor = findVisibleEditorForUri(uriKey);
+  if (editor) {
+    focusDiagnostic(editor, diagnostics[index]);
+  } else {
+    // File not visible (user closed the split) — reopen it at the issue.
+    void vscode.window.showTextDocument(vscode.Uri.parse(uriKey), { preview: false })
+      .then((opened) => { focusDiagnostic(opened, diagnostics[index]); });
+  }
+}
+
+/**
+ * Report the diagnostic as a false positive. The event lands in
+ * learningEvents (event_type: diagnostic_disputed) — the labeled data that
+ * measures the detector's real false-positive rate and feeds retraining.
+ */
+export function reportFalsePositive(
+  state: ExtensionState,
+  diagnostic: DiagnosticItem,
+  surface: "coach_panel" | "code_action",
+): void {
+  if (state.disputedDiagnosticIds.has(diagnostic.diagnostic_id)) {
+    void vscode.window.showInformationMessage(
+      "Code Coach: already recorded — thanks again.",
+    );
+    return;
+  }
+  state.disputedDiagnosticIds.add(diagnostic.diagnostic_id);
+
+  if (state.currentLearningSessionId) {
+    trackLearningEvent(state, {
+      learning_session_id: state.currentLearningSessionId,
+      event_type: "diagnostic_disputed",
+      concept_tag: diagnostic.concept_tag,
+      occurred_at: new Date().toISOString(),
+      payload: {
+        diagnostic_id: diagnostic.diagnostic_id, error_type: diagnostic.error_type,
+        explanation_key: diagnostic.explanation_key, line: diagnostic.line,
+        detection_engine: diagnostic.detection_engine,
+        ml_probability: diagnostic.ml_probability,
+        dispute_reason: "false_positive", surface,
+      },
+    });
+  }
+
+  void vscode.window.showInformationMessage(
+    "Code Coach: thanks — your report helps improve detection accuracy.",
+  );
   updateCoachPanel(state);
+}
+
+function disputeActiveDiagnostic(state: ExtensionState): void {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const index = Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, diagnostics.length - 1);
+  reportFalsePositive(state, diagnostics[index], "coach_panel");
+}
+
+/**
+ * ONE message handler shared by the coach panel and the sidebar webviews, so
+ * the two surfaces can never drift apart in what their buttons do.
+ */
+export function handleCoachPanelMessage(
+  state: ExtensionState,
+  message: { command?: string; index?: number },
+): void {
+  switch (message.command) {
+    case "signIn":
+      void vscode.commands.executeCommand("code-coach-vscode.signIn");
+      break;
+    case "createAccount":
+      void vscode.commands.executeCommand("code-coach-vscode.createAccount");
+      break;
+    case "signOut":
+      void vscode.commands.executeCommand("code-coach-vscode.signOut");
+      break;
+    case "analyze":
+      void vscode.commands.executeCommand("code-coach-vscode.analyzeCurrentFile");
+      break;
+    case "panelPrevious":
+      navigatePanelHint(state, -1);
+      break;
+    case "panelNext":
+      navigatePanelHint(state, 1);
+      break;
+    case "panelSelect":
+      if (typeof message.index === "number" && Number.isFinite(message.index)) {
+        selectPanelHint(state, message.index);
+      }
+      break;
+    case "panelGoto":
+      gotoActiveDiagnostic(state);
+      break;
+    case "panelDispute":
+      disputeActiveDiagnostic(state);
+      break;
+    case "openOutput":
+      state.outputChannel.show(true);
+      break;
+    default:
+      break;
+  }
 }
 
 // ── Coach panel opener (used internally) ──

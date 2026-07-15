@@ -1,0 +1,41 @@
+{
+  "target": "has_off_by_one",
+  "results": [
+    {
+      "family": "logistic_regression",
+      "threshold": 0.5041,
+      "margin": 0.9888,
+      "val_f1": 1.0,
+      "test_f1": 0.9908,
+      "latency_ms": 0.0056,
+      "model_file": "candidate__has_off_by_one__logistic_regression.joblib"
+    },
+    {
+      "family": "random_forest",
+      "threshold": 0.5,
+      "margin": 1.0,
+      "val_f1": 1.0,
+      "test_f1": 0.9908,
+      "latency_ms": 0.0412,
+      "model_file": "candidate__has_off_by_one__random_forest.joblib"
+    },
+    {
+      "family": "svm",
+      "threshold": 0.4939,
+      "margin": 0.9854,
+      "val_f1": 1.0,
+      "test_f1": 0.9815,
+      "latency_ms": 0.0066,
+      "model_file": "candidate__has_off_by_one__svm.joblib"
+    }
+  ],
+  "selected": {
+    "family": "logistic_regression",
+    "threshold": 0.5041,
+    "margin": 0.9888,
+    "val_f1": 1.0,
+    "test_f1": 0.9908,
+    "latency_ms": 0.0056,
+    "model_file": "candidate__has_off_by_one__logistic_regression.joblib"
+  }
+}

@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import get_settings
+from app.core.rate_limit import SlidingWindowLimiter
 from app.analysis.error_catalog import validate_catalog
 from app.analysis.parser_utils import parse_java_code
 from app.models import AnalyzeRequest, AnalyzeResponse
@@ -9,12 +12,11 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
 from app.api.routes.dashboard import router as dashboard_router
-from app.api.routes.diagnostics import router as diagnostics_router
+from app.api.routes.students import router as students_router
 from app.api.routes.events import router as events_router
 from app.api.routes.gamification import router as gamification_router
 from app.api.routes.learning_sessions import router as learning_session_router
 from app.api.routes.remediation import router as remediation_router
-from app.api.routes.users import router as users_router
 from app.db.storage import build_storage
 from app.services.code_coach_service import build_analyze_response, run_analysis
 from app.services.evaluation_logger import log_analysis_event
@@ -44,17 +46,38 @@ def create_app(*, storage=None) -> FastAPI:
     if storage is not None:
         app.state.storage = storage
 
+    settings = get_settings()
+    app.state.auth_limiter = SlidingWindowLimiter(
+        settings.auth_rate_limit_attempts,
+        settings.auth_rate_limit_window_seconds,
+    )
+
+    # Browser-based clients (the CodeGuru website, teammates' frontends) are
+    # blocked by the browser without this. Origins come from settings so the
+    # deployed service can allow the real website URL via an env var.
+    allowed_origins = [
+        origin.strip()
+        for origin in get_settings().cors_allowed_origins.split(",")
+        if origin.strip()
+    ]
+    if allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_methods=["*"],
+            allow_headers=["Authorization", "Content-Type"],
+        )
+
     # registered routes
     app.include_router(auth_router)
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)
     app.include_router(code_coach_router)
     app.include_router(dashboard_router)
-    app.include_router(diagnostics_router)
+    app.include_router(students_router)
     app.include_router(events_router)
     app.include_router(gamification_router)
     app.include_router(remediation_router)
-    app.include_router(users_router)
 
 
     @app.get("/")

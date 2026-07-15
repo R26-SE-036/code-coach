@@ -25,6 +25,29 @@ def get_storage(request: Request) -> Any:
     return request.app.state.storage
 
 
+def _client_ip(request: Request) -> str:
+    # Behind Cloud Run / any proxy the real client is the first entry of
+    # X-Forwarded-For; locally it is the socket peer.
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def enforce_auth_rate_limit(request: Request) -> None:
+    """Dependency for credential endpoints: cap attempts per IP per endpoint."""
+    limiter = getattr(request.app.state, "auth_limiter", None)
+    if limiter is None:
+        return
+    retry_after = limiter.check(f"{request.url.path}:{_client_ip(request)}")
+    if retry_after > 0:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please wait a moment and try again.",
+            headers={"Retry-After": str(max(1, int(retry_after + 0.5)))},
+        )
+
+
 def get_current_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     storage: Any = Depends(get_storage),
