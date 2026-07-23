@@ -142,7 +142,7 @@ arrow(78.5, 44.9, 78.5, 46.8, color=C["reg_edge"], size=8, lw=1.2)
 
 # ============================================================ FIREBASE NODE
 box(56, 3, 84, 17.5, C["fb"], C["fb_edge"], lw=2)
-text(58, 19, "«cloud service»  Firebase — Cloud Firestore  (project: r26-se-036)", size=10, weight="bold", color=C["fb_edge"])
+text(58, 19, "«cloud service»  Firebase — Cloud Firestore  (project: code-guru-1b5d9)", size=10, weight="bold", color=C["fb_edge"])
 rows = [
     ["users", "authSessions", "learningSessions", "codeDiagnostics"],
     ["learningEvents", "remediationTriggers", "conceptMastery", "collaborationSessions"],
