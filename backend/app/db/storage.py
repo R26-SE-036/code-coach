@@ -987,8 +987,12 @@ def build_storage():
         storage = FirestoreStorage(
             settings.firebase_credentials_path,
             settings.firebase_project_id,
+            settings.firebase_database_id,
         )
-        print(f"Storage backend: Firestore (project={storage.client.project})")
+        print(
+            f"Storage backend: Firestore (project={storage.client.project}, "
+            f"database={settings.firebase_database_id})"
+        )
     elif settings.mongodb_uri:
         storage = MongoStorage(settings.mongodb_uri, settings.mongodb_db_name)
         print(f"Storage backend: MongoDB (db={settings.mongodb_db_name})")

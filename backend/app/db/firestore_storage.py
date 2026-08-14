@@ -53,10 +53,13 @@ class FirestoreStorage:
         self,
         credentials_path: Optional[str] = None,
         project_id: Optional[str] = None,
+        database_id: str = "(default)",
     ) -> None:
         kwargs: dict[str, Any] = {}
         if project_id:
             kwargs["project"] = project_id
+        if database_id and database_id != "(default)":
+            kwargs["database"] = database_id
 
         if credentials_path:
             # Local development: authenticate with an explicit service
@@ -231,17 +234,23 @@ class FirestoreStorage:
         }
         current_ids = {document["diagnosticId"] for document in diagnostics}
 
+        # One batch instead of one network round trip per diagnostic: a file
+        # with six findings used to cost six sequential writes.
+        batch = self.client.batch()
+        collection = self.client.collection("codeDiagnostics")
+        pending_writes = 0
+
         resolved_documents: list[dict[str, Any]] = []
         for document in active_documents:
             if document["diagnosticId"] not in current_ids:
                 document["status"] = "resolved"
                 document["resolvedAt"] = now
                 document["lastSeenAt"] = now
-                self._update(
-                    "codeDiagnostics",
-                    document["diagnosticRecordId"],
+                batch.update(
+                    collection.document(document["diagnosticRecordId"]),
                     {"status": "resolved", "resolvedAt": now, "lastSeenAt": now},
                 )
+                pending_writes += 1
                 resolved_documents.append(document)
 
         newly_detected_documents: list[dict[str, Any]] = []
@@ -257,15 +266,20 @@ class FirestoreStorage:
                 merged["status"] = "active"
                 merged["resolvedAt"] = None
                 merged["lastSeenAt"] = now
-                self._set("codeDiagnostics", merged["diagnosticRecordId"], merged)
+                batch.set(collection.document(merged["diagnosticRecordId"]), deepcopy(merged))
+                pending_writes += 1
                 stored_current_documents.append(merged)
                 continue
 
             stored = deepcopy(incoming)
             stored["lastSeenAt"] = now
-            self._set("codeDiagnostics", stored["diagnosticRecordId"], stored)
+            batch.set(collection.document(stored["diagnosticRecordId"]), deepcopy(stored))
+            pending_writes += 1
             newly_detected_documents.append(stored)
             stored_current_documents.append(stored)
+
+        if pending_writes:
+            batch.commit()
 
         return DiagnosticSyncResult(
             active_documents=_sort_by_created_desc(stored_current_documents),
