@@ -19,7 +19,7 @@ Required environment variables in production:
 | Variable | Value | Why |
 |---|---|---|
 | `JWT_SECRET` | a long random string (NOT the dev one) | signs access tokens |
-| `FIREBASE_PROJECT_ID` | `r26-se-036` | Firestore project (ADC — no key file on GCP) |
+| `FIREBASE_PROJECT_ID` | `code-guru-1b5d9` | Firestore project (ADC — no key file on GCP) |
 | `FIREBASE_CREDENTIALS_PATH` | only OUTSIDE Google Cloud | key-file auth for non-GCP hosts |
 
 ## Local verification (already scripted)
@@ -50,7 +50,7 @@ you upgrade. If you don't want a card involved, use Path B.
 Steps (one time):
 
 1. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install),
-   then `gcloud auth login` and `gcloud config set project r26-se-036`.
+   then `gcloud auth login` and `gcloud config set project code-guru-1b5d9`.
 2. Upgrade the Firebase project to Blaze (Firebase console, bottom-left
    "Upgrade") and set a billing budget alert.
 3. Deploy — from the repo root:
@@ -60,7 +60,7 @@ Steps (one time):
      --source . \
      --region asia-south1 \
      --allow-unauthenticated \
-     --set-env-vars FIREBASE_PROJECT_ID=r26-se-036,JWT_SECRET=<GENERATE-A-NEW-LONG-RANDOM-ONE>
+     --set-env-vars FIREBASE_PROJECT_ID=code-guru-1b5d9,JWT_SECRET=<GENERATE-A-NEW-LONG-RANDOM-ONE>
    ```
 
    (`--source .` makes Cloud Build use the Dockerfile; `asia-south1` =

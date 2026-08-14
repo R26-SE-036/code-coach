@@ -1,7 +1,7 @@
 # Cloud Run Deployment Checklist — Code Coach
 
 > Decision made: the Code Coach backend deploys to **Google Cloud Run**
-> (project `r26-se-036`, region `asia-south1`). This is the do-it-together
+> (project `code-guru-1b5d9`, region `asia-south1`). This is the do-it-together
 > checklist for the team meeting; the reasoning lives in
 > [deployment.md](deployment.md). Tick boxes in order — each phase depends on
 > the previous one.
@@ -27,7 +27,7 @@
 
   ```bash
   gcloud auth login
-  gcloud config set project r26-se-036
+  gcloud config set project code-guru-1b5d9
   ```
 
 ## Phase 2 — Deploy (any teammate with repo access, ~10 min)
@@ -46,7 +46,7 @@
     --source . \
     --region asia-south1 \
     --allow-unauthenticated \
-    --set-env-vars FIREBASE_PROJECT_ID=r26-se-036,JWT_SECRET=<paste-the-new-secret>
+    --set-env-vars FIREBASE_PROJECT_ID=code-guru-1b5d9,JWT_SECRET=<paste-the-new-secret>
   ```
 
   Notes: `--source .` sends the repo to Cloud Build, which uses our
@@ -64,7 +64,7 @@
 - [ ] `curl https://<url>/health` → `{"status":"ok"}`
 - [ ] Startup log says the right backend: Cloud console → Cloud Run →
       code-coach-backend → **Logs** → look for
-      `Storage backend: Firestore (project=r26-se-036)`.
+      `Storage backend: Firestore (project=code-guru-1b5d9)`.
 - [ ] Register a throwaway account against the deployed URL and confirm the
       user document appears in Firestore console → Data.
 

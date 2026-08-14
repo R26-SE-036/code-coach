@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     # 3. In-memory — fallback for local development; data is LOST on restart
     firebase_credentials_path: Optional[str] = None
     firebase_project_id: Optional[str] = None
+    # Firestore database to use. "(default)" is the one created with the
+    # project; set this to a named database when the default one sits in a
+    # distant region (a database's location cannot be changed after creation,
+    # and every round trip pays that distance).
+    firebase_database_id: str = "(default)"
 
     mongodb_uri: Optional[str] = None
     mongodb_db_name: str = "code-guru"

@@ -2,7 +2,7 @@
 
 > Follow this once. At the end, every account, learning session, diagnostic
 > and event survives backend restarts, stored in your Firestore database
-> (project **CodeGuru / r26-se-036**), visible live in the Firebase console.
+> (project **CodeGuru / code-guru-1b5d9**), visible live in the Firebase console.
 
 ## What was decided and why (for the report)
 
@@ -72,7 +72,7 @@ created. Expected ending: `ALL CHECKS PASSED`.
 ### Step 4 — Run the app for real
 
 Start the backend as usual (it will print `Storage backend: Firestore
-(project=r26-se-036)` on startup), launch the extension in debug mode,
+(project=code-guru-1b5d9)` on startup), launch the extension in debug mode,
 **create your account again** (the old one lived in memory and is gone),
 and analyze a demo file. Then open the Firebase console → **Firestore
 Database → Data**: you'll see `users`, `authSessions`, `learningSessions`,
@@ -94,6 +94,6 @@ Restart the backend and sign in again — your account now survives.
 | Symptom | Cause / fix |
 |---|---|
 | `FileNotFoundError: ... service account key not found` | Key not at `backend/secrets/firebase-service-account.json`, or you ran from the wrong folder — run from `backend/`. |
-| `403 PERMISSION_DENIED` / `Cloud Firestore API has not been used` | Open the printed link and enable the Firestore API, or confirm the key belongs to project `r26-se-036`. |
+| `403 PERMISSION_DENIED` / `Cloud Firestore API has not been used` | Open the printed link and enable the Firestore API, or confirm the key belongs to project `code-guru-1b5d9`. |
 | `DefaultCredentialsError` | `.env` line still commented out. |
 | Old account can't log in | Expected — in-memory data died with the old process. Register again once; from now on it persists. |

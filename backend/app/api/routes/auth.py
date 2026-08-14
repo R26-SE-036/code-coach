@@ -11,6 +11,7 @@ from app.core.dependencies import (
     enforce_auth_rate_limit,
     get_current_auth,
     get_storage,
+    revoke_cached_auth,
 )
 from app.models import (
     AuthResponse,
@@ -258,4 +259,7 @@ def logout(
     storage: Any = Depends(get_storage),
 ) -> StatusResponse:
     storage.revoke_auth_session(auth.auth_session_id)
+    # Drop the cached auth context so the revoked session cannot be used for
+    # the remainder of the cache TTL.
+    revoke_cached_auth(auth.auth_session_id)
     return StatusResponse(status="ok", message="Logout successful.")
