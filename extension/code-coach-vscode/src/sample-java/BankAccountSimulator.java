@@ -37,7 +37,8 @@ public class BankAccountSimulator {
     }
 
     static double monthlyFee(double balance) {
-        return balance * 0.01;
+        
         System.out.println("Fee calculation finished.");
+        return balance * 0.01;
     }
 }
