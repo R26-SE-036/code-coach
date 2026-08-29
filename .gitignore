@@ -22,3 +22,5 @@ Thumbs.db
 backend/secrets/
 *.serviceaccount.json
 firebase-service-account*.json
+
+/docs

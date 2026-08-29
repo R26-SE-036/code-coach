@@ -1,7 +1,7 @@
 # CodeGuru Inter-Service Events — Contract v1
 
 > **What this is:** the async half of the integration (the sync half is
-> [api-integration-guide.md](api-integration-guide.md)). When Code Coach
+> [README.md](README.md)). When Code Coach
 > *detects* something, it publishes an event; interested services react
 > without Code Coach knowing or caring who they are. Transport is **Google
 > Pub/Sub** in production; the JSON contract below is transport-agnostic, so
