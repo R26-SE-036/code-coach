@@ -236,22 +236,149 @@ from day one.
 
 ---
 
-## 7. Running the whole platform locally
+## 7. One account, several clients
+
+Code Coach is the identity provider; the portal is the one *web* login. The VS
+Code extension signs in inside the IDE, and that is not an exception to the
+single-login rule — it is the same account reached from a different client.
+
+Every surface calls the same `/api/v1/auth/*` endpoints with the same fields.
+The only thing that differs is `client_name`, which is recorded on the auth
+session so you can tell where a login came from:
+
+| Surface | `client_name` |
+|---|---|
+| VS Code extension | `code-coach-vscode` |
+| CodeGuru Portal (web) | `codeguru-portal` |
+| Study Guider | `codeguru-study-guider` |
+| PairPath | `pair-review-studio` |
+
+Same email and password, same `user_id`, same diagnostics and triggers. A
+student who registers at the portal can sign into the extension with those
+credentials, and the errors the extension finds drive the lessons the portal
+sends them to. This is the shape GitHub uses: one account, reached from the
+web, a CLI, or an IDE.
+
+The extension cannot use the portal handoff because a redirect back into VS
+Code needs a `vscode://` URI handler — doable, but a separate piece of work.
+Until then the IDE keeps its own sign-in prompt against the same endpoints.
+
+---
+
+## 8. Testing the integration before anything is deployed
+
+Nothing is on Cloud Run yet, so "the platform" is a set of processes on one or
+more laptops. Three ways to run it, depending on what you are doing.
+
+### Mode 1 — working on your own service (most of the time)
+
+You need Code Coach and your service. **You do not need the portal.**
 
 ```bash
-# 1. Code Coach (identity + data hub)
-cd code-coach/backend && uvicorn app.main:app --port 8000
+# terminal 1
+cd code-coach/backend && .venv/Scripts/python.exe -m uvicorn app.main:app --port 8000
 
-# 2. The portal (login UI)
-cd code-coach/portal && cp .env.example .env && npm install && npm run dev   # 4200
-
-# 3. Your service, with CODE_COACH_URL pointing at 8000
+# terminal 2 — your own service, with CODE_COACH_URL pointing at 8000
 ```
 
-Sign in at `http://localhost:4200`, then follow the hub links — the session
+Set `VITE_ENABLE_DEV_LOGIN=true` (or `NEXT_PUBLIC_ENABLE_DEV_LOGIN=true`) and
+sign in at your own `/dev-login`. This is exactly what that page is for: same
+Code Coach calls, same fields, no portal round trip.
+
+### Mode 2 — the whole platform on one machine
+
+Five processes. Ports are in §1.
+
+```bash
+cd code-coach/backend  && .venv/Scripts/python.exe -m uvicorn app.main:app --port 8000
+cd code-coach/portal   && npm run dev                    # 4200
+cd Study-Guider/backend && python -m uvicorn app.main:app --port 8010
+cd Study-Guider/frontend && npm run dev                  # 5173
+cd Pair_Path/api && npm run start:dev                    # 3001
+cd Pair_Path/frontend && npm run dev                     # 3000
+```
+
+Sign in at `http://localhost:4200` and follow the hub links — the session
 travels with you.
 
-Code Coach falls back to **in-memory storage** when no Firestore or MongoDB
-credentials are configured. That is the easiest way to develop against it
-without touching shared cloud data; it prints `Storage backend: in-memory` at
-startup and forgets everything on restart.
+### Mode 3 — the team, on different laptops
+
+**Only Code Coach needs to be shared.** Everything else each person runs
+locally against it. One person (whoever owns Code Coach) exposes it:
+
+```bash
+cloudflared tunnel --url http://localhost:8000
+```
+
+That prints a URL like `https://random-words-1234.trycloudflare.com`. Share it.
+Everyone else sets it as their `CODE_COACH_URL` / `VITE_CODE_COACH_URL` /
+`NEXT_PUBLIC_CODE_COACH_URL` and otherwise runs exactly as in Mode 1.
+
+The hostname **changes every time the tunnel restarts**, which is why every
+service reads it from the environment and none of them hardcode it.
+
+Two things the Code Coach owner must do:
+
+1. **Run on Firestore, not in-memory.** Code Coach falls back to in-memory
+   storage when no credentials are configured, and then every account, session
+   and trigger is lost on restart — teammates cannot see each other's data, and
+   an already-signed-in VS Code extension gets silently logged out (its stored
+   session no longer exists, the 401 clears its tokens, and auto-analysis fails
+   quietly with no prompt). Check the startup line says
+   `Storage backend: Firestore`.
+2. **Add teammates' origins to CORS.** Browsers calling the tunnel from
+   `http://localhost:5173` etc. are blocked otherwise:
+
+   ```
+   CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:4200
+   ```
+
+   Server-to-server calls (Study Guider's backend, PairPath's API) are never
+   affected by CORS — only browsers are.
+
+If someone wants the full portal flow across machines, they run their own copy
+of the portal locally pointing at the shared Code Coach; the portal holds no
+state of its own. Its `VITE_ALLOWED_REDIRECTS` must list whatever origin it is
+handing the token back to.
+
+### Seeding a trigger to test against
+
+Study Guider shows "nothing to work on" until Code Coach has actually raised a
+remediation trigger, which needs the *same* concept to fail repeatedly. Either:
+
+- **Through the extension** — open one of the sample programs in
+  `extension/code-coach-vscode/src/sample-java/` and let it analyze. Each of the
+  six has planted errors; three repeats of one concept crosses the threshold.
+- **By hand**, which is faster for backend work:
+
+  ```bash
+  # 1. register (or login) -> keep tokens.access_token
+  curl -X POST $CC/api/v1/auth/register -H 'Content-Type: application/json'     -d '{"full_name":"Test Student","email":"t@example.com","password":"test-1234","client_name":"codeguru-portal"}'
+
+  # 2. create a learning session -> keep learning_session_id
+  curl -X POST $CC/api/v1/learning-sessions -H "Authorization: Bearer $AT"     -H 'Content-Type: application/json' -d '{"source_component":"code_coach","language":"java"}'
+
+  # 3. analyze Java with the SAME mistake three times over
+  #    (e.g. three `arr[arr.length]` lines) -> raises a high-struggle trigger
+  curl -X POST $CC/api/v1/code-coach/analyze -H "Authorization: Bearer $AT"     -H 'Content-Type: application/json' -d '{"language":"java","code":"...","learningSessionId":"ls_..."}'
+
+  # 4. confirm
+  curl $CC/api/v1/remediation/me/recommendations -H "Authorization: Bearer $AT"
+  ```
+
+Triggers are created by a background task after the analysis response is sent,
+so allow a second or two before step 4.
+
+### What "working" looks like end to end
+
+1. Register at the portal → land on the hub.
+2. Sign into the VS Code extension with those same credentials → yellow
+   underlines on a sample program.
+3. Repeat one mistake three times → `GET /api/v1/remediation/me/recommendations`
+   returns a trigger.
+4. Open Study Guider from the hub → that trigger is on screen, with the real
+   concept and repeat count.
+5. Open the lesson → the trigger's `intervention_status` becomes
+   `lesson_opened`.
+6. Pass the quiz (≥70%) → the trigger completes, drops off the list, and
+   `GET /api/v1/students/me/concept-mastery` shows the concept updated.
