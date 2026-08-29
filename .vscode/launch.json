@@ -1,7 +1,62 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Debug configurations for the repo root.
+    //
+    // These exist because "configurations" here was an empty array, so pressing
+    // F5 with the code-coach folder open did nothing at all. There is a working
+    // extension config at extension/code-coach-vscode/.vscode/launch.json, but
+    // VS Code only reads the launch.json of the folder you actually opened —
+    // so it was invisible unless you opened the extension folder directly.
     "version": "0.2.0",
-    "configurations": []
+    "configurations": [
+        {
+            // Launches a second VS Code window (the Extension Development Host)
+            // with Code Coach loaded, and opens the sample Java programs in it
+            // so there is something to analyze the moment it appears.
+            //
+            // Start the backend first — the extension signs in against
+            // http://127.0.0.1:8000:
+            //   cd backend && .\.venv\Scripts\uvicorn.exe app.main:app --reload --reload-dir app
+            "name": "Run Code Coach Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/extension/code-coach-vscode",
+                "${workspaceFolder}/extension/code-coach-vscode/src/sample-java"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/extension/code-coach-vscode/out/**/*.js"
+            ],
+            "preLaunchTask": "compile extension"
+        },
+        {
+            // Breakpoints in backend/app/**. Note there is no --reload here on
+            // purpose: uvicorn's reloader runs the app in a child process, and
+            // the debugger stays attached to the parent, so breakpoints are
+            // silently never hit. Restart manually, or use the plain uvicorn
+            // command above when you want reload instead of debugging.
+            "name": "Debug Backend (FastAPI)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--port",
+                "8000"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            // Step into FastAPI/Starlette frames too, not just our own code.
+            "justMyCode": false
+        },
+        {
+            "name": "Debug Backend Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [],
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            "justMyCode": false
+        }
+    ]
 }

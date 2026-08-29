@@ -1,0 +1,40 @@
+{
+    // Referenced by .vscode/launch.json as a preLaunchTask.
+    //
+    // A shell task with an explicit cwd rather than an "npm" task with a
+    // "path": the npm task type resolves its label from the folder name and is
+    // fussy about trailing slashes, which makes the launch.json reference easy
+    // to break. This form says exactly what it runs and where.
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compile extension",
+            "type": "shell",
+            "command": "npm run compile",
+            "options": {
+                "cwd": "${workspaceFolder}/extension/code-coach-vscode"
+            },
+            "problemMatcher": "$tsc",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        },
+        {
+            // Recompiles on save. Run this once (Terminal > Run Task) if you are
+            // iterating on the extension and do not want to relaunch each time.
+            "label": "watch extension",
+            "type": "shell",
+            "command": "npm run watch",
+            "options": {
+                "cwd": "${workspaceFolder}/extension/code-coach-vscode"
+            },
+            "problemMatcher": "$tsc-watch",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "never"
+            }
+        }
+    ]
+}
