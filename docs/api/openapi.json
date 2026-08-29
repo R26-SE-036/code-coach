@@ -1,0 +1,4744 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Code Coach Backend",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Me",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Refresh",
+        "operationId": "refresh_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/learning-sessions": {
+      "post": {
+        "tags": [
+          "learning-sessions"
+        ],
+        "summary": "Create Or Resume Learning Session",
+        "operationId": "create_or_resume_learning_session_api_v1_learning_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningSessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/learning-sessions/{learning_session_id}": {
+      "get": {
+        "tags": [
+          "learning-sessions"
+        ],
+        "summary": "Get Learning Session",
+        "operationId": "get_learning_session_api_v1_learning_sessions__learning_session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learning_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Learning Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/learning-sessions/{learning_session_id}/diagnostics": {
+      "get": {
+        "tags": [
+          "learning-sessions"
+        ],
+        "summary": "Get Learning Session Diagnostics",
+        "operationId": "get_learning_session_diagnostics_api_v1_learning_sessions__learning_session_id__diagnostics_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learning_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Learning Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/collaboration/me/prompts": {
+      "get": {
+        "tags": [
+          "collaboration"
+        ],
+        "summary": "Get My Collaboration Prompts",
+        "operationId": "get_my_collaboration_prompts_api_v1_collaboration_me_prompts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 25,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaborationPromptListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/collaboration/me/pair-sessions": {
+      "post": {
+        "tags": [
+          "collaboration"
+        ],
+        "summary": "Create My Pair Session",
+        "operationId": "create_my_pair_session_api_v1_collaboration_me_pair_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollaborationSessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaborationSessionCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/collaboration/me/prompts/shown": {
+      "post": {
+        "tags": [
+          "collaboration"
+        ],
+        "summary": "Mark My Collaboration Prompt Shown",
+        "operationId": "mark_my_collaboration_prompt_shown_api_v1_collaboration_me_prompts_shown_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollaborationPromptShownRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaborationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/collaboration/me/peer-reviews": {
+      "post": {
+        "tags": [
+          "collaboration"
+        ],
+        "summary": "Submit My Peer Review",
+        "operationId": "submit_my_peer_review_api_v1_collaboration_me_peer_reviews_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeerReviewSubmittedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaborationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/code-coach/analyze": {
+      "post": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Analyze For Authenticated User",
+        "operationId": "analyze_for_authenticated_user_api_v1_code_coach_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboard/me/overview": {
+      "get": {
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Get My Dashboard Overview",
+        "operationId": "get_my_dashboard_overview_api_v1_dashboard_me_overview_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "concept_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 6,
+              "title": "Concept Limit"
+            }
+          },
+          {
+            "name": "timeline_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 12,
+              "title": "Timeline Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 300,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOverviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/me/timeline": {
+      "get": {
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Get My Dashboard Timeline",
+        "operationId": "get_my_dashboard_timeline_api_v1_dashboard_me_timeline_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 300,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardTimelineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students/me/diagnostics": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Get My Diagnostics",
+        "operationId": "get_my_diagnostics_api_v1_students_me_diagnostics_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learning_session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Learning Session Id"
+            }
+          },
+          {
+            "name": "error_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error Type"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students/me/diagnostics/summary": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Get My Diagnostics Summary",
+        "operationId": "get_my_diagnostics_summary_api_v1_students_me_diagnostics_summary_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students/me/struggling-concepts": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Get My Struggling Concepts",
+        "operationId": "get_my_struggling_concepts_api_v1_students_me_struggling_concepts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptStruggleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students/me/concept-mastery": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Get My Concept Mastery",
+        "operationId": "get_my_concept_mastery_api_v1_students_me_concept_mastery_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptMasteryListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Create Learning Event",
+        "operationId": "create_learning_event_api_v1_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningEventCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEventCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/me": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get My Learning Events",
+        "operationId": "get_my_learning_events_api_v1_events_me_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "learning_session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Learning Session Id"
+            }
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Event Type"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEventListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gamification/me/recommendations": {
+      "get": {
+        "tags": [
+          "gamification"
+        ],
+        "summary": "Get My Gamification Recommendations",
+        "operationId": "get_my_gamification_recommendations_api_v1_gamification_me_recommendations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 25,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "sample_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Sample Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GamificationRecommendationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gamification/me/adaptation-decisions": {
+      "post": {
+        "tags": [
+          "gamification"
+        ],
+        "summary": "Create My Gamification Adaptation Decision",
+        "operationId": "create_my_gamification_adaptation_decision_api_v1_gamification_me_adaptation_decisions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GamificationAdaptationDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GamificationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/gamification/me/session-results": {
+      "post": {
+        "tags": [
+          "gamification"
+        ],
+        "summary": "Create My Gamification Session Result",
+        "operationId": "create_my_gamification_session_result_api_v1_gamification_me_session_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GamificationSessionCompletedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GamificationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/remediation/me/triggers": {
+      "get": {
+        "tags": [
+          "remediation"
+        ],
+        "summary": "Get My Remediation Triggers",
+        "operationId": "get_my_remediation_triggers_api_v1_remediation_me_triggers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "trigger_source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trigger Source"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemediationTriggerListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/remediation/me/recommendations": {
+      "get": {
+        "tags": [
+          "remediation"
+        ],
+        "summary": "Get My Study Guider Recommendations",
+        "operationId": "get_my_study_guider_recommendations_api_v1_remediation_me_recommendations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyGuiderRecommendationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/remediation/me/triggers/{trigger_id}/lesson-opened": {
+      "post": {
+        "tags": [
+          "remediation"
+        ],
+        "summary": "Mark Lesson Opened",
+        "operationId": "mark_lesson_opened_api_v1_remediation_me_triggers__trigger_id__lesson_opened_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trigger_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trigger Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonOpenedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemediationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/remediation/me/triggers/{trigger_id}/quiz-completed": {
+      "post": {
+        "tags": [
+          "remediation"
+        ],
+        "summary": "Mark Quiz Completed",
+        "operationId": "mark_quiz_completed_api_v1_remediation_me_triggers__trigger_id__quiz_completed_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trigger_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trigger Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizCompletedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemediationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analyze": {
+      "post": {
+        "summary": "Analyze",
+        "operationId": "analyze_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/debug-ast": {
+      "post": {
+        "summary": "Debug Ast",
+        "operationId": "debug_ast_debug_ast_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalyzeRequest": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "learningSessionId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learningsessionid"
+          },
+          "enable_logging": {
+            "type": "boolean",
+            "title": "Enable Logging",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "language",
+          "code"
+        ],
+        "title": "AnalyzeRequest"
+      },
+      "AnalyzeResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "analysis_duration_ms": {
+            "type": "number",
+            "title": "Analysis Duration Ms"
+          },
+          "learning_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Session Id"
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Diagnostic"
+            },
+            "type": "array",
+            "title": "Diagnostics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "timestamp",
+          "analysis_duration_ms",
+          "diagnostics"
+        ],
+        "title": "AnalyzeResponse"
+      },
+      "AuthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUser"
+          },
+          "auth_session": {
+            "$ref": "#/components/schemas/AuthSessionView"
+          },
+          "tokens": {
+            "$ref": "#/components/schemas/TokenBundle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "user",
+          "auth_session",
+          "tokens"
+        ],
+        "title": "AuthResponse"
+      },
+      "AuthSessionView": {
+        "properties": {
+          "auth_session_id": {
+            "type": "string",
+            "title": "Auth Session Id"
+          },
+          "client_name": {
+            "type": "string",
+            "title": "Client Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth_session_id",
+          "client_name",
+          "status",
+          "created_at",
+          "last_seen_at",
+          "expires_at"
+        ],
+        "title": "AuthSessionView"
+      },
+      "AuthUser": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "full_name",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "AuthUser"
+      },
+      "CollaborationActionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "pair_session_id": {
+            "type": "string",
+            "title": "Pair Session Id"
+          },
+          "created_event_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created Event Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "pair_session_id",
+          "created_event_types"
+        ],
+        "title": "CollaborationActionResponse"
+      },
+      "CollaborationPromptListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "prompts": {
+            "items": {
+              "$ref": "#/components/schemas/CollaborationPromptView"
+            },
+            "type": "array",
+            "title": "Prompts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "prompts"
+        ],
+        "title": "CollaborationPromptListResponse"
+      },
+      "CollaborationPromptShownRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "pair_session_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Pair Session Id"
+          },
+          "prompt_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Prompt Id"
+          },
+          "prompt_type": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Prompt Type"
+          },
+          "concept_tag": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Concept Tag"
+          },
+          "linked_diagnostic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Diagnostic Id"
+          },
+          "linkedLearningSessionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedlearningsessionid"
+          },
+          "target_role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Role"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "pair_session_id",
+          "prompt_id",
+          "prompt_type",
+          "concept_tag"
+        ],
+        "title": "CollaborationPromptShownRequest"
+      },
+      "CollaborationPromptView": {
+        "properties": {
+          "prompt_id": {
+            "type": "string",
+            "title": "Prompt Id"
+          },
+          "prompt_type": {
+            "type": "string",
+            "title": "Prompt Type"
+          },
+          "collaboration_mode": {
+            "type": "string",
+            "title": "Collaboration Mode"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          },
+          "linked_diagnostic_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Diagnostic Id"
+          },
+          "linked_learning_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Learning Session Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "prompt_text": {
+            "type": "string",
+            "title": "Prompt Text"
+          },
+          "target_role": {
+            "type": "string",
+            "title": "Target Role"
+          },
+          "based_on_struggle_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Struggle Level"
+          },
+          "based_on_mastery_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Mastery Level"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prompt_id",
+          "prompt_type",
+          "collaboration_mode",
+          "concept_tag",
+          "title",
+          "prompt_text",
+          "target_role",
+          "priority",
+          "rationale"
+        ],
+        "title": "CollaborationPromptView"
+      },
+      "CollaborationSessionCreateRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "collaboration_mode": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 3,
+            "title": "Collaboration Mode",
+            "default": "pair_programming"
+          },
+          "partner_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner User Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "linkedLearningSessionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedlearningsessionid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId"
+        ],
+        "title": "CollaborationSessionCreateRequest"
+      },
+      "CollaborationSessionCreateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "session": {
+            "$ref": "#/components/schemas/CollaborationSessionView"
+          },
+          "created_event_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created Event Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "session",
+          "created_event_types"
+        ],
+        "title": "CollaborationSessionCreateResponse"
+      },
+      "CollaborationSessionView": {
+        "properties": {
+          "pair_session_id": {
+            "type": "string",
+            "title": "Pair Session Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "collaboration_mode": {
+            "type": "string",
+            "title": "Collaboration Mode"
+          },
+          "partner_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner User Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "linked_learning_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Learning Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Activity At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pair_session_id",
+          "user_id",
+          "learning_session_id",
+          "collaboration_mode",
+          "status",
+          "started_at",
+          "last_activity_at"
+        ],
+        "title": "CollaborationSessionView"
+      },
+      "ConceptMasteryListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "total_concepts": {
+            "type": "integer",
+            "title": "Total Concepts"
+          },
+          "concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptMasteryView"
+            },
+            "type": "array",
+            "title": "Concepts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user_id",
+          "total_concepts",
+          "concepts"
+        ],
+        "title": "ConceptMasteryListResponse"
+      },
+      "ConceptMasteryView": {
+        "properties": {
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "mastery_score": {
+            "type": "number",
+            "title": "Mastery Score"
+          },
+          "struggle_score": {
+            "type": "number",
+            "title": "Struggle Score"
+          },
+          "mastery_level": {
+            "type": "string",
+            "title": "Mastery Level"
+          },
+          "update_source": {
+            "type": "string",
+            "title": "Update Source"
+          },
+          "last_learning_session_id": {
+            "type": "string",
+            "title": "Last Learning Session Id"
+          },
+          "last_error_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error Type"
+          },
+          "last_trigger_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Trigger Id"
+          },
+          "last_quiz_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Quiz Id"
+          },
+          "last_quiz_score_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Quiz Score Percent"
+          },
+          "last_quiz_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Quiz Passed"
+          },
+          "last_game_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Game Id"
+          },
+          "last_game_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Game Type"
+          },
+          "last_game_score_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Game Score Percent"
+          },
+          "last_game_difficulty_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Game Difficulty Level"
+          },
+          "last_updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept_tag",
+          "mastery_score",
+          "struggle_score",
+          "mastery_level",
+          "update_source",
+          "last_learning_session_id",
+          "last_updated_at"
+        ],
+        "title": "ConceptMasteryView"
+      },
+      "ConceptStruggleResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "total_concepts": {
+            "type": "integer",
+            "title": "Total Concepts"
+          },
+          "struggles": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptStruggleView"
+            },
+            "type": "array",
+            "title": "Struggles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user_id",
+          "total_concepts",
+          "struggles"
+        ],
+        "title": "ConceptStruggleResponse"
+      },
+      "ConceptStruggleView": {
+        "properties": {
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count"
+          },
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count"
+          },
+          "resolved_count": {
+            "type": "integer",
+            "title": "Resolved Count"
+          },
+          "unique_learning_sessions": {
+            "type": "integer",
+            "title": "Unique Learning Sessions"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          },
+          "hint_event_count": {
+            "type": "integer",
+            "title": "Hint Event Count",
+            "default": 0
+          },
+          "hint_shown_count": {
+            "type": "integer",
+            "title": "Hint Shown Count",
+            "default": 0
+          },
+          "hint_request_count": {
+            "type": "integer",
+            "title": "Hint Request Count",
+            "default": 0
+          },
+          "hint_navigation_count": {
+            "type": "integer",
+            "title": "Hint Navigation Count",
+            "default": 0
+          },
+          "hint_dependency_score": {
+            "type": "number",
+            "title": "Hint Dependency Score",
+            "default": 0.0
+          },
+          "hint_dependency_level": {
+            "type": "string",
+            "title": "Hint Dependency Level",
+            "default": "low"
+          },
+          "last_hint_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Hint At"
+          },
+          "struggle_score": {
+            "type": "number",
+            "title": "Struggle Score"
+          },
+          "struggle_level": {
+            "type": "string",
+            "title": "Struggle Level"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept_tag",
+          "error_type",
+          "repeat_count",
+          "active_count",
+          "resolved_count",
+          "unique_learning_sessions",
+          "last_seen_at",
+          "struggle_score",
+          "struggle_level",
+          "recommended_action"
+        ],
+        "title": "ConceptStruggleView"
+      },
+      "ConceptSummaryView": {
+        "properties": {
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count"
+          },
+          "unresolved_count": {
+            "type": "integer",
+            "title": "Unresolved Count"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          },
+          "hint_event_count": {
+            "type": "integer",
+            "title": "Hint Event Count",
+            "default": 0
+          },
+          "hint_shown_count": {
+            "type": "integer",
+            "title": "Hint Shown Count",
+            "default": 0
+          },
+          "hint_request_count": {
+            "type": "integer",
+            "title": "Hint Request Count",
+            "default": 0
+          },
+          "hint_navigation_count": {
+            "type": "integer",
+            "title": "Hint Navigation Count",
+            "default": 0
+          },
+          "hint_dependency_score": {
+            "type": "number",
+            "title": "Hint Dependency Score",
+            "default": 0.0
+          },
+          "hint_dependency_level": {
+            "type": "string",
+            "title": "Hint Dependency Level",
+            "default": "low"
+          },
+          "last_hint_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Hint At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept_tag",
+          "repeat_count",
+          "unresolved_count",
+          "last_seen_at"
+        ],
+        "title": "ConceptSummaryView"
+      },
+      "DashboardConceptTrendView": {
+        "properties": {
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count",
+            "default": 0
+          },
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count",
+            "default": 0
+          },
+          "struggle_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Struggle Level"
+          },
+          "mastery_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mastery Level"
+          },
+          "mastery_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mastery Score"
+          },
+          "hint_dependency_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint Dependency Level"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Activity At"
+          },
+          "recommended_focus": {
+            "type": "string",
+            "title": "Recommended Focus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept_tag",
+          "last_activity_at",
+          "recommended_focus"
+        ],
+        "title": "DashboardConceptTrendView"
+      },
+      "DashboardCountsView": {
+        "properties": {
+          "total_diagnostics": {
+            "type": "integer",
+            "title": "Total Diagnostics"
+          },
+          "active_diagnostics": {
+            "type": "integer",
+            "title": "Active Diagnostics"
+          },
+          "resolved_diagnostics": {
+            "type": "integer",
+            "title": "Resolved Diagnostics"
+          },
+          "total_hint_events": {
+            "type": "integer",
+            "title": "Total Hint Events"
+          },
+          "active_remediation_triggers": {
+            "type": "integer",
+            "title": "Active Remediation Triggers"
+          },
+          "completed_remediation_triggers": {
+            "type": "integer",
+            "title": "Completed Remediation Triggers"
+          },
+          "total_game_sessions": {
+            "type": "integer",
+            "title": "Total Game Sessions"
+          },
+          "total_pair_sessions": {
+            "type": "integer",
+            "title": "Total Pair Sessions"
+          },
+          "total_peer_reviews": {
+            "type": "integer",
+            "title": "Total Peer Reviews"
+          },
+          "total_lessons_viewed": {
+            "type": "integer",
+            "title": "Total Lessons Viewed"
+          },
+          "total_quizzes_completed": {
+            "type": "integer",
+            "title": "Total Quizzes Completed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_diagnostics",
+          "active_diagnostics",
+          "resolved_diagnostics",
+          "total_hint_events",
+          "active_remediation_triggers",
+          "completed_remediation_triggers",
+          "total_game_sessions",
+          "total_pair_sessions",
+          "total_peer_reviews",
+          "total_lessons_viewed",
+          "total_quizzes_completed"
+        ],
+        "title": "DashboardCountsView"
+      },
+      "DashboardMasterySummaryView": {
+        "properties": {
+          "total_concepts": {
+            "type": "integer",
+            "title": "Total Concepts"
+          },
+          "strong_count": {
+            "type": "integer",
+            "title": "Strong Count"
+          },
+          "developing_count": {
+            "type": "integer",
+            "title": "Developing Count"
+          },
+          "at_risk_count": {
+            "type": "integer",
+            "title": "At Risk Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_concepts",
+          "strong_count",
+          "developing_count",
+          "at_risk_count"
+        ],
+        "title": "DashboardMasterySummaryView"
+      },
+      "DashboardOverviewResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/DashboardCountsView"
+          },
+          "mastery": {
+            "$ref": "#/components/schemas/DashboardMasterySummaryView"
+          },
+          "concept_trends": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardConceptTrendView"
+            },
+            "type": "array",
+            "title": "Concept Trends"
+          },
+          "recent_timeline": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardTimelineItemView"
+            },
+            "type": "array",
+            "title": "Recent Timeline"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user_id",
+          "counts",
+          "mastery",
+          "concept_trends",
+          "recent_timeline"
+        ],
+        "title": "DashboardOverviewResponse"
+      },
+      "DashboardTimelineItemView": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "component": {
+            "type": "string",
+            "title": "Component"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "component",
+          "event_type",
+          "title",
+          "summary",
+          "occurred_at"
+        ],
+        "title": "DashboardTimelineItemView"
+      },
+      "DashboardTimelineResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardTimelineItemView"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user_id",
+          "total",
+          "events"
+        ],
+        "title": "DashboardTimelineResponse"
+      },
+      "Diagnostic": {
+        "properties": {
+          "diagnostic_id": {
+            "type": "string",
+            "title": "Diagnostic Id"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "column": {
+            "type": "integer",
+            "title": "Column"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "code_context": {
+            "type": "string",
+            "title": "Code Context"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "explanation_key": {
+            "type": "string",
+            "title": "Explanation Key"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "detection_engine": {
+            "type": "string",
+            "title": "Detection Engine"
+          },
+          "ml_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ml Probability"
+          },
+          "locator_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator Confidence"
+          },
+          "hints": {
+            "$ref": "#/components/schemas/HintSet"
+          }
+        },
+        "type": "object",
+        "required": [
+          "diagnostic_id",
+          "error_type",
+          "severity",
+          "line",
+          "column",
+          "confidence",
+          "message",
+          "code_context",
+          "concept_tag",
+          "explanation_key",
+          "status",
+          "detection_engine",
+          "hints"
+        ],
+        "title": "Diagnostic"
+      },
+      "DiagnosticListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/PersistedDiagnosticView"
+            },
+            "type": "array",
+            "title": "Diagnostics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "diagnostics"
+        ],
+        "title": "DiagnosticListResponse"
+      },
+      "DiagnosticSummaryResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "total_diagnostics": {
+            "type": "integer",
+            "title": "Total Diagnostics"
+          },
+          "total_hint_events": {
+            "type": "integer",
+            "title": "Total Hint Events",
+            "default": 0
+          },
+          "concepts_with_hint_usage": {
+            "type": "integer",
+            "title": "Concepts With Hint Usage",
+            "default": 0
+          },
+          "top_error_types": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorTypeSummaryView"
+            },
+            "type": "array",
+            "title": "Top Error Types"
+          },
+          "top_concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptSummaryView"
+            },
+            "type": "array",
+            "title": "Top Concepts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user_id",
+          "total_diagnostics",
+          "top_error_types",
+          "top_concepts"
+        ],
+        "title": "DiagnosticSummaryResponse"
+      },
+      "ErrorTypeSummaryView": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type",
+          "count",
+          "active_count",
+          "last_seen_at"
+        ],
+        "title": "ErrorTypeSummaryView"
+      },
+      "GamificationActionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "created_event_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created Event Types"
+          },
+          "mastery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConceptMasteryView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "created_event_types"
+        ],
+        "title": "GamificationActionResponse"
+      },
+      "GamificationAdaptationDecisionRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "concept_tag": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Concept Tag"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "game_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Game Id"
+          },
+          "game_type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Game Type"
+          },
+          "difficulty_level": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "title": "Difficulty Level"
+          },
+          "support_level": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "title": "Support Level"
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 5,
+            "title": "Rationale"
+          },
+          "based_on_mastery_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Mastery Level"
+          },
+          "based_on_struggle_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Struggle Level"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "concept_tag",
+          "game_id",
+          "game_type",
+          "difficulty_level",
+          "support_level",
+          "rationale"
+        ],
+        "title": "GamificationAdaptationDecisionRequest"
+      },
+      "GamificationRecommendationListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/GamificationRecommendationView"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "recommendations"
+        ],
+        "title": "GamificationRecommendationListResponse"
+      },
+      "GamificationRecommendationView": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          },
+          "recommendation_source": {
+            "type": "string",
+            "title": "Recommendation Source"
+          },
+          "adaptation_goal": {
+            "type": "string",
+            "title": "Adaptation Goal"
+          },
+          "based_on_mastery_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Mastery Level"
+          },
+          "based_on_struggle_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Based On Struggle Level"
+          },
+          "game_id": {
+            "type": "string",
+            "title": "Game Id"
+          },
+          "game_type": {
+            "type": "string",
+            "title": "Game Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "difficulty_level": {
+            "type": "string",
+            "title": "Difficulty Level"
+          },
+          "support_level": {
+            "type": "string",
+            "title": "Support Level"
+          },
+          "estimated_duration_minutes": {
+            "type": "integer",
+            "title": "Estimated Duration Minutes"
+          },
+          "focus_points": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Focus Points"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "concept_tag",
+          "recommendation_source",
+          "adaptation_goal",
+          "game_id",
+          "game_type",
+          "title",
+          "difficulty_level",
+          "support_level",
+          "estimated_duration_minutes",
+          "focus_points",
+          "rationale",
+          "priority"
+        ],
+        "title": "GamificationRecommendationView"
+      },
+      "GamificationSessionCompletedRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "concept_tag": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Concept Tag"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "game_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Game Id"
+          },
+          "game_type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Game Type"
+          },
+          "difficulty_level": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "title": "Difficulty Level"
+          },
+          "support_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Level"
+          },
+          "score_percent": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score Percent"
+          },
+          "error_count": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Error Count"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Attempt Count"
+          },
+          "hint_usage": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Hint Usage"
+          },
+          "time_taken_seconds": {
+            "type": "integer",
+            "maximum": 7200.0,
+            "minimum": 0.0,
+            "title": "Time Taken Seconds"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "concept_tag",
+          "game_id",
+          "game_type",
+          "difficulty_level",
+          "score_percent",
+          "error_count",
+          "attempt_count",
+          "hint_usage",
+          "time_taken_seconds"
+        ],
+        "title": "GamificationSessionCompletedRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HintSet": {
+        "properties": {
+          "concept": {
+            "type": "string",
+            "title": "Concept"
+          },
+          "guidance": {
+            "type": "string",
+            "title": "Guidance"
+          },
+          "targeted": {
+            "type": "string",
+            "title": "Targeted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept",
+          "guidance",
+          "targeted"
+        ],
+        "title": "HintSet"
+      },
+      "LearningEventCreateRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "component": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Component",
+            "default": "code_coach"
+          },
+          "event_type": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Event Type"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "event_type"
+        ],
+        "title": "LearningEventCreateRequest"
+      },
+      "LearningEventCreateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "event_id"
+        ],
+        "title": "LearningEventCreateResponse"
+      },
+      "LearningEventListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/LearningEventView"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "events"
+        ],
+        "title": "LearningEventListResponse"
+      },
+      "LearningEventView": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "component": {
+            "type": "string",
+            "title": "Component"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "user_id",
+          "learning_session_id",
+          "component",
+          "event_type",
+          "occurred_at",
+          "created_at",
+          "payload"
+        ],
+        "title": "LearningEventView"
+      },
+      "LearningSessionCreateRequest": {
+        "properties": {
+          "source_component": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Source Component",
+            "default": "code_coach"
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 2,
+            "title": "Language",
+            "default": "java"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          }
+        },
+        "type": "object",
+        "title": "LearningSessionCreateRequest"
+      },
+      "LearningSessionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "source_component": {
+            "type": "string",
+            "title": "Source Component"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "learning_session_status": {
+            "type": "string",
+            "title": "Learning Session Status"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "last_analysis_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Analysis At"
+          },
+          "reused_existing": {
+            "type": "boolean",
+            "title": "Reused Existing",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "learning_session_id",
+          "user_id",
+          "source_component",
+          "language",
+          "learning_session_status",
+          "started_at"
+        ],
+        "title": "LearningSessionResponse"
+      },
+      "LessonOpenedRequest": {
+        "properties": {
+          "lesson_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Lesson Id"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lesson_id"
+        ],
+        "title": "LessonOpenedRequest"
+      },
+      "LoginRequest": {
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Identifier"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Client Name",
+            "default": "code-coach-vscode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identifier",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "MeResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUser"
+          },
+          "auth_session": {
+            "$ref": "#/components/schemas/AuthSessionView"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "user",
+          "auth_session"
+        ],
+        "title": "MeResponse"
+      },
+      "MicroLessonRecommendationView": {
+        "properties": {
+          "lesson_id": {
+            "type": "string",
+            "title": "Lesson Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "estimated_duration_minutes": {
+            "type": "integer",
+            "title": "Estimated Duration Minutes"
+          },
+          "learning_objectives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Learning Objectives"
+          },
+          "recommended_steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lesson_id",
+          "title",
+          "summary",
+          "estimated_duration_minutes",
+          "learning_objectives",
+          "recommended_steps"
+        ],
+        "title": "MicroLessonRecommendationView"
+      },
+      "PeerReviewSubmittedRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "pair_session_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Pair Session Id"
+          },
+          "concept_tag": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Concept Tag"
+          },
+          "linked_diagnostic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Diagnostic Id"
+          },
+          "linkedLearningSessionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedlearningsessionid"
+          },
+          "rubric_score": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rubric Score"
+          },
+          "feedback_quality_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Feedback Quality Score"
+          },
+          "review_comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Comment"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "pair_session_id",
+          "concept_tag",
+          "rubric_score",
+          "feedback_quality_score"
+        ],
+        "title": "PeerReviewSubmittedRequest"
+      },
+      "PersistedDiagnosticView": {
+        "properties": {
+          "diagnostic_record_id": {
+            "type": "string",
+            "title": "Diagnostic Record Id"
+          },
+          "diagnostic_id": {
+            "type": "string",
+            "title": "Diagnostic Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "explanation_key": {
+            "type": "string",
+            "title": "Explanation Key"
+          },
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "column": {
+            "type": "integer",
+            "title": "Column"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "ml_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ml Probability"
+          },
+          "locator_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator Confidence"
+          },
+          "detection_engine": {
+            "type": "string",
+            "title": "Detection Engine"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "code_context_hash": {
+            "type": "string",
+            "title": "Code Context Hash"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "diagnostic_record_id",
+          "diagnostic_id",
+          "user_id",
+          "learning_session_id",
+          "error_type",
+          "concept_tag",
+          "explanation_key",
+          "line",
+          "column",
+          "severity",
+          "confidence",
+          "detection_engine",
+          "status",
+          "code_context_hash",
+          "created_at"
+        ],
+        "title": "PersistedDiagnosticView"
+      },
+      "QuizCompletedRequest": {
+        "properties": {
+          "quiz_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Quiz Id"
+          },
+          "score_percent": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score Percent"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "quiz_id",
+          "score_percent"
+        ],
+        "title": "QuizCompletedRequest"
+      },
+      "QuizRecommendationView": {
+        "properties": {
+          "quiz_id": {
+            "type": "string",
+            "title": "Quiz Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "question_count": {
+            "type": "integer",
+            "title": "Question Count"
+          },
+          "passing_score_percent": {
+            "type": "integer",
+            "title": "Passing Score Percent"
+          },
+          "focus_points": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Focus Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "quiz_id",
+          "title",
+          "question_count",
+          "passing_score_percent",
+          "focus_points"
+        ],
+        "title": "QuizRecommendationView"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 16,
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Full Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Client Name",
+            "default": "code-coach-vscode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_name",
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest"
+      },
+      "RemediationActionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/RemediationTriggerView"
+          },
+          "created_event_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created Event Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "trigger",
+          "created_event_types"
+        ],
+        "title": "RemediationActionResponse"
+      },
+      "RemediationTriggerListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "triggers": {
+            "items": {
+              "$ref": "#/components/schemas/RemediationTriggerView"
+            },
+            "type": "array",
+            "title": "Triggers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "triggers"
+        ],
+        "title": "RemediationTriggerListResponse"
+      },
+      "RemediationTriggerView": {
+        "properties": {
+          "trigger_id": {
+            "type": "string",
+            "title": "Trigger Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "trigger_source": {
+            "type": "string",
+            "title": "Trigger Source"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "struggle_level": {
+            "type": "string",
+            "title": "Struggle Level"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "repeat_count": {
+            "type": "integer",
+            "title": "Repeat Count"
+          },
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count"
+          },
+          "resolved_count": {
+            "type": "integer",
+            "title": "Resolved Count"
+          },
+          "unique_learning_sessions": {
+            "type": "integer",
+            "title": "Unique Learning Sessions"
+          },
+          "struggle_score": {
+            "type": "number",
+            "title": "Struggle Score"
+          },
+          "hint_dependency_score": {
+            "type": "number",
+            "title": "Hint Dependency Score",
+            "default": 0.0
+          },
+          "hint_dependency_level": {
+            "type": "string",
+            "title": "Hint Dependency Level",
+            "default": "low"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "intervention_status": {
+            "type": "string",
+            "title": "Intervention Status",
+            "default": "pending"
+          },
+          "lesson_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lesson Id"
+          },
+          "lesson_opened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lesson Opened At"
+          },
+          "quiz_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiz Id"
+          },
+          "quiz_completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiz Completed At"
+          },
+          "quiz_score_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiz Score Percent"
+          },
+          "quiz_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiz Passed"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trigger_id",
+          "user_id",
+          "learning_session_id",
+          "trigger_source",
+          "concept_tag",
+          "error_type",
+          "reason",
+          "struggle_level",
+          "recommended_action",
+          "repeat_count",
+          "active_count",
+          "resolved_count",
+          "unique_learning_sessions",
+          "struggle_score",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RemediationTriggerView"
+      },
+      "StatusResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "title": "StatusResponse"
+      },
+      "StudyGuiderRecommendationListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/StudyGuiderRecommendationView"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "total",
+          "recommendations"
+        ],
+        "title": "StudyGuiderRecommendationListResponse"
+      },
+      "StudyGuiderRecommendationView": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "trigger_id": {
+            "type": "string",
+            "title": "Trigger Id"
+          },
+          "trigger_source": {
+            "type": "string",
+            "title": "Trigger Source"
+          },
+          "learning_session_id": {
+            "type": "string",
+            "title": "Learning Session Id"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "struggle_level": {
+            "type": "string",
+            "title": "Struggle Level"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "lesson": {
+            "$ref": "#/components/schemas/MicroLessonRecommendationView"
+          },
+          "quiz": {
+            "$ref": "#/components/schemas/QuizRecommendationView"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "trigger_id",
+          "trigger_source",
+          "learning_session_id",
+          "concept_tag",
+          "error_type",
+          "struggle_level",
+          "recommended_action",
+          "lesson",
+          "quiz",
+          "rationale",
+          "priority"
+        ],
+        "title": "StudyGuiderRecommendationView"
+      },
+      "TokenBundle": {
+        "properties": {
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "Bearer"
+          },
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ],
+        "title": "TokenBundle"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
