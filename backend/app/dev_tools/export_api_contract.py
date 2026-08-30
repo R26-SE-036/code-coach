@@ -3,9 +3,9 @@
 Two artifacts, both derived from the LIVE FastAPI app so they can never drift
 from the running code:
 
-  docs/api/openapi.json  — machine readable; teammates import it into Postman
+  integration/openapi.json — machine readable; teammates import it into Postman
                            or Swagger UI, or generate a typed client from it
-  docs/api/API_CONTRACT.md — human readable; every endpoint with its real
+  integration/API_CONTRACT.md — human readable; every endpoint with its real
                            request and response fields, resolved from the
                            Pydantic models (no hand-written examples)
 
@@ -22,7 +22,7 @@ from app.db.storage import InMemoryStorage
 from app.main import create_app
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-OUT_DIR = PROJECT_ROOT / "docs" / "api"
+OUT_DIR = PROJECT_ROOT / "integration"
 
 # Endpoints grouped by the consumer that needs them; anything not listed is
 # reported under "Other" so a new route can never silently go undocumented.

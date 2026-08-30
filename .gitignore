@@ -5,9 +5,15 @@ out/
 .vscode-test/
 
 # Python
+# Both spellings: `venv/` alone does not match `.venv/`, which is how an entire
+# virtualenv (18,925 files) ended up committed to this repo.
 venv/
+.venv/
+env/
+.env/
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # Environment files
 .env
@@ -22,3 +28,5 @@ Thumbs.db
 backend/secrets/
 *.serviceaccount.json
 firebase-service-account*.json
+
+/docs
