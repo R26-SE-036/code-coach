@@ -1,0 +1,7 @@
+# Git normalises line endings on text files. A PDF is not a text file: letting
+# it rewrite LF to CRLF corrupts the file so it will not open. Mark binaries
+# explicitly rather than relying on autodetection.
+*.pdf   binary
+*.png   binary
+*.joblib binary
+*.pkl   binary
