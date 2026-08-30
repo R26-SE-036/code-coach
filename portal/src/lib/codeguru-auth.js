@@ -303,9 +303,19 @@ export function consumeHandoffFragment() {
     },
   });
 
+  // Replace the stored profile whenever a DIFFERENT student arrives.
+  //
+  // This used to write only when nothing was stored, which meant signing in as
+  // someone else left the previous student's name and email in localStorage
+  // next to the new student's token — so the app displayed one identity while
+  // acting as another. Invisible until the platform bar started showing the
+  // signed-in name on every page; wrong the whole time.
   const userId = params.get('user_id');
-  if (userId && !loadUser()) {
-    localStorage.setItem(USER_KEY, JSON.stringify({ user_id: userId }));
+  if (userId) {
+    const stored = loadUser();
+    if (!stored || stored.user_id !== userId) {
+      localStorage.setItem(USER_KEY, JSON.stringify({ user_id: userId }));
+    }
   }
 
   window.history.replaceState(null, '', window.location.pathname + window.location.search);

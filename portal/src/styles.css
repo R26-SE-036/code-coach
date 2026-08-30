@@ -232,9 +232,9 @@ body {
 /* ── Hub ── */
 
 .hub-page {
-  max-width: 880px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 56px 24px;
+  padding: 56px 20px;
 }
 
 .hub-header {
@@ -264,7 +264,7 @@ body {
 
 .hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
 }
 
