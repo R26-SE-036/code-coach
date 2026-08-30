@@ -262,11 +262,19 @@ A(para("File to edit: <font face='Courier'>code-coach/portal/.env</font>", SMALL
 A(table([
     ["Variable", "Mode A (local)", "Mode B (Cloudflare)"],
     ["VITE_CODE_COACH_URL", "http://127.0.0.1:8000", "the shared tunnel URL"],
-    ["VITE_ALLOWED_REDIRECTS", "http://localhost:5173,http://localhost:3000", "same"],
+    ["VITE_ALLOWED_REDIRECTS", "http://localhost:5173,http://localhost:3000,http://localhost:5174", "same"],
     ["VITE_STUDY_GUIDER_URL", "http://localhost:5173", "same"],
     ["VITE_PAIRPATH_URL", "http://localhost:3000", "same"],
+    ["VITE_GAMIFICATION_URL", "http://localhost:5174", "same"],
     ["VITE_ENABLE_DEV_LOGIN", "true", "true"],
 ], [48 * mm, 62 * mm, 58 * mm], mono_cols=(0, 1, 2)))
+A(callout("Adding a new service? It needs TWO entries here",
+          "A service missing from <font face='Courier'>VITE_ALLOWED_REDIRECTS</font> is refused at "
+          "sign-in with <i>\"That return address is not allowed\"</i>, and one missing its "
+          "<font face='Courier'>VITE_*_URL</font> simply never appears on the hub - so there is no "
+          "link to click and no error explaining why. Both were missed when the Gamification Engine "
+          "was added.", kind="ok"))
+
 A(callout("VITE_ALLOWED_REDIRECTS is a security control, not a convenience",
           "It is the list of addresses the portal is allowed to hand your login token back to. Without it, "
           "anyone could link you to the portal with their own address and collect your token the moment you "

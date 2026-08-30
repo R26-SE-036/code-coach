@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     # Browser clients (the CodeGuru website, teammates' dev servers) need CORS.
     # Comma-separated origins; the VS Code extension is unaffected (Node fetch).
     # Example: CORS_ALLOWED_ORIGINS=http://localhost:3000,https://codeguru.example.com
-    cors_allowed_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:4200"
+    cors_allowed_origins: str = (
+        "http://localhost:3000,http://localhost:5173,"
+        "http://localhost:5174,http://localhost:4200"
+    )
 
     # Brute-force protection: attempts allowed per client IP, per endpoint,
     # per window, on register/login/refresh. 10/min ≈ 14k guesses/day — far

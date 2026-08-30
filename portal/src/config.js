@@ -13,6 +13,7 @@ export const ALLOWED_REDIRECTS = import.meta.env.VITE_ALLOWED_REDIRECTS || '';
 
 export const STUDY_GUIDER_URL = import.meta.env.VITE_STUDY_GUIDER_URL || '';
 export const PAIRPATH_URL = import.meta.env.VITE_PAIRPATH_URL || '';
+export const GAMIFICATION_URL = import.meta.env.VITE_GAMIFICATION_URL || '';
 
 export const DEV_LOGIN_FLAG = import.meta.env.VITE_ENABLE_DEV_LOGIN;
 

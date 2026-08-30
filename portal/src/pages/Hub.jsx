@@ -16,6 +16,7 @@ import {
 import {
   ALLOWED_REDIRECTS,
   CODE_COACH_URL,
+  GAMIFICATION_URL,
   PAIRPATH_URL,
   STUDY_GUIDER_URL,
 } from '../config.js';
@@ -106,6 +107,13 @@ export default function Hub() {
       url: PAIRPATH_URL,
       description: 'Pair programming sessions with live coaching and peer review.',
     },
+    {
+      name: 'Gamification',
+      url: GAMIFICATION_URL,
+      description: 'Adaptive practice games pitched at the concepts you find hardest.',
+    },
+    // A service with no URL configured is simply not offered, rather than
+    // rendering a card that leads nowhere.
   ].filter((service) => service.url);
 
   return (
