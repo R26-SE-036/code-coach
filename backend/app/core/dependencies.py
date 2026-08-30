@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
@@ -24,6 +25,21 @@ _bearer = HTTPBearer(auto_error=False)
 # session cannot outlive it meaningfully.
 _AUTH_CACHE = TTLCache(ttl_seconds=30.0)
 _SESSION_TOUCH_CACHE = TTLCache(ttl_seconds=120.0)
+
+# Used to overlap the two independent Firestore reads a cold token needs, and
+# to push the lastSeenAt write off the request path entirely. Small on purpose:
+# it exists to hide latency, not to add concurrency. The Firestore client is
+# thread-safe, and FastAPI already runs this sync dependency in its own worker
+# thread, so blocking on these futures blocks nothing else.
+_AUTH_IO = ThreadPoolExecutor(max_workers=8, thread_name_prefix="auth-io")
+
+
+def _touch_session_quietly(storage: Any, auth_session_id: str) -> None:
+    """Best-effort lastSeenAt write. Runs off the request path."""
+    try:
+        storage.touch_auth_session(auth_session_id)
+    except Exception:  # presence telemetry must never fail a request
+        logger.warning("touch_auth_session failed", exc_info=True)
 
 
 def revoke_cached_auth(auth_session_id: str) -> None:
@@ -92,7 +108,20 @@ def get_current_auth(
     if cached is not None:
         return cached
 
-    auth_session = storage.find_auth_session_by_id(token_payload.auth_session_id)
+    # Both reads are keyed off the JWT, not off each other, so there is no
+    # reason to wait for the first before starting the second. Sequentially
+    # they cost two full Firestore round trips; from a client far from the
+    # database region that was most of the ~2 s a cold token took to verify,
+    # which is what every fresh sign-in pays.
+    #
+    # The checks below still run in the original order, so an invalid session
+    # is still reported as an invalid session rather than as a missing user.
+    session_future = _AUTH_IO.submit(
+        storage.find_auth_session_by_id, token_payload.auth_session_id
+    )
+    user_future = _AUTH_IO.submit(storage.find_user_by_id, token_payload.user_id)
+
+    auth_session = session_future.result()
     if auth_session is None or auth_session.get("status") != "active":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -105,7 +134,7 @@ def get_current_auth(
             detail="The authentication session does not match the user.",
         )
 
-    user = storage.find_user_by_id(token_payload.user_id)
+    user = user_future.result()
     if user is None or user.get("status") != "active":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -116,13 +145,16 @@ def get_current_auth(
     # request added a round trip per keystroke-triggered analysis. Throttle it
     # to at most once per TTL window, and never re-read the session afterwards
     # (we already know what the write changed).
+    #
+    # It is also fire-and-forget. Nothing in the response depends on the write
+    # landing, and a brand-new session always misses the throttle cache - so
+    # waiting for it put a third Firestore round trip in front of every first
+    # request on a fresh token. Something that "must never fail a request" has
+    # no business delaying one either.
     if _SESSION_TOUCH_CACHE.get(token_payload.auth_session_id) is None:
         _SESSION_TOUCH_CACHE.set(token_payload.auth_session_id, True)
-        try:
-            storage.touch_auth_session(token_payload.auth_session_id)
-            auth_session["lastSeenAt"] = utcnow()
-        except Exception:  # presence telemetry must never fail a request
-            logger.warning("touch_auth_session failed", exc_info=True)
+        auth_session["lastSeenAt"] = utcnow()
+        _AUTH_IO.submit(_touch_session_quietly, storage, token_payload.auth_session_id)
 
     context = AuthContext(
         user_id=token_payload.user_id,

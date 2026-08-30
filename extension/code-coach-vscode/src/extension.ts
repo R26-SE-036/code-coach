@@ -22,6 +22,7 @@ import * as vscode from "vscode";
 import { AuthUser, DiagnosticItem, ExtensionState } from "./types";
 import { USER_STATE_KEY, LEARNING_SESSION_KEY } from "./constants";
 import { signIn, signOut, createAccount, restoreAuthSession } from "./auth";
+import { redeemHandoffCode } from "./browserAuth";
 import {
   runAnalysisForEditor,
   scheduleAutoAnalysis,
@@ -277,7 +278,38 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // ── Push disposables ──
+  // ── Browser sign-in return path ──
+  // The loopback listener in browserAuth.ts is the primary way a browser
+  // sign-in gets back here. This is the second route: a vscode:// link, which
+  // works when the browser cannot reach the loopback server. It carries the
+  // same single-use code and redeems it the same way.
+  const uriHandler = vscode.window.registerUriHandler({
+    async handleUri(uri: vscode.Uri) {
+      if (uri.path !== "/auth") { return; }
+
+      const code = new URLSearchParams(uri.query).get("code");
+      if (!code) {
+        vscode.window.showErrorMessage("Code Coach: that sign-in link carried no code.");
+        return;
+      }
+
+      try {
+        const response = await redeemHandoffCode(state, code);
+        vscode.window.showInformationMessage(
+          `Signed in to Code Coach as ${response.user.full_name}.`,
+        );
+        if (vscode.window.activeTextEditor) {
+          scheduleAutoAnalysis(state, vscode.window.activeTextEditor);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Sign in failed.";
+        vscode.window.showErrorMessage(`Code Coach error: ${message}`);
+      }
+    },
+  });
+
   context.subscriptions.push(
+    uriHandler,
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
     showCodeLensHintCommand, reportFalsePositiveCommand, openWalkthroughCommand,

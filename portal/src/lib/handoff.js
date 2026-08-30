@@ -80,6 +80,36 @@ export function buildHandoffUrl(redirectUri, authResponse) {
 }
 
 /**
+ * Is this redirect target the VS Code extension's loopback listener?
+ *
+ * The extension starts a small HTTP server on 127.0.0.1 and sends the student
+ * here to sign in. That listener can never see a URL fragment — fragments are
+ * not transmitted to servers — so the fragment handoff above would deliver it
+ * nothing. This one target gets a one-time code in the query string instead.
+ *
+ * Matched on host AND port, deliberately narrowly. Treating "any loopback
+ * address" as the extension would catch Study Guider on localhost:5173 and
+ * Gamification on localhost:5174 and break their handoff, and a code in a
+ * query string reaches the server, so it must not go anywhere unintended.
+ */
+export function isVsCodeLoopback(candidate, port) {
+  try {
+    const url = new URL(candidate);
+    return url.hostname === '127.0.0.1' && url.port === String(port);
+  } catch {
+    return false;
+  }
+}
+
+/** Build the loopback return URL: {redirect_uri}?code=… */
+export function buildCodeHandoffUrl(redirectUri, code) {
+  const url = new URL(redirectUri);
+  url.searchParams.set('code', code);
+  url.hash = '';
+  return url.toString();
+}
+
+/**
  * Resolve the redirect_uri for the current page load.
  *
  * Returns { redirectUri, rejected }. `rejected` is true when the caller asked

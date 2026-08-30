@@ -2,9 +2,19 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import AuthShell from '../components/AuthShell.jsx';
-import { register, saveTokens } from '../lib/codeguru-auth.js';
-import { buildHandoffUrl, resolveRedirectUri } from '../lib/handoff.js';
-import { ALLOWED_REDIRECTS, CLIENT_NAME, CODE_COACH_URL } from '../config.js';
+import { createHandoffCode, register, saveTokens } from '../lib/codeguru-auth.js';
+import {
+  buildCodeHandoffUrl,
+  buildHandoffUrl,
+  isVsCodeLoopback,
+  resolveRedirectUri,
+} from '../lib/handoff.js';
+import {
+  ALLOWED_REDIRECTS,
+  CLIENT_NAME,
+  CODE_COACH_URL,
+  VSCODE_LOOPBACK_PORT,
+} from '../config.js';
 
 /**
  * Registration for the whole platform. One account works in the VS Code
@@ -56,6 +66,19 @@ export default function Register() {
       });
 
       saveTokens(auth);
+
+      // The VS Code extension listens on a loopback HTTP server, which never
+      // sees a URL fragment. It gets a single-use code in the query string
+      // instead, and redeems it for a session of its own.
+      if (redirectUri && isVsCodeLoopback(redirectUri, VSCODE_LOOPBACK_PORT)) {
+        const code = await createHandoffCode(
+          CODE_COACH_URL,
+          auth.tokens.access_token,
+          'code-coach-vscode',
+        );
+        window.location.href = buildCodeHandoffUrl(redirectUri, code);
+        return;
+      }
 
       if (redirectUri) {
         window.location.href = buildHandoffUrl(redirectUri, auth);

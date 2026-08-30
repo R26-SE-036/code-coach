@@ -12,7 +12,7 @@ export default function AuthShell({ title, subtitle, badge, children, footer }) 
           <span className="auth-brand-mark">CG</span>
           <div>
             <h1>Code Guru</h1>
-            <p>One account for Code Coach, Study Guider and PairPath</p>
+            <p>One account for Code Coach, Study Guider, PairPath and Games</p>
           </div>
         </div>
 

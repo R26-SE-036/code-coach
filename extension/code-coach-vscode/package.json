@@ -1,5 +1,6 @@
 {
   "name": "code-coach-vscode",
+  "publisher": "codeguru",
   "displayName": "Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
   "version": "0.0.1",
@@ -20,7 +21,8 @@
     "onCommand:code-coach-vscode.analyzeCurrentFile",
     "onCommand:code-coach-vscode.openCoachPanel",
     "onCommand:code-coach-vscode.previousHint",
-    "onCommand:code-coach-vscode.nextHint"
+    "onCommand:code-coach-vscode.nextHint",
+    "onUri"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -54,6 +56,11 @@
           "type": "boolean",
           "default": false,
           "description": "Send anonymized diagnostic events to the local backend for research evaluation logging."
+        },
+        "codeCoach.portalUrl": {
+          "type": "string",
+          "default": "http://localhost:4200",
+          "description": "The Code Guru portal. Sign In and Create Account open this in your browser; the session comes back to VS Code automatically. Its origin must list http://127.0.0.1:53682 in VITE_ALLOWED_REDIRECTS."
         }
       }
     },
@@ -131,17 +138,22 @@
               "image": "media/walkthrough/step-signin.svg",
               "altText": "Sign in screen with lock icon and authentication buttons"
             },
-            "completionEvents": ["onCommand:code-coach-vscode.signIn", "onCommand:code-coach-vscode.createAccount"]
+            "completionEvents": [
+              "onCommand:code-coach-vscode.signIn",
+              "onCommand:code-coach-vscode.createAccount"
+            ]
           },
           {
             "id": "openJavaFile",
             "title": "Open a Java File",
-            "description": "Code Coach works with Java source files. Open any `.java` file in your workspace to begin — your own assignment, a practice exercise, or any Java project.\n\nCode Coach will automatically detect supported files.",
+            "description": "Code Coach works with Java source files. Open any `.java` file in your workspace to begin \u2014 your own assignment, a practice exercise, or any Java project.\n\nCode Coach will automatically detect supported files.",
             "media": {
               "image": "media/walkthrough/step-openfile.svg",
               "altText": "VS Code editor with a Java file open showing code"
             },
-            "completionEvents": ["onLanguage:java"]
+            "completionEvents": [
+              "onLanguage:java"
+            ]
           },
           {
             "id": "analyzeCode",
@@ -151,27 +163,34 @@
               "image": "media/walkthrough/step-analyze.svg",
               "altText": "Magnifying glass analyzing code with results showing 3 issues found"
             },
-            "completionEvents": ["onCommand:code-coach-vscode.analyzeCurrentFile"]
+            "completionEvents": [
+              "onCommand:code-coach-vscode.analyzeCurrentFile"
+            ]
           },
           {
             "id": "exploreHints",
             "title": "Explore Progressive Hints",
-            "description": "Each issue comes with **3 levels of hints** that progressively guide you to the answer:\n\n- 💡 **Concept** — explains the underlying concept\n- 🧭 **Guidance** — points you in the right direction\n- 🎯 **Targeted** — gives a specific fix suggestion\n\nLook for the **💡 lightbulb** on warning squiggles and the **CodeLens** links above problem lines.",
+            "description": "Each issue comes with **3 levels of hints** that progressively guide you to the answer:\n\n- \ud83d\udca1 **Concept** \u2014 explains the underlying concept\n- \ud83e\udded **Guidance** \u2014 points you in the right direction\n- \ud83c\udfaf **Targeted** \u2014 gives a specific fix suggestion\n\nLook for the **\ud83d\udca1 lightbulb** on warning squiggles and the **CodeLens** links above problem lines.",
             "media": {
               "image": "media/walkthrough/step-hints.svg",
               "altText": "Three progressive hint blocks in blue, teal, and purple"
             },
-            "completionEvents": ["onCommand:code-coach-vscode.nextHint", "onCommand:code-coach-vscode.previousHint"]
+            "completionEvents": [
+              "onCommand:code-coach-vscode.nextHint",
+              "onCommand:code-coach-vscode.previousHint"
+            ]
           },
           {
             "id": "openCoachPanel",
             "title": "Use the Coach Panel",
-            "description": "The Coach Panel is your command center. Click the **🎓 graduation cap** icon in the activity bar (left sidebar) to open it.\n\nNavigate between issues, view all hints at a glance, and track your session.\n\n[Open Coach Panel](command:code-coach-vscode.openCoachPanel)",
+            "description": "The Coach Panel is your command center. Click the **\ud83c\udf93 graduation cap** icon in the activity bar (left sidebar) to open it.\n\nNavigate between issues, view all hints at a glance, and track your session.\n\n[Open Coach Panel](command:code-coach-vscode.openCoachPanel)",
             "media": {
               "image": "media/walkthrough/step-panel.svg",
               "altText": "Sidebar panel showing issue navigation and hint cards with editor warnings"
             },
-            "completionEvents": ["onCommand:code-coach-vscode.openCoachPanel"]
+            "completionEvents": [
+              "onCommand:code-coach-vscode.openCoachPanel"
+            ]
           }
         ]
       }

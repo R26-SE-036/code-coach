@@ -23,3 +23,14 @@ export const DEV_LOGIN_FLAG = import.meta.env.VITE_ENABLE_DEV_LOGIN;
  * "code-coach-vscode", PairPath uses "pair-review-studio".
  */
 export const CLIENT_NAME = 'codeguru-portal';
+
+/**
+ * The fixed loopback port the VS Code extension listens on during browser
+ * sign-in.
+ *
+ * Fixed rather than ephemeral because redirect_uri is validated by exact
+ * origin: a random port could never be on the allow-list. It has to appear in
+ * VITE_ALLOWED_REDIRECTS as http://127.0.0.1:53682 for the flow to work, which
+ * means the allow-list is not loosened to make room for it.
+ */
+export const VSCODE_LOOPBACK_PORT = import.meta.env.VITE_VSCODE_LOOPBACK_PORT || '53682';

@@ -8,6 +8,7 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Hub from './pages/Hub.jsx';
 import DevLogin from './pages/DevLogin.jsx';
+import Go from './pages/Go.jsx';
 
 /**
  * The hub is the only page that requires a session. Login and register must
@@ -30,6 +31,16 @@ export default function App() {
         element={
           <RequireAuth>
             <Hub />
+          </RequireAuth>
+        }
+      />
+      {/* Where every CodeGuruBar service link lands: resolve the key, then
+          hand the session over. Needs a session, like the Home page. */}
+      <Route
+        path="/go"
+        element={
+          <RequireAuth>
+            <Go />
           </RequireAuth>
         }
       />

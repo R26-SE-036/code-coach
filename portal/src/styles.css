@@ -1,17 +1,21 @@
+/* The portal's own names, kept so no component changes, but every value now
+   comes from the shared token file. This is the reference the other three
+   apps are matched against - change a colour here and it is wrong; change it
+   in codeguru-theme.css and all four move together. */
 :root {
-  --bg: #0b1120;
-  --surface: #131c31;
-  --surface-raised: #1b2740;
-  --border: #2a3752;
-  --text: #e8edf7;
-  --text-muted: #93a2be;
-  --accent: #4f7cff;
-  --accent-hover: #6a90ff;
-  --danger: #ff6b6b;
-  --danger-bg: rgba(255, 107, 107, 0.1);
-  --warning-bg: rgba(255, 189, 89, 0.12);
-  --warning-text: #ffbd59;
-  --radius: 14px;
+  --bg: var(--cg-page);
+  --surface: var(--cg-card);
+  --surface-raised: var(--cg-card-alt);
+  --border: var(--cg-border);
+  --text: var(--cg-ink);
+  --text-muted: var(--cg-muted);
+  --accent: var(--cg-accent);
+  --accent-hover: var(--cg-accent-strong);
+  --danger: var(--cg-danger);
+  --danger-bg: var(--cg-danger-soft);
+  --warning-bg: var(--cg-warn-soft);
+  --warning-text: var(--cg-warn);
+  --radius: var(--cg-radius);
 }
 
 * {
@@ -20,9 +24,12 @@
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image: var(--cg-page-wash);
+  background-attachment: fixed;
+  color: var(--cg-body);
+  font-family: var(--cg-font);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,7 +50,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 32px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--cg-shadow-lg);
 }
 
 .auth-brand {
@@ -58,7 +65,8 @@ body {
   height: 40px;
   flex-shrink: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  background: var(--cg-gradient-accent);
+  color: var(--cg-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,6 +88,7 @@ body {
 }
 
 .auth-card h2 {
+  color: var(--cg-ink);
   margin: 0 0 6px;
   font-size: 1.4rem;
   font-weight: 650;
@@ -130,7 +139,7 @@ body {
 .auth-form input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.18);
+  box-shadow: var(--cg-focus);
 }
 
 .auth-button {
@@ -139,7 +148,7 @@ body {
   border: none;
   border-radius: 9px;
   background: var(--accent);
-  color: #fff;
+  color: var(--cg-on-accent);
   font-size: 0.93rem;
   font-weight: 600;
   cursor: pointer;
@@ -183,7 +192,7 @@ body {
   padding: 10px 12px;
   border-radius: 8px;
   background: var(--danger-bg);
-  border: 1px solid rgba(255, 107, 107, 0.3);
+  border: 1px solid rgb(var(--cg-rgb-danger) / 0.3);
   color: var(--danger);
   font-size: 0.84rem;
   line-height: 1.45;
@@ -223,9 +232,9 @@ body {
 /* ── Hub ── */
 
 .hub-page {
-  max-width: 880px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 56px 24px;
+  padding: 56px 20px;
 }
 
 .hub-header {
@@ -237,6 +246,7 @@ body {
 }
 
 .hub-header h1 {
+  color: var(--cg-ink);
   margin: 0 0 6px;
   font-size: 1.8rem;
 }
@@ -254,7 +264,7 @@ body {
 
 .hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
 }
 
@@ -267,15 +277,18 @@ body {
   color: var(--text);
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.15s, transform 0.15s;
+  box-shadow: var(--cg-shadow-sm);
+  transition: border-color var(--cg-fast), transform var(--cg-fast), box-shadow var(--cg-fast);
 }
 
 .hub-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
+  box-shadow: var(--cg-shadow-md);
 }
 
 .hub-card h2 {
+  color: var(--cg-ink);
   margin: 0 0 8px;
   font-size: 1.15rem;
 }
@@ -310,4 +323,137 @@ body {
   color: var(--text-muted);
   font-size: 0.87rem;
   line-height: 1.6;
+}
+
+/* ── Home: service cards and activity ──
+   The counts come from Code Coach's cross-component overview, so each card
+   reports what its service has actually recorded rather than just naming it. */
+
+.hub-page {
+  padding-top: 40px;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Code Coach has no web UI to open — its card reports, it does not navigate. */
+.hub-card-static {
+  cursor: default;
+}
+
+.hub-card-static:hover {
+  border-color: var(--border);
+  transform: none;
+  box-shadow: var(--cg-shadow-sm);
+}
+
+.hub-card-count {
+  display: block;
+  margin: 2px 0 14px;
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cg-ink);
+}
+
+.hub-card-count small {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.hub-card p {
+  flex-grow: 1;
+  margin-bottom: 14px;
+}
+
+.hub-card-go-muted {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.hub-activity {
+  margin-top: 40px;
+}
+
+.hub-activity h3 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  color: var(--cg-ink);
+}
+
+.hub-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.hub-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hub-timeline-item:last-child {
+  border-bottom: none;
+}
+
+/* Which of the four services wrote this row — the point of the whole feed. */
+.hub-timeline-tag {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 3px 9px;
+  border-radius: var(--cg-radius-pill);
+  background: var(--cg-accent-soft);
+  color: var(--cg-accent-strong);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.hub-timeline-item > div {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.hub-timeline-title {
+  font-size: 0.87rem;
+  color: var(--cg-ink);
+  font-weight: 500;
+}
+
+.hub-timeline-sub {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.hub-timeline-time {
+  flex-shrink: 0;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .hub-timeline-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hub-timeline-tag {
+    min-width: 0;
+  }
 }

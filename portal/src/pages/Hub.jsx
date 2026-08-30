@@ -1,34 +1,72 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import CodeGuruBar from '../components/CodeGuruBar.jsx';
 import {
+  authorizedFetch,
   clearTokens,
   loadTokens,
   loadUser,
   logout,
   me,
 } from '../lib/codeguru-auth.js';
-import {
-  buildHandoffUrl,
-  isAllowedRedirect,
-  parseAllowedOrigins,
-} from '../lib/handoff.js';
-import {
-  ALLOWED_REDIRECTS,
-  CODE_COACH_URL,
-  GAMIFICATION_URL,
-  PAIRPATH_URL,
-  STUDY_GUIDER_URL,
-} from '../config.js';
+import { configuredServices, handOffTo } from '../lib/services.js';
+import { CODE_COACH_URL } from '../config.js';
 
 /**
- * Where a signed-in student goes next.
+ * Home — where a signed-in student lands, and the only page that shows the
+ * whole platform at once.
  *
- * Following a link from here carries the session with it, so the student signs
- * in once and lands inside Study Guider or PairPath already authenticated.
+ * The numbers are not decoration. Code Coach already aggregates every
+ * component's activity into GET /api/v1/dashboard/me/overview, so each card can
+ * carry a live count from the service it links to, and the activity feed shows
+ * all four services writing to one student record. That is the integration
+ * demonstrating itself rather than being asserted.
+ *
+ * The overview is fetched fail-soft: if Code Coach is unreachable the cards
+ * still render and still navigate, they just lose their counts. Losing a number
+ * should not cost the student the ability to get to a service.
  */
+
+const MASTERY_WORDS = [
+  ['strong_count', 'strong'],
+  ['developing_count', 'developing'],
+  ['at_risk_count', 'at risk'],
+];
+
+/** "2 concepts strong, 1 at risk" — or nothing at all before any activity. */
+function masterySummary(mastery) {
+  if (!mastery) return '';
+  const parts = MASTERY_WORDS
+    .filter(([key]) => (mastery[key] ?? 0) > 0)
+    .map(([key, word]) => mastery[key] + ' ' + word);
+  if (!parts.length) return '';
+  return parts.join(' · ');
+}
+
+function relativeTime(iso) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const seconds = Math.round((Date.now() - then) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return minutes + 'm ago';
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return hours + 'h ago';
+  return Math.round(hours / 24) + 'd ago';
+}
+
+/** "adaptive_gamification" -> "Gamification" */
+function componentLabel(component) {
+  const words = String(component || '').replace(/_/g, ' ').trim();
+  if (!words) return 'Platform';
+  if (words.startsWith('adaptive ')) return 'Gamification';
+  return words.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function Hub() {
   const [user, setUser] = useState(loadUser());
+  const [overview, setOverview] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -59,6 +97,26 @@ export default function Hub() {
     };
   }, [navigate]);
 
+  // Fail-soft, deliberately: an unreachable Code Coach costs the counts, not
+  // the page.
+  useEffect(() => {
+    let cancelled = false;
+    authorizedFetch(
+      CODE_COACH_URL + '/api/v1/dashboard/me/overview?concept_limit=5&timeline_limit=8',
+      {},
+      { codeCoachUrl: CODE_COACH_URL },
+    )
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!cancelled && payload) setOverview(payload);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSignOut() {
     const { accessToken } = loadTokens();
     if (accessToken) await logout(CODE_COACH_URL, accessToken);
@@ -66,90 +124,84 @@ export default function Hub() {
     navigate('/login', { replace: true });
   }
 
-  /**
-   * Open a sibling service with the session attached.
-   *
-   * The destination is checked against the same allow-list the login redirect
-   * uses. It is configuration rather than user input, but a typo in
-   * VITE_PAIRPATH_URL should fail visibly here rather than quietly post a
-   * token to whatever that typo resolves to.
-   */
   function openService(serviceUrl) {
-    const allowed = parseAllowedOrigins(ALLOWED_REDIRECTS);
-    if (!isAllowedRedirect(serviceUrl, allowed)) {
-      setError(
-        serviceUrl + ' is not in VITE_ALLOWED_REDIRECTS, so the portal will not send your token there.',
-      );
-      return;
-    }
-
-    const { accessToken, refreshToken, expiresAt } = loadTokens();
-    const expiresIn = expiresAt ? Math.max(0, Math.round((expiresAt - Date.now()) / 1000)) : '';
-
-    window.location.href = buildHandoffUrl(serviceUrl, {
-      tokens: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        expires_in: expiresIn,
-      },
-      user,
-    });
+    const failure = handOffTo(serviceUrl, user);
+    if (failure) setError(failure);
   }
 
-  const services = [
-    {
-      name: 'Study Guider',
-      url: STUDY_GUIDER_URL,
-      description: 'Micro-lessons and quizzes for the concepts you keep getting stuck on.',
-    },
-    {
-      name: 'PairPath',
-      url: PAIRPATH_URL,
-      description: 'Pair programming sessions with live coaching and peer review.',
-    },
-    {
-      name: 'Gamification',
-      url: GAMIFICATION_URL,
-      description: 'Adaptive practice games pitched at the concepts you find hardest.',
-    },
-    // A service with no URL configured is simply not offered, rather than
-    // rendering a card that leads nowhere.
-  ].filter((service) => service.url);
+  const counts = overview?.counts || {};
+  const timeline = overview?.recent_timeline || [];
+  const summary = masterySummary(overview?.mastery);
+  const firstName = String(user?.full_name || '').trim().split(' ')[0];
 
   return (
-    <div className="hub-page">
-      <header className="hub-header">
-        <div>
-          <h1>Code Guru</h1>
-          <p>
-            Signed in as <strong>{user?.full_name || user?.email || user?.user_id || '…'}</strong>
-          </p>
+    <>
+      <CodeGuruBar service="home" portalUrl="" user={user} onSignOut={handleSignOut} />
+
+      <div className="hub-page">
+        <header className="hub-header">
+          <div>
+            <h1>{firstName ? 'Welcome back, ' + firstName : 'Welcome back'}</h1>
+            <p>
+              {summary
+                ? summary + ' across ' + (overview?.mastery?.total_concepts ?? 0) + ' concepts'
+                : 'Sign in to a service below to start building your learning record.'}
+            </p>
+          </div>
+        </header>
+
+        {error && <p className="auth-error">{error}</p>}
+
+        <div className="hub-grid">
+          {/* Code Coach has no web UI of its own — it is the VS Code extension —
+              so its card reports what it has collected and points at the IDE
+              rather than navigating. */}
+          <div className="hub-card hub-card-static">
+            <h2>Code Coach</h2>
+            <p>
+              Live diagnostics while you write Java. Everything the other three services
+              react to starts here.
+            </p>
+            <span className="hub-card-count">
+              {counts.total_diagnostics ?? '—'} <small>diagnostics</small>
+            </span>
+            <span className="hub-card-go hub-card-go-muted">Runs in VS Code</span>
+          </div>
+
+          {configuredServices().map((service) => (
+            <button
+              key={service.key}
+              className="hub-card"
+              onClick={() => openService(service.url)}
+            >
+              <h2>{service.name}</h2>
+              <p>{service.description}</p>
+              <span className="hub-card-count">
+                {counts[service.countKey] ?? '—'} <small>{service.countLabel}</small>
+              </span>
+              <span className="hub-card-go">Open →</span>
+            </button>
+          ))}
         </div>
-        <button className="auth-button auth-button-secondary" onClick={handleSignOut}>
-          Sign out
-        </button>
-      </header>
 
-      {error && <p className="auth-error">{error}</p>}
-
-      <div className="hub-grid">
-        {services.map((service) => (
-          <button key={service.name} className="hub-card" onClick={() => openService(service.url)}>
-            <h2>{service.name}</h2>
-            <p>{service.description}</p>
-            <span className="hub-card-go">Open →</span>
-          </button>
-        ))}
+        {timeline.length > 0 && (
+          <section className="hub-activity">
+            <h3>Recent activity</h3>
+            <ul className="hub-timeline">
+              {timeline.map((item) => (
+                <li key={item.event_id} className="hub-timeline-item">
+                  <span className="hub-timeline-tag">{componentLabel(item.component)}</span>
+                  <div>
+                    <div className="hub-timeline-title">{item.title}</div>
+                    <div className="hub-timeline-sub">{item.summary}</div>
+                  </div>
+                  <span className="hub-timeline-time">{relativeTime(item.occurred_at)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
-
-      <section className="hub-note">
-        <h3>Code Coach</h3>
-        <p>
-          Code Coach runs inside VS Code. Install the extension and sign in with this same
-          account — the errors it finds while you code are what drive your Study Guider
-          lessons.
-        </p>
-      </section>
-    </div>
+    </>
   );
 }
