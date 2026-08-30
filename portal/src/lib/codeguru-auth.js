@@ -140,6 +140,39 @@ export async function logout(baseUrl, accessToken) {
   }
 }
 
+/**
+ * Mint a one-time code another client can redeem for its own session.
+ *
+ * Used by the VS Code extension sign-in: the extension opens the portal in a
+ * browser and listens on a loopback port, and a loopback HTTP server never
+ * receives a URL fragment - so the normal fragment handoff cannot reach it.
+ * A code in the query string can, and unlike a token it is single-use, expires
+ * in two minutes, and grants nothing on its own.
+ *
+ * Redeeming creates a NEW session under `clientName` rather than sharing this
+ * one, so signing out of the browser does not sign the student out of their
+ * editor.
+ */
+export async function createHandoffCode(baseUrl, accessToken, clientName) {
+  let response;
+  try {
+    response = await fetch(trimBase(baseUrl) + '/api/v1/auth/handoff', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + accessToken,
+      },
+      body: JSON.stringify({ client_name: clientName }),
+    });
+  } catch {
+    throw new AuthError('Cannot reach Code Coach at ' + trimBase(baseUrl) + '.', 0);
+  }
+
+  if (!response.ok) throw new AuthError(await readError(response), response.status);
+  const payload = await response.json();
+  return payload.code;
+}
+
 // ── Token storage ──
 
 /** Persist the `tokens` object from an AuthResponse, plus the user. */

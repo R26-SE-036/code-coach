@@ -93,6 +93,22 @@ class RefreshRequest(BaseModel):
     refresh_token: str = Field(min_length=16, max_length=256)
 
 
+class HandoffRequest(BaseModel):
+    """Ask for a one-time code that another client can redeem for a session."""
+
+    client_name: str = Field(default="code-coach-vscode", min_length=2, max_length=80)
+
+
+class HandoffResponse(BaseModel):
+    status: str
+    code: str
+    expires_in: int
+
+
+class HandoffRedeemRequest(BaseModel):
+    code: str = Field(min_length=16, max_length=128)
+
+
 class AuthUser(BaseModel):
     user_id: str
     full_name: str

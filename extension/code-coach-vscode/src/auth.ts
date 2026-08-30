@@ -38,6 +38,7 @@ import {
   requestJson,
   storeAuthResponse,
 } from "./api";
+import { signInThroughBrowser } from "./browserAuth";
 import { updateAuthStatusBar, updateAnalysisStatusBar } from "./ui/statusBar";
 import { scheduleAutoAnalysis } from "./analysis";
 
@@ -64,6 +65,56 @@ async function promptValue(
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+// ── Browser sign-in ──
+
+// What happens when the student runs Sign In or Create Account.
+//
+// Code Coach was the only service in the platform where a password was typed
+// into the app itself; the other three sign in on the web through the Code Guru
+// portal. This routes the extension to the same place, and only falls back to
+// the old prompts when the browser round trip genuinely cannot be used.
+type BrowserOutcome = "signed-in" | "cancelled" | "fallback";
+
+async function tryBrowserSignIn(
+  state: ExtensionState,
+  mode: "login" | "register",
+): Promise<BrowserOutcome> {
+  // A remote/SSH/WSL window runs the extension host on the other machine, so a
+  // loopback listener there is not the loopback the local browser would reach.
+  // Rather than half-work, hand straight back to the prompts.
+  if (vscode.env.remoteName) {
+    return "fallback";
+  }
+
+  try {
+    const response = await signInThroughBrowser(state, mode);
+    if (!response) {
+      // Cancelled or timed out. The student made a choice; do not immediately
+      // ask them for a password instead.
+      return "cancelled";
+    }
+
+    vscode.window.showInformationMessage(
+      mode === "register"
+        ? `Welcome to Code Coach, ${response.user.full_name}.`
+        : `Signed in to Code Coach as ${response.user.full_name}.`,
+    );
+
+    if (vscode.window.activeTextEditor) {
+      scheduleAutoAnalysis(state, vscode.window.activeTextEditor);
+    }
+    return "signed-in";
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Browser sign-in failed.";
+    state.outputChannel.appendLine(`Browser sign-in failed: ${message}`);
+    vscode.window.showWarningMessage(
+      `${message} Falling back to signing in here.`,
+    );
+    return "fallback";
+  }
+}
+
 // ── Account creation ──
 
 // Prompt for name/email/password, POST /api/v1/auth/register (via requestJson —
@@ -71,6 +122,16 @@ async function promptValue(
 // persist tokens and set currentUser. Ends by kicking scheduleAutoAnalysis so
 // the open file gets analyzed right away.
 export async function createAccount(state: ExtensionState): Promise<void> {
+  const outcome = await tryBrowserSignIn(state, "register");
+  if (outcome !== "fallback") {
+    return;
+  }
+  await createAccountWithPrompts(state);
+}
+
+// The original input-box flow, kept as the fallback for remote windows and for
+// the case where the browser round trip cannot start at all.
+async function createAccountWithPrompts(state: ExtensionState): Promise<void> {
   try {
     const fullName = await promptValue({
       prompt: "Enter your full name",
@@ -149,6 +210,15 @@ export async function createAccount(state: ExtensionState): Promise<void> {
 // Same shape as createAccount but hits /api/v1/auth/login with an existing
 // identifier + password. storeAuthResponse then saves the returned tokens.
 export async function signIn(state: ExtensionState): Promise<void> {
+  const outcome = await tryBrowserSignIn(state, "login");
+  if (outcome !== "fallback") {
+    return;
+  }
+  await signInWithPrompts(state);
+}
+
+// The original input-box flow. See createAccountWithPrompts.
+async function signInWithPrompts(state: ExtensionState): Promise<void> {
   try {
     const identifier = await promptValue({
       prompt: "Enter your email",

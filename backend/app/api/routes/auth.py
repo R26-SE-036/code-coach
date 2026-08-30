@@ -13,10 +13,14 @@ from app.core.dependencies import (
     get_storage,
     revoke_cached_auth,
 )
+from app.core.cache import TTLCache
 from app.models import (
     AuthResponse,
     AuthSessionView,
     AuthUser,
+    HandoffRedeemRequest,
+    HandoffRequest,
+    HandoffResponse,
     LoginRequest,
     MeResponse,
     RefreshRequest,
@@ -263,3 +267,87 @@ def logout(
     # the remainder of the cache TTL.
     revoke_cached_auth(auth.auth_session_id)
     return StatusResponse(status="ok", message="Logout successful.")
+
+
+# ── Browser handoff for the VS Code extension ──
+#
+# The extension used to collect an email and a password in showInputBox
+# prompts. It now opens the Code Guru portal in the browser, and these two
+# endpoints are how the resulting session gets back to the editor.
+#
+# The web handoff (portal -> Study Guider, PairPath, Gamification) puts tokens
+# in the URL *fragment*, which a browser never sends to a server. The extension
+# listens on a loopback HTTP server, so a fragment would never reach it. It
+# receives a short-lived, single-use code in the query string instead - which
+# is also strictly better, because no token ever appears in a URL at all.
+#
+# Redeeming mints a NEW auth session under the extension's own clientName
+# rather than handing over the portal's tokens. Two clients sharing one refresh
+# token would fight over rotation, and signing out of the browser would silently
+# sign the student out of their editor.
+#
+# The codes live in this process only. They are valid for two minutes, are
+# deleted on first read, and carry no privilege of their own - the worst a
+# leaked code can do is start a session the student had just authorised anyway,
+# and only within that window.
+
+_HANDOFF_CODE_TTL_SECONDS = 120
+_handoff_codes = TTLCache(ttl_seconds=_HANDOFF_CODE_TTL_SECONDS, max_entries=256)
+
+
+@router.post("/handoff", response_model=HandoffResponse)
+def create_handoff_code(
+    payload: HandoffRequest,
+    auth: AuthContext = Depends(get_current_auth),
+) -> HandoffResponse:
+    """Mint a one-time code for the signed-in student's other client."""
+    code = create_refresh_token()
+    _handoff_codes.set(
+        code,
+        {"userId": auth.user["userId"], "clientName": payload.client_name},
+    )
+    return HandoffResponse(
+        status="ok",
+        code=code,
+        expires_in=_HANDOFF_CODE_TTL_SECONDS,
+    )
+
+
+@router.post("/handoff/redeem", response_model=AuthResponse)
+def redeem_handoff_code(
+    payload: HandoffRedeemRequest,
+    storage: Any = Depends(get_storage),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
+) -> AuthResponse:
+    """Trade a one-time code for a real session. The code dies on first use."""
+    entry = _handoff_codes.get(payload.code)
+    # Invalidate before doing anything else, so a replay cannot race a slow
+    # storage call and get through twice.
+    _handoff_codes.invalidate(payload.code)
+
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="That sign-in code has already been used or has expired.",
+        )
+
+    user_document = storage.find_user_by_id(entry["userId"])
+    if user_document is None or user_document.get("status") != "active":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The user account is unavailable.",
+        )
+
+    auth_session, access_token, refresh_token = _create_session_and_tokens(
+        storage,
+        user_document,
+        entry["clientName"],
+    )
+
+    return _auth_response(
+        "Sign-in successful.",
+        user_document,
+        auth_session,
+        access_token,
+        refresh_token,
+    )

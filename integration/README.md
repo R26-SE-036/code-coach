@@ -73,6 +73,46 @@ handing students' access tokens to any URL that asked. **Add your origin to
 that list** or the portal will refuse to return to you — which is the intended
 behaviour, not a bug.
 
+### Code Coach signs in the same way
+
+Code Coach's UI is a VS Code extension, so it used to be the one service where
+a student typed a password into the app itself. It now opens the portal in the
+browser like everything else:
+
+```
+VS Code                    Portal (4200)              Code Coach (8000)
+───────                    ─────────────              ─────────────────
+Sign In
+  listen on 127.0.0.1:53682
+  open browser ──▶ /login?redirect_uri=http://127.0.0.1:53682/callback
+                           student signs in
+                           POST /api/v1/auth/handoff ──▶ { code }   (single use, 120s)
+  ◀── http://127.0.0.1:53682/callback?code=… ──
+  POST /api/v1/auth/handoff/redeem ──────────────────▶ { user, tokens }
+```
+
+Three things are different from the browser handoff, all for the same reason —
+a loopback HTTP server never receives a URL fragment:
+
+- **A code, not a token.** It is single-use, expires in 120 seconds, and grants
+  nothing on its own, so putting it in a query string is safe in a way that
+  putting an access token there would not be. No access token ever appears in a
+  URL in this flow.
+- **A fixed port (53682).** `redirect_uri` is checked by *exact origin*, so an
+  ephemeral port could never be allowed. `http://127.0.0.1:53682` is in
+  `VITE_ALLOWED_REDIRECTS`; the allow-list is not loosened to accommodate it.
+  If the port is busy the extension says so and falls back to its prompts
+  rather than silently picking another port the portal would reject.
+- **Redeeming mints a NEW session** under `client_name: code-coach-vscode`
+  rather than sharing the portal's. Two clients sharing one refresh token would
+  fight over rotation, and signing out in the browser would silently sign the
+  student out of their editor.
+
+A `vscode://codeguru.code-coach-vscode/auth?code=…` handler is registered as a
+second route. The original input-box prompts remain as the fallback for remote
+/ SSH / WSL windows, where a loopback listener on the remote host is not the
+loopback the local browser reaches.
+
 ### Working on localhost
 
 You should not need the portal running to develop your own service. Each
@@ -155,6 +195,48 @@ header and verifies the bodies match. Editing a copy directly is how you get
 
 It takes its configuration as arguments (base URL, dev-login flag) precisely so
 it can stay identical across three different bundlers. Keep it that way.
+
+### The shared look: `codeguru-theme.css` and `CodeGuruBar`
+
+Two more files are copied the same way, by
+**`code-coach/sync-codeguru-shared.sh`**:
+
+| File | Master | Copied to |
+|---|---|---|
+| `codeguru-theme.css` | `portal/src/styles/` | `<frontend>/src/styles/` in all three |
+| `CodeGuruBar.jsx` | `portal/src/components/` | Study Guider, Gamification |
+| `CodeGuruBar.tsx` | — | PairPath only, a hand-written TypeScript twin |
+
+**`codeguru-theme.css`** is the whole palette, plus radius, shadow, easing and
+typeface. Two layers, because three consumers need different formats:
+
+- `--cg-rgb-*` — raw `R G B` triplets. PairPath's `tailwind.config.js`
+  interpolates them with `<alpha-value>`, which is what keeps
+  `bg-surface-800/50` working.
+- `--cg-*` — ready-made `rgb()` values, for stylesheets and for inline
+  `style={{}}` props. Inline styles beat every stylesheet, so they can only be
+  re-themed by holding a `var()` themselves.
+
+Two places where `var()` does **not** work, and both bit us:
+
+- **SVG presentation attributes.** `stroke="var(--cg-accent)"` on a Recharts
+  series or a lucide icon renders with no colour at all — attributes are not CSS
+  declarations. Resolve the token first (Study Guider's `lib/theme.js`) or set
+  CSS `color` and let `currentColor` do it.
+- **Libraries that render their own SVG**, like Mermaid and Monaco. They need
+  their own theme configured from resolved token values.
+
+**`CodeGuruBar`** is the platform bar. Its service links point at
+`{portal}/go?to=<key>`, which resolves the key against the portal's registry and
+reuses the allow-listed handoff — so your service never needs to know where its
+siblings live, and it carries the session across the origin boundary. Mount it
+with your service key, `PORTAL_URL`, the user, and a sign-out handler. All its
+styling lives in the theme file, so the copies cannot drift apart visually.
+
+Dark mode is deliberately not built yet: `:root[data-theme='dark']` in the theme
+file is empty. Because every service reaches colour through these tokens, adding
+it is a values-only change there plus a toggle in the bar — no component needs
+to be touched.
 
 ---
 
