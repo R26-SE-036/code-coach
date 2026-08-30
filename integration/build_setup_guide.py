@@ -142,8 +142,9 @@ A(Spacer(1, 5 * mm))
 
 A(para("1. What you are setting up", H1))
 A(para(
-    "Code Guru is four services in separate repositories. Three exist today: "
-    "<b>Code Coach</b>, <b>Study Guider</b> and <b>PairPath</b>. The Gamification Engine is not built yet.", BODY))
+    "Code Guru is four services in separate repositories: <b>Code Coach</b>, <b>Study Guider</b>, "
+    "<b>PairPath</b> and the <b>Adaptive Gamification Engine</b>. All four are integrated against "
+    "the same login.", BODY))
 A(para(
     "The one thing to understand before anything else: <b>Code Coach owns login for the entire platform.</b> "
     "It is the only service that checks passwords. Study Guider and PairPath do not have their own accounts - "
@@ -164,6 +165,9 @@ A(table([
     ["PairPath API", "3001", "PairPath devs."],
     ["PairPath frontend", "3000", "PairPath devs."],
     ["PairPath ml-service", "8020", "PairPath devs, only for live pair sessions."],
+    ["Gamification API", "3002", "Gamification devs."],
+    ["Gamification frontend", "5174", "Gamification devs."],
+    ["Gamification ml-service", "8030", "Gamification devs, for difficulty prediction."],
 ], [58 * mm, 20 * mm, 90 * mm], mono_cols=(1,)))
 
 A(callout("Port 8000 is taken by Code Coach",
@@ -191,12 +195,14 @@ mkdir Code_Guru && cd Code_Guru
 git clone https://github.com/R26-SE-036/code-coach.git
 git clone https://github.com/R26-SE-036/Study-Guider.git
 git clone https://github.com/R26-SE-036/Pair_Path.git
+git clone https://github.com/R26-SE-036/adaptive-gamification-engine.git
 """))
 A(para("Every repo does its work on the <b>dev</b> branch. Never commit to main.", BODY))
 A(code("""
 cd code-coach    && git checkout dev && git pull && cd ..
 cd Study-Guider  && git checkout dev && git pull && cd ..
 cd Pair_Path     && git checkout dev && git pull && cd ..
+cd adaptive-gamification-engine && git checkout dev && git pull && cd ..
 """))
 A(callout("Pulling later",
           "Code Coach changes affect everyone, because it owns the login and the API contract. "
@@ -230,7 +236,7 @@ A(callout("What Mode A costs you",
 
 A(para("5. Code Coach - everyone needs this", H1))
 A(para("Backend", H3))
-A(code("""
+A(code(r"""
 cd code-coach/backend
 
 python -m venv .venv
@@ -271,7 +277,7 @@ A(callout("VITE_ALLOWED_REDIRECTS is a security control, not a convenience",
 # ---------------------------------------------------------------- study guider
 A(para("6. Study Guider", H1))
 A(para("Backend (port 8010)", H3))
-A(code("""
+A(code(r"""
 cd Study-Guider/backend
 
 python -m venv .venv
@@ -381,7 +387,7 @@ A(callout("The filename must start with a dot",
           "will look applied and will not be. This has already caught someone on this team."))
 
 A(para("ml-service (port 8020) - only for live pair sessions", H3))
-A(code("""
+A(code(r"""
 cd Pair_Path/ml-service
 
 python -m venv .venv
@@ -394,7 +400,73 @@ A(para("You do not need this for login, the dashboard, or session history. Start
 
 
 # ---------------------------------------------------------------- running
-A(para("8. Running it day to day", H1))
+A(para("8. Adaptive Gamification Engine", H1))
+A(para("Three parts: an Express API backed by MongoDB, a React frontend, and a Flask service that "
+       "predicts game difficulty with a Random Forest. It has no accounts of its own - it verifies "
+       "every request against Code Coach and reads the student's struggle data from there.", BODY))
+
+A(para("Backend API (port 3002)", H3))
+A(code("""
+cd adaptive-gamification-engine/backend
+
+npm install
+copy .env.example .env
+
+npm start                       # http://localhost:3002
+"""))
+A(para("File to edit: <font face='Courier'>adaptive-gamification-engine/backend/.env</font>", SMALL))
+A(table([
+    ["Variable", "Mode A (local)", "Mode B (Cloudflare)", "Required?"],
+    ["CODE_COACH_URL", "http://127.0.0.1:8000", "the shared tunnel URL", "Yes"],
+    ["PORT", "3002", "3002", "Yes"],
+    ["MONGODB_URI", "mongodb://localhost:27017/code-guru", "same", "Yes - games and questions"],
+    ["ML_SERVICE_URL", "http://127.0.0.1:8030", "same", "Difficulty prediction only"],
+    ["CORS_ORIGINS", "leave the default", "leave the default", "Yes"],
+], [40 * mm, 45 * mm, 38 * mm, 45 * mm], mono_cols=(0,)))
+A(callout("There is deliberately no JWT_SECRET here",
+          "This service does not issue or verify tokens itself - Code Coach does, via "
+          "<font face='Courier'>GET /api/v1/auth/me</font>. An earlier version verified signatures "
+          "locally with a shared secret, which meant signing out of Code Coach did nothing here. "
+          "If you find code reaching for a signing secret, it is a leftover.", kind="ok"))
+A(para("MongoDB is genuinely required for this service - unlike the others, its own data (question "
+       "bank, game sessions, player profiles) lives there. Without it the API starts but the game "
+       "routes fail. The dashboard still works, because struggle data comes from Code Coach.", BODY))
+
+A(para("Frontend (port 5174)", H3))
+A(code("""
+cd adaptive-gamification-engine/frontend
+
+npm install
+copy .env.example .env
+
+npm run dev                     # http://localhost:5174
+"""))
+A(para("File to edit: <font face='Courier'>adaptive-gamification-engine/frontend/.env</font>", SMALL))
+A(table([
+    ["Variable", "Mode A (local)", "Mode B (Cloudflare)"],
+    ["VITE_CODE_COACH_ORIGIN", "http://127.0.0.1:8000", "the shared tunnel URL"],
+    ["VITE_GAMIFICATION_API_URL", "http://localhost:3002/api/v1", "same"],
+    ["VITE_PORTAL_URL", "http://localhost:4200", "http://localhost:4200"],
+    ["VITE_ENABLE_DEV_LOGIN", "true = own login form; false = use the portal", "same"],
+], [50 * mm, 60 * mm, 58 * mm], mono_cols=(0,)))
+A(para("The frontend reaches Code Coach through a Vite proxy rather than calling it directly, so the "
+       "browser stays same-origin and CORS never applies. "
+       "<font face='Courier'>VITE_CODE_COACH_ORIGIN</font> is where that proxy forwards to - change "
+       "that one, not the API path below it.", SMALL))
+
+A(para("ml-service (port 8030)", H3))
+A(code(r"""
+cd adaptive-gamification-engine/ml-service
+
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+.\.venv\Scripts\python.exe app.py          # http://localhost:8030
+"""))
+A(para("Optional. If it is down the backend falls back to a simple rule (many unresolved errors or a "
+       "low average score means an easier game), so the engine keeps working.", SMALL))
+
+A(para("9. Running it day to day", H1))
 A(para("Open a terminal per service and start them in this order. Code Coach must be first - "
        "the others verify tokens against it.", BODY))
 A(para("Study Guider developers", H3))
@@ -416,6 +488,17 @@ A(table([
 ], [8 * mm, 45 * mm, 115 * mm], mono_cols=(2,)))
 A(para("If you set the dev-login flag to true in your frontend, you can skip terminal 2 (the portal) entirely.", SMALL))
 
+A(para("Gamification developers", H3))
+A(table([
+    ["#", "Terminal", "Command"],
+    ["1", "code-coach/backend", r".venv\Scripts\python.exe -m uvicorn app.main:app --port 8000"],
+    ["2", "code-coach/portal", "npm run dev"],
+    ["3", "adaptive-gamification-engine/backend", "npm start"],
+    ["4", "adaptive-gamification-engine/frontend", "npm run dev"],
+    ["5", "adaptive-gamification-engine/ml-service", r".venv\Scripts\python.exe app.py"],
+], [8 * mm, 52 * mm, 108 * mm], mono_cols=(2,)))
+A(para("MongoDB must also be running for the game routes.", SMALL))
+
 A(para("Mode B only - the Cloudflare tunnel", H3))
 A(para("One person runs Code Coach and exposes it. Everyone else points their "
        "<font face='Courier'>CODE_COACH_URL</font> at the printed address.", BODY))
@@ -434,10 +517,10 @@ A(callout("The tunnel URL changes every restart",
           "must update their .env files and restart their dev servers. This is why no URL is hardcoded "
           "anywhere in the codebase."))
 
-A(para("9. Getting test data", H1))
+A(para("10. Getting test data", H1))
 A(para("Study Guider shows nothing until Code Coach has raised a remediation trigger, and that only happens "
        "after the same mistake repeats three times. Rather than doing that by hand, run the seed tool:", BODY))
-A(code("""
+A(code(r"""
 cd code-coach/backend
 .\\.venv\\Scripts\\python.exe -m app.dev_tools.seed_student
 
@@ -451,7 +534,7 @@ A(para("It creates a student, generates three real struggles (array indexing, lo
 
 
 # ---------------------------------------------------------------- verify + troubleshooting
-A(para("10. Check it actually works", H1))
+A(para("11. Check it actually works", H1))
 A(table([
     ["#", "Do this", "You should see"],
     ["1", "Open http://127.0.0.1:8000/health", "{\"status\":\"ok\"}"],
@@ -462,7 +545,7 @@ A(table([
     ["6", "Run the seed tool, reload Study Guider", "Three struggle cards with real concept names"],
 ], [8 * mm, 78 * mm, 82 * mm]))
 
-A(para("11. Troubleshooting", H1))
+A(para("12. Troubleshooting", H1))
 A(para("Every one of these has actually happened to someone on this team.", SMALL))
 A(table([
     ["Symptom", "Cause", "Fix"],
@@ -496,9 +579,18 @@ A(table([
     ["ML requests behave strangely in PairPath",
      "ml-service is on 8000, colliding with Code Coach.",
      "Run it on 8020 and set ML_SERVICE_URL to match."],
+    ["Gamification dashboard is empty for a student who has struggles",
+     "No triggers yet, or you are signed in as a different student.",
+     "Run the seed tool (section 10) and sign in as that student."],
+    ["Gamification game routes fail but the dashboard works",
+     "MongoDB is down. Only this service truly needs it.",
+     "Start MongoDB on 27017."],
+    ["Gamification API returns 503 on every route",
+     "It cannot reach Code Coach to verify your token.",
+     "Check CODE_COACH_URL and that Code Coach is running. 503 means unreachable, 401 means the token was refused."],
 ], [46 * mm, 58 * mm, 64 * mm]))
 
-A(keep(para("12. Rules of the road", H1), table([
+A(keep(para("13. Rules of the road", H1), table([
     ["Rule", "Why"],
     ["Work on the dev branch. Never commit to main.",
      "main is the reviewed branch. All three repos follow this."],

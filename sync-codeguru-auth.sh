@@ -14,6 +14,7 @@ MASTER="$(cd "$(dirname "$0")" && pwd)/portal/src/lib/codeguru-auth.js"
 SIBLINGS=(
   "../Study-Guider/frontend/src/lib/codeguru-auth.js"
   "../Pair_Path/frontend/src/lib/codeguru-auth.js"
+  "../adaptive-gamification-engine/frontend/src/lib/codeguru-auth.js"
 )
 
 BODY_START='── Storage keys ──'

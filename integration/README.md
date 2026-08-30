@@ -25,6 +25,7 @@ Three services all defaulted to 8000. Use these:
 | **CodeGuru Portal** (the shared login UI) | `4200` |
 | Study Guider — backend / frontend | `8010` / `5173` |
 | PairPath — API / frontend / ml-service | `3001` / `3000` / `8020` |
+| Gamification — API / frontend / ml-service | `3002` / `5174` / `8030` |
 
 Every service's CORS allow-list must include the portal origin. Code Coach
 already allows 3000, 5173 and 4200 out of the box
@@ -133,7 +134,7 @@ same rather than adopting a foreign token into a schema that cannot key on it.
 
 ## 4. `codeguru-auth.js` — copy it, do not rewrite it
 
-The three frontends live in three separate repos, so there is no build-time way
+The four frontends live in four separate repos, so there is no build-time way
 to share code. One file is **copied** into each:
 
 | Repo | Path |
@@ -141,6 +142,7 @@ to share code. One file is **copied** into each:
 | **code-coach** (master) | `portal/src/lib/codeguru-auth.js` |
 | Study-Guider | `frontend/src/lib/codeguru-auth.js` |
 | Pair_Path | `frontend/src/lib/codeguru-auth.js` |
+| adaptive-gamification-engine | `frontend/src/lib/codeguru-auth.js` |
 
 It holds the login/register/refresh/me/logout calls with the exact wire field
 names, token storage, the 401-refresh-retry-once rule, the dev-login gate, and
@@ -187,9 +189,9 @@ snippet, label it as an example rather than implying it is the student's own.
 
 ### Gamification Engine
 
-Nothing is built yet, but the endpoints are and are documented in
-[`API_CONTRACT.md`](API_CONTRACT.md), so you can code against a real contract
-from day one.
+Built and integrated. It has no accounts of its own: it verifies every request
+against Code Coach and reads struggle data from there rather than keeping a
+local copy.
 
 | Call | Purpose |
 |---|---|
