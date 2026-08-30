@@ -234,6 +234,16 @@ A(callout("What Mode A costs you",
           "Because storage is in-memory, every account and every remediation trigger is lost when you restart "
           "Code Coach. Re-run the seed tool (section 9) - it takes about ten seconds."))
 
+A(callout("Already have a .env? Do NOT copy over it",
+          "Every service in this project keeps a <font face='Courier'>.env</font> that is gitignored, "
+          "so it never travels with the code - it holds real database URLs and API keys that only "
+          "exist on your machine. <b>Copying .env.example over it destroys those values.</b> "
+          "<br/><br/>"
+          "If you already have a .env: open the .env.example beside it and ADD only the keys you are "
+          "missing. The examples are written as supersets - they list the original settings as well "
+          "as the ones integration added - so a key-by-key comparison is all it takes. Copy the whole "
+          "file only when there is no .env there at all."))
+
 A(para("5. Code Coach - everyone needs this", H1))
 A(para("Backend", H3))
 A(code(r"""
@@ -254,7 +264,7 @@ A(code("""
 cd code-coach/portal
 
 npm install
-copy .env.example .env          # macOS/Linux: cp .env.example .env
+copy .env.example .env          # ONLY if you have no .env yet          # ONLY if you have no .env yet - see the note below
 
 npm run dev                     # http://localhost:4200
 """))
@@ -290,7 +300,7 @@ cd Study-Guider/backend
 
 python -m venv .venv
 .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt
-copy .env.example .env
+copy .env.example .env          # ONLY if you have no .env yet
 
 .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8010
 """))
@@ -319,7 +329,7 @@ A(code("""
 cd Study-Guider/frontend
 
 npm install
-copy .env.example .env
+copy .env.example .env          # ONLY if you have no .env yet
 
 npm run dev                     # http://localhost:5173
 """))
@@ -348,7 +358,7 @@ A(code("""
 cd Pair_Path/api
 
 npm install
-copy .env.example .env          # then fill in the values below
+copy .env.example .env          # ONLY if you have no .env yet          # ONLY if you have no .env yet - see the note below
 
 npx prisma generate
 npx prisma migrate dev          # creates the tables, first time only
@@ -378,7 +388,7 @@ A(code("""
 cd Pair_Path/frontend
 
 npm install
-copy .env.local.example .env.local
+copy .env.local.example .env.local   # ONLY if you have no .env.local yet
 
 npm run dev                     # http://localhost:3000
 """))
@@ -418,7 +428,7 @@ A(code("""
 cd adaptive-gamification-engine/backend
 
 npm install
-copy .env.example .env
+copy .env.example .env          # ONLY if you have no .env yet
 
 npm start                       # http://localhost:3002
 """))
@@ -445,7 +455,7 @@ A(code("""
 cd adaptive-gamification-engine/frontend
 
 npm install
-copy .env.example .env
+copy .env.example .env          # ONLY if you have no .env yet
 
 npm run dev                     # http://localhost:5174
 """))
