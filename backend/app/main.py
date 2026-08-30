@@ -1,7 +1,10 @@
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from google.api_core.exceptions import ResourceExhausted, ServiceUnavailable
 
 from app.core.config import get_settings
 from app.core.rate_limit import SlidingWindowLimiter
@@ -20,6 +23,8 @@ from app.api.routes.remediation import router as remediation_router
 from app.db.storage import build_storage
 from app.services.code_coach_service import build_analyze_response, run_analysis
 from app.services.evaluation_logger import log_analysis_event
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(*, storage=None) -> FastAPI:
@@ -78,6 +83,35 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(events_router)
     app.include_router(gamification_router)
     app.include_router(remediation_router)
+
+    # Firestore refusing work is not a bug in the request, and it should not
+    # look like one. Unhandled, a quota or availability failure surfaces as a
+    # 500 behind a 200-line gRPC traceback, which reads like a crash - and 500
+    # is ambiguous to the sibling services, where 401 means "sign in again" and
+    # 503 means "we could not reach Code Coach, keep your session".
+    #
+    # RESOURCE_EXHAUSTED in particular is the free-tier daily read quota, and
+    # the honest answer to it is "come back later", not "something broke".
+    @app.exception_handler(ResourceExhausted)
+    def handle_quota_exhausted(request: Request, exc: ResourceExhausted):
+        logger.error("Firestore quota exhausted on %s", request.url.path)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "detail": "Code Coach's database is over its daily read quota. "
+                          "Your session is fine - try again later, or raise the "
+                          "quota in the Firebase console.",
+            },
+        )
+
+    @app.exception_handler(ServiceUnavailable)
+    def handle_storage_unavailable(request: Request, exc: ServiceUnavailable):
+        logger.error("Firestore unavailable on %s: %s", request.url.path, exc)
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Code Coach cannot reach its database right now. "
+                               "Your session is fine - please try again."},
+        )
 
 
     @app.get("/")
