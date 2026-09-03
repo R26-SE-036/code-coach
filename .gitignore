@@ -29,4 +29,6 @@ backend/secrets/
 *.serviceaccount.json
 firebase-service-account*.json
 
-/docs
+# docs/ is tracked on purpose - it holds the architecture diagrams and
+# firebase-setup.md. A "/docs" rule used to sit here, which meant a single
+# `git commit -a` would have recorded the deletion of all 19 files.
