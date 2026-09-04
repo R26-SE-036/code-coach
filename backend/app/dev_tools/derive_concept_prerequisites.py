@@ -75,6 +75,26 @@ class InsufficientData(Exception):
         super().__init__("; ".join(reasons))
 
 
+def stream_collection(storage, name: str):
+    """Every document in one collection, whichever backend is configured.
+
+    This script read `storage.client.collection(name).stream()` directly, which
+    is the Firestore API. When the platform store moved to MongoDB the script
+    stopped running at all - `TypeError: 'Database' object is not callable` -
+    because MongoStorage.client is a MongoClient, not a Firestore client.
+
+    MongoStorage is checked FIRST and by `.db`, not by `.client`: both classes
+    have a `.client`, so testing that attribute would match the Mongo backend
+    and then call the Firestore method on it, which is the original bug wearing
+    a different shape.
+    """
+    database = getattr(storage, "db", None)
+    if database is not None:
+        return database[name].find({})
+
+    return (snapshot.to_dict() for snapshot in storage.client.collection(name).stream())
+
+
 def load_first_resolutions(storage) -> dict[str, dict[str, object]]:
     """{user_id: {concept_tag: earliest resolvedAt}}.
 
@@ -84,8 +104,7 @@ def load_first_resolutions(storage) -> dict[str, dict[str, object]]:
     """
     first: dict[str, dict[str, object]] = defaultdict(dict)
 
-    for document in storage.client.collection("codeDiagnostics").stream():
-        record = document.to_dict()
+    for record in stream_collection(storage, "codeDiagnostics"):
         user = record.get("userId")
         concept = record.get("conceptTag")
         resolved_at = record.get("resolvedAt")

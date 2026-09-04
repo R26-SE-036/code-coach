@@ -12,6 +12,10 @@
 > - [`openapi.json`](openapi.json) — the same thing for Postman / client
 >   generators.
 > - [`inter-service-events.md`](inter-service-events.md) — the async half.
+> - [`prerequisite-graph.md`](prerequisite-graph.md) — what the concept
+>   prerequisite graph is, how Code Coach derives one from real student
+>   histories, and why it currently refuses to. Written for a reader who
+>   has not seen it before.
 
 ---
 
