@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 # they are also the most repeated.
 #
 # Each one fans out to four per-user collection scans. The `limit` on those
-# storage calls is applied in Python AFTER the documents arrive, so Firestore
+# storage calls is applied in Python AFTER the documents arrive, so the database
 # bills for every diagnostic, learning event, mastery record and trigger the
 # student has ever had - not for the 300 that get kept. A student with a few
 # hundred of each therefore costs over a thousand billed reads per call.
@@ -30,9 +30,9 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 # and it turns "every page load" back into "at most once a minute".
 #
 # This is a mitigation, not the fix. The fix is to push order_by + limit into
-# the Firestore queries so the database returns 300 documents instead of all of
+# the database queries so the database returns 300 documents instead of all of
 # them, which needs a composite index per collection (userId ==, createdAt
-# desc) created in the Firebase console.
+# desc) created on the collection.
 _OVERVIEW_CACHE = TTLCache(ttl_seconds=60.0, max_entries=512)
 _TIMELINE_CACHE = TTLCache(ttl_seconds=60.0, max_entries=512)
 

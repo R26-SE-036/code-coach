@@ -10,17 +10,10 @@
 #     -e JWT_SECRET=<your secret> \
 #     code-coach-backend
 #
-# This header used to describe Firestore and Cloud Run - a service-account key
-# mounted at FIREBASE_CREDENTIALS_PATH, and ADC on Cloud Run. The store moved to
-# MongoDB Atlas and the target is ECS, so both were wrong: anyone following them
-# would have mounted a key the code no longer reads and set a project id nothing
-# looks at. requirements-prod.txt already carries pymongo rather than
-# google-cloud-firestore, so the image itself was correct; only the instructions
-# for running it were not.
-#
-# There is no default for MONGODB_URI on purpose. build_storage() still prefers
-# Firestore if either FIREBASE_* variable is set, so leaving them unset is what
-# selects MongoDB.
+# MONGODB_URI has no default on purpose. Without it the service falls back to
+# in-memory storage and starts perfectly happily, which in a container means
+# every account and diagnostic disappears on the next restart - a failure that
+# looks like the database being empty rather than never having been configured.
 
 FROM python:3.12-slim
 

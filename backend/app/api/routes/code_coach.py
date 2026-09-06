@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/v1/code-coach", tags=["code-coach"])
 logger = logging.getLogger(__name__)
 
 # Learning sessions are validated on every analysis but change rarely; caching
-# the ownership/active check removes another Firestore round trip from the
+# the ownership/active check removes another database round trip from the
 # path the student waits on.
 _SESSION_CACHE = TTLCache(ttl_seconds=60.0)
 

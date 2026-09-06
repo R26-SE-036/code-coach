@@ -17,7 +17,7 @@ from app.core.security import TokenError, decode_access_token
 
 _bearer = HTTPBearer(auto_error=False)
 
-# Auth used to cost FOUR Firestore round trips per request (session read, user
+# Auth used to cost FOUR database round trips per request (session read, user
 # read, lastSeenAt write, session re-read). Every authenticated call paid it,
 # including the analysis triggered on each typing pause. These caches collapse
 # that to zero for repeat requests within the TTL. Entries are dropped on
@@ -26,9 +26,9 @@ _bearer = HTTPBearer(auto_error=False)
 _AUTH_CACHE = TTLCache(ttl_seconds=30.0)
 _SESSION_TOUCH_CACHE = TTLCache(ttl_seconds=120.0)
 
-# Used to overlap the two independent Firestore reads a cold token needs, and
+# Used to overlap the two independent database reads a cold token needs, and
 # to push the lastSeenAt write off the request path entirely. Small on purpose:
-# it exists to hide latency, not to add concurrency. The Firestore client is
+# it exists to hide latency, not to add concurrency. The database client is
 # thread-safe, and FastAPI already runs this sync dependency in its own worker
 # thread, so blocking on these futures blocks nothing else.
 _AUTH_IO = ThreadPoolExecutor(max_workers=8, thread_name_prefix="auth-io")
@@ -110,7 +110,7 @@ def get_current_auth(
 
     # Both reads are keyed off the JWT, not off each other, so there is no
     # reason to wait for the first before starting the second. Sequentially
-    # they cost two full Firestore round trips; from a client far from the
+    # they cost two full database round trips; from a client far from the
     # database region that was most of the ~2 s a cold token took to verify,
     # which is what every fresh sign-in pays.
     #
@@ -148,7 +148,7 @@ def get_current_auth(
     #
     # It is also fire-and-forget. Nothing in the response depends on the write
     # landing, and a brand-new session always misses the throttle cache - so
-    # waiting for it put a third Firestore round trip in front of every first
+    # waiting for it put a third database round trip in front of every first
     # request on a fresh token. Something that "must never fail a request" has
     # no business delaying one either.
     if _SESSION_TOUCH_CACHE.get(token_payload.auth_session_id) is None:

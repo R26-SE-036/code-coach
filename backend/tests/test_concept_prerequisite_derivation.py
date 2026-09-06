@@ -7,7 +7,7 @@ the only thing standing between the derivation logic and silent rot is this
 file.
 
 The tests build cohorts by hand rather than reading the database, which also
-means they do not need Firestore credentials to run in CI.
+means they do not need database credentials to run in CI.
 """
 
 import random

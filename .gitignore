@@ -24,11 +24,10 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
-# Secrets (service account keys, credentials) - never commit
+# Secrets (credentials of any kind) - never commit
 backend/secrets/
 *.serviceaccount.json
-firebase-service-account*.json
 
-# docs/ is tracked on purpose - it holds the architecture diagrams and
-# firebase-setup.md. A "/docs" rule used to sit here, which meant a single
-# `git commit -a` would have recorded the deletion of all 19 files.
+# docs/ is tracked on purpose. A "/docs" rule used to sit here, which meant a
+# single `git commit -a` would have silently recorded the deletion of every
+# file in it.

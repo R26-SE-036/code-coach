@@ -156,7 +156,7 @@ A(para(
     "Code Coach needs no configuration at all to run locally - see section 5.", BODY))
 A(para(
     "<b>Every student record now lives in Code Coach.</b> Its shared deployment stores accounts, "
-    "sessions, diagnostics and remediation triggers in <b>Firestore</b>. Your service still owns its own "
+    "sessions, diagnostics and remediation triggers in <b>MongoDB</b>. Your service still owns its own "
     "domain data - PairPath its pair sessions in Postgres, the Gamification Engine its questions and game "
     "sessions in MongoDB, Study Guider its quiz history in Neo4j - but none of them owns <i>who the "
     "student is</i> any more.", BODY))
@@ -267,13 +267,13 @@ A(table([
     ["Code Coach", "You run your own on localhost:8000.",
      "One person runs it and shares a tunnel URL."],
     ["Accounts", "Yours only, in memory. Gone when you restart it.",
-     "Shared, in Firestore. Everyone sees the same students and triggers."],
+     "Shared, in MongoDB. Everyone sees the same students and triggers."],
     ["Setup", "No credentials, no accounts, no tunnel.",
-     "Tunnel owner needs the Firebase key; you need their URL."],
+     "Tunnel owner needs the database URI; you need their URL."],
     ["Cloudflare", "Not needed at all.", "Required."],
 ], [22 * mm, 73 * mm, 73 * mm]))
 A(para(
-    "In Mode A, Code Coach falls back to <b>in-memory storage</b> when it finds no Firebase credentials. "
+    "In Mode A, Code Coach falls back to <b>in-memory storage</b> when it finds no database URI. "
     "That is exactly what you want while building: no setup, no shared state to corrupt, and a clean slate "
     "on every restart. It prints "
     "<font face='Courier'>Storage backend: in-memory</font> at startup so you always know which mode you are in.", BODY))
@@ -798,7 +798,7 @@ cloudflared tunnel --url http://localhost:8000
 """))
 A(table([
     ["Who", "What they do"],
-    ["Tunnel owner", "Runs Code Coach with the Firebase key configured (so data persists and is shared). "
+    ["Tunnel owner", "Runs Code Coach with MONGODB_URI configured (so data persists and is shared). "
                      "Adds everyone's browser origins to CORS_ALLOWED_ORIGINS in code-coach/backend/.env."],
     ["Everyone else", "Puts the tunnel URL in CODE_COACH_URL, VITE_CODE_COACH_URL and "
                       "NEXT_PUBLIC_CODE_COACH_URL, then restarts their dev servers."],
@@ -896,7 +896,7 @@ A(table([
      "It is position:fixed or sticky at top-0.",
      "Anchor it at top: var(--cg-bar-h) instead of 0."],
     ["Sign-in feels slow the first time",
-     "A brand-new token misses the auth cache and Code Coach must reach Firestore.",
+     "A brand-new token misses the auth cache and Code Coach must reach the database.",
      "Expected. Roughly a second. Later calls with the same token are cached and near-instant."],
 ], [46 * mm, 58 * mm, 64 * mm]))
 

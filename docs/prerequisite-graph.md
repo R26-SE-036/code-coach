@@ -327,18 +327,3 @@ Run from `code-coach/backend/`. It exits with code `2` when it refuses, so it
 can't silently succeed in a script.
 
 ---
-
-## 10. One bug found while writing this
-
-The tool read the database through the Firestore API
-(`storage.client.collection(...).stream()`). When Code Coach moved to MongoDB,
-that call stopped working entirely:
-
-```
-TypeError: 'Database' object is not callable
-```
-
-So the tool had been broken since the migration — it crashed before it reached
-the sufficiency check. It now reads through a small helper that works with
-either backend, and produces the refusal shown in section 7. The tests pass and
-the `--explain` output above is real, not illustrative.

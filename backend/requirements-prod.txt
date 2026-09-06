@@ -13,11 +13,6 @@ pandas==3.0.1
 numpy==2.4.1
 tree-sitter==0.25.2
 tree-sitter-java==0.23.5
-# Firestore is gone: the platform deploys to AWS, and a GCP-hosted database
-# would be the only cross-cloud dependency in it. build_storage() selects the
-# backend from the environment alone, and MongoStorage already exposes the
-# identical 31-method interface with a full index set - so this swap is the
-# whole migration as far as application code is concerned.
 pymongo==4.15.3
 # SRV lookups for mongodb+srv:// connection strings.
 dnspython==2.8.0

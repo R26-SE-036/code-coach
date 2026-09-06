@@ -90,17 +90,17 @@ def create_app(*, storage=None) -> FastAPI:
     # services, where 401 means "sign in again" and 503 means "we could not
     # reach the platform store, keep your session".
     #
-    # These replace two google.api_core handlers (ResourceExhausted and
-    # ServiceUnavailable) that outlived the move off Firestore. The import at
-    # the top of this file survived because the development virtualenv still had
-    # google-cloud-firestore installed, while requirements-prod.txt no longer
-    # does - so the service ran fine on a laptop and died on import in the
-    # container, the first time one was ever built.
+    # These replaced two handlers belonging to the previous database driver,
+    # which had outlived it. The import at the top of this file survived the
+    # migration because the development virtualenv still had that package
+    # installed while requirements-prod.txt did not - so the service ran fine on
+    # a laptop and died on import in the container, the first time one was ever
+    # built.
     #
-    # There is no replacement for the quota handler. Firestore's
-    # RESOURCE_EXHAUSTED was a daily read limit with a real "come back later"
-    # meaning; Atlas has no daily read quota, so inventing an equivalent would
-    # be describing a failure mode this deployment does not have.
+    # Only the unreachable case is handled now. The old driver also raised on a
+    # daily read quota, which had a real "come back later" meaning; Atlas has no
+    # such quota, so inventing an equivalent would describe a failure mode this
+    # deployment does not have.
     #
     # ConnectionFailure is the base of AutoReconnect, NetworkTimeout and
     # ServerSelectionTimeoutError - every way the driver says "I could not
