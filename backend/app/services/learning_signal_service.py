@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from statistics import median
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from typing import Any, Iterable
@@ -120,6 +121,56 @@ def _safe_last_seen(document: dict[str, Any]) -> datetime:
     if isinstance(candidate, datetime):
         return candidate
     return datetime.now(timezone.utc)
+
+
+def _occurrence_timing(documents: list[dict[str, Any]]) -> dict[str, Any]:
+    """When this concept's error first appeared, and how far apart the repeats are.
+
+    FR-01 asks for "the time intervals between code executions", and a repeat
+    count on its own cannot supply it: three mistakes inside two minutes and
+    three across three weeks both count as three. The first student is stuck
+    right now; the second keeps forgetting between sessions. That is the same
+    number describing two different problems.
+
+    The MEDIAN gap rather than the mean, because one long overnight pause
+    between two otherwise rapid sessions drags a mean far enough to hide the
+    rapid part entirely.
+
+    `createdAt` rather than `resolvedAt`: the question is when the student hit
+    the error, not when they got out of it.
+    """
+    stamps = sorted(
+        document["createdAt"]
+        for document in documents
+        if isinstance(document.get("createdAt"), datetime)
+    )
+
+    if not stamps:
+        return {
+            "first_seen_at": None,
+            "median_seconds_between_occurrences": None,
+            "seconds_since_last_occurrence": None,
+        }
+
+    now = datetime.now(timezone.utc)
+    last = stamps[-1]
+    # A stored timestamp can come back naive depending on the driver's
+    # configuration, and subtracting a naive from an aware datetime raises.
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+
+    gaps = [
+        (later - earlier).total_seconds()
+        for earlier, later in zip(stamps, stamps[1:])
+    ]
+
+    return {
+        "first_seen_at": stamps[0],
+        # None, not 0.0, for a concept seen once: there is no interval, and a
+        # zero would read as "no gap between repeats" rather than "no repeats".
+        "median_seconds_between_occurrences": round(median(gaps), 2) if gaps else None,
+        "seconds_since_last_occurrence": round((now - last).total_seconds(), 2),
+    }
 
 
 def _safe_event_time(document: dict[str, Any]) -> datetime:
@@ -358,6 +409,7 @@ def build_concept_struggles(
             {item["learningSessionId"] for item in concept_documents if item.get("learningSessionId")}
         )
         last_seen_at = max(_safe_last_seen(item) for item in concept_documents)
+        timing = _occurrence_timing(concept_documents)
         dominant_error_type = Counter(
             item["errorType"] for item in concept_documents
         ).most_common(1)[0][0]
@@ -389,6 +441,9 @@ def build_concept_struggles(
                 resolved_count=resolved_count,
                 unique_learning_sessions=unique_learning_sessions,
                 last_seen_at=last_seen_at,
+                first_seen_at=timing["first_seen_at"],
+                median_seconds_between_occurrences=timing["median_seconds_between_occurrences"],
+                seconds_since_last_occurrence=timing["seconds_since_last_occurrence"],
                 hint_event_count=concept_hint_usage.get("hint_event_count", 0),
                 hint_shown_count=concept_hint_usage.get("hint_shown_count", 0),
                 hint_request_count=concept_hint_usage.get("hint_request_count", 0),

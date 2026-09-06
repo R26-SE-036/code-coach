@@ -283,6 +283,19 @@ class ConceptStruggleView(BaseModel):
     resolved_count: int
     unique_learning_sessions: int
     last_seen_at: datetime
+
+    # ── Timing (FR-01: "the time intervals between code executions") ──
+    # first_seen_at plus the gaps between successive occurrences of this
+    # concept's error. Repeat count alone cannot tell three mistakes in two
+    # minutes from three across three weeks, and those are different students:
+    # the first is stuck right now, the second keeps forgetting.
+    #
+    # Optional because a concept seen exactly once has no interval to report,
+    # and reporting 0 there would read as "no gap" rather than "not applicable".
+    first_seen_at: Optional[datetime] = None
+    median_seconds_between_occurrences: Optional[float] = None
+    seconds_since_last_occurrence: Optional[float] = None
+
     hint_event_count: int = 0
     hint_shown_count: int = 0
     hint_request_count: int = 0
