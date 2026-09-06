@@ -49,7 +49,6 @@ def _serialize_user(document: dict[str, Any]) -> AuthUser:
         user_id=document["userId"],
         full_name=document["fullName"],
         email=document["email"],
-        role=document["role"],
         status=document["status"],
         created_at=document["createdAt"],
     )
@@ -88,7 +87,7 @@ def _create_session_and_tokens(
     }
     storage.create_auth_session(session_document)
 
-    access_token = create_access_token(user["userId"], auth_session_id, user["role"])
+    access_token = create_access_token(user["userId"], auth_session_id)
     return session_document, access_token, refresh_token
 
 
@@ -133,7 +132,6 @@ def register(
         "fullName": payload.full_name,
         "email": normalized_email,
         "passwordHash": hash_password(payload.password),
-        "role": "student",
         "status": "active",
         "createdAt": created_at,
         "updatedAt": created_at,
@@ -245,7 +243,6 @@ def refresh(
     access_token = create_access_token(
         user_document["userId"],
         auth_session["authSessionId"],
-        user_document["role"],
     )
 
     return _auth_response(

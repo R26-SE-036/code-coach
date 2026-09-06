@@ -59,13 +59,12 @@ def _timestamp_after(seconds: int) -> int:
     return int(expires_at.timestamp())
 
 
-def create_access_token(user_id: str, auth_session_id: str, role: str) -> str:
+def create_access_token(user_id: str, auth_session_id: str) -> str:
     settings = get_settings()
     header = {"alg": settings.jwt_algorithm, "typ": "JWT"}
     payload = {
         "sub": user_id,
         "authSessionId": auth_session_id,
-        "role": role,
         "tokenType": "access",
         "exp": _timestamp_after(settings.access_token_ttl_seconds),
     }
@@ -80,7 +79,6 @@ def create_access_token(user_id: str, auth_session_id: str, role: str) -> str:
 class TokenPayload:
     user_id: str
     auth_session_id: str
-    role: str
     token_type: str
     exp: int
 
@@ -117,7 +115,6 @@ def decode_access_token(token: str) -> TokenPayload:
     return TokenPayload(
         user_id=str(payload_data.get("sub", "")),
         auth_session_id=str(payload_data.get("authSessionId", "")),
-        role=str(payload_data.get("role", "")),
         token_type=token_type,
         exp=exp,
     )

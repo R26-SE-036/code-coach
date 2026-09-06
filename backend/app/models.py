@@ -113,7 +113,6 @@ class AuthUser(BaseModel):
     user_id: str
     full_name: str
     email: EmailStr
-    role: str
     status: str
     created_at: datetime
 

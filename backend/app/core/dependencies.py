@@ -52,7 +52,6 @@ def revoke_cached_auth(auth_session_id: str) -> None:
 @dataclass
 class AuthContext:
     user_id: str
-    role: str
     auth_session_id: str
     user: dict[str, Any]
     auth_session: dict[str, Any]
@@ -158,7 +157,6 @@ def get_current_auth(
 
     context = AuthContext(
         user_id=token_payload.user_id,
-        role=token_payload.role,
         auth_session_id=token_payload.auth_session_id,
         user=user,
         auth_session=auth_session,
