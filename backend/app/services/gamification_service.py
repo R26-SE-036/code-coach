@@ -15,7 +15,12 @@ from app.models import (
 )
 from app.core.common import utcnow
 from app.services.learning_signal_service import build_learning_event_document
-from app.services.mastery_service import build_concept_mastery_document, build_concept_mastery_view
+from app.services.mastery_service import (
+    blend_mastery_scores,
+    build_concept_mastery_document,
+    build_concept_mastery_view,
+    practice_mastery_scores,
+)
 
 
 class GamificationContentItem(BaseModel):
@@ -315,61 +320,6 @@ def _normalize_token(value: str) -> str:
     return value.strip().lower().replace("-", "_").replace(" ", "_")
 
 
-def _game_mastery_scores(
-    *,
-    score_percent: int,
-    error_count: int,
-    attempt_count: int,
-    hint_usage: int,
-    passed: bool,
-) -> tuple[float, float]:
-    mastery_score = score_percent / 100
-    mastery_score -= min(0.2, error_count * 0.05)
-    mastery_score -= min(0.12, max(0, attempt_count - 1) * 0.04)
-    mastery_score -= min(0.12, hint_usage * 0.03)
-    if passed:
-        mastery_score += 0.05
-
-    mastery_score = round(max(0.0, min(0.99, mastery_score)), 2)
-    if passed:
-        struggle_score = round(max(0.0, 1 - mastery_score), 2)
-    else:
-        struggle_score = round(min(0.99, max(0.35, 1 - mastery_score + 0.08)), 2)
-    return mastery_score, struggle_score
-
-
-def _blend_mastery_scores(
-    existing_mastery_document: dict[str, Any] | None,
-    *,
-    mastery_score: float,
-    struggle_score: float,
-) -> tuple[float, float]:
-    if existing_mastery_document is None:
-        return mastery_score, struggle_score
-
-    blended_mastery = round(
-        min(
-            0.99,
-            max(
-                0.0,
-                existing_mastery_document["masteryScore"] * 0.65 + mastery_score * 0.35,
-            ),
-        ),
-        2,
-    )
-    blended_struggle = round(
-        min(
-            0.99,
-            max(
-                0.0,
-                existing_mastery_document["struggleScore"] * 0.65 + struggle_score * 0.35,
-            ),
-        ),
-        2,
-    )
-    return blended_mastery, blended_struggle
-
-
 def record_gamification_adaptation_decision(
     storage: Any,
     *,
@@ -438,7 +388,7 @@ def record_gamification_session_completed(
     normalized_difficulty = _normalize_token(difficulty_level)
     normalized_support = _normalize_token(support_level) if support_level else None
 
-    observed_mastery_score, observed_struggle_score = _game_mastery_scores(
+    observed_mastery_score, observed_struggle_score = practice_mastery_scores(
         score_percent=score_percent,
         error_count=error_count,
         attempt_count=attempt_count,
@@ -449,7 +399,7 @@ def record_gamification_session_completed(
         iter(storage.list_concept_mastery_for_user(user_id, concept_tag=normalized_concept_tag, limit=1)),
         None,
     )
-    mastery_score, struggle_score = _blend_mastery_scores(
+    mastery_score, struggle_score = blend_mastery_scores(
         existing_mastery,
         mastery_score=observed_mastery_score,
         struggle_score=observed_struggle_score,

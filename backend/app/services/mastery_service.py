@@ -99,3 +99,65 @@ def build_concept_mastery_response(
         total_concepts=len(mastery_views),
         concepts=mastery_views,
     )
+
+
+def practice_mastery_scores(
+    *,
+    score_percent: int,
+    error_count: int,
+    attempt_count: int,
+    hint_usage: int,
+    passed: bool,
+) -> tuple[float, float]:
+    """Observed mastery and struggle from one finished practice attempt.
+
+    Moved here from gamification_service, unchanged, when PairPath became the
+    second component to report finished attempts. Both use it, so a mastery
+    score of 0.6 means the same thing whichever of them wrote it.
+    """
+    mastery_score = score_percent / 100
+    mastery_score -= min(0.2, error_count * 0.05)
+    mastery_score -= min(0.12, max(0, attempt_count - 1) * 0.04)
+    mastery_score -= min(0.12, hint_usage * 0.03)
+    if passed:
+        mastery_score += 0.05
+
+    mastery_score = round(max(0.0, min(0.99, mastery_score)), 2)
+    if passed:
+        struggle_score = round(max(0.0, 1 - mastery_score), 2)
+    else:
+        struggle_score = round(min(0.99, max(0.35, 1 - mastery_score + 0.08)), 2)
+    return mastery_score, struggle_score
+
+
+def blend_mastery_scores(
+    existing_mastery_document: dict[str, Any] | None,
+    *,
+    mastery_score: float,
+    struggle_score: float,
+) -> tuple[float, float]:
+    """Fold a new observation into the stored scores: 65% history, 35% new."""
+    if existing_mastery_document is None:
+        return mastery_score, struggle_score
+
+    blended_mastery = round(
+        min(
+            0.99,
+            max(
+                0.0,
+                existing_mastery_document["masteryScore"] * 0.65 + mastery_score * 0.35,
+            ),
+        ),
+        2,
+    )
+    blended_struggle = round(
+        min(
+            0.99,
+            max(
+                0.0,
+                existing_mastery_document["struggleScore"] * 0.65 + struggle_score * 0.35,
+            ),
+        ),
+        2,
+    )
+    return blended_mastery, blended_struggle
