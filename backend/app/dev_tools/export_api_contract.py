@@ -73,7 +73,10 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      ["/health"]),
 ]
 
-SKIP_PATHS = {"/", "/analyze", "/debug-ast"}  # legacy/debug, not part of the contract
+# "/" is the service banner. /analyze and /debug-ast used to be listed here as
+# "legacy/debug"; they have since been removed from the app, which is what this
+# file had been quietly recording for some time.
+SKIP_PATHS = {"/"}
 
 
 def resolve(schema: dict[str, Any], spec: dict[str, Any], depth: int = 0) -> Any:

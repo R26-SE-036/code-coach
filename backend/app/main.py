@@ -1,13 +1,14 @@
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pymongo.errors import ConnectionFailure
 
 from app.core.config import get_settings
 from app.core.rate_limit import SlidingWindowLimiter
 from app.analysis.error_catalog import validate_catalog
-from app.analysis.parser_utils import parse_java_code
-from app.models import AnalyzeRequest, AnalyzeResponse
 from app.api.routes.auth import router as auth_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
@@ -18,8 +19,8 @@ from app.api.routes.gamification import router as gamification_router
 from app.api.routes.learning_sessions import router as learning_session_router
 from app.api.routes.remediation import router as remediation_router
 from app.db.storage import build_storage
-from app.services.code_coach_service import build_analyze_response, run_analysis
-from app.services.evaluation_logger import log_analysis_event
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(*, storage=None) -> FastAPI:
@@ -79,6 +80,38 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(gamification_router)
     app.include_router(remediation_router)
 
+    # The database being unreachable is not a bug in the request, and it should
+    # not look like one. Unhandled, it surfaces as a 500 behind a long driver
+    # traceback, which reads like a crash - and 500 is ambiguous to the sibling
+    # services, where 401 means "sign in again" and 503 means "we could not
+    # reach the platform store, keep your session".
+    #
+    # These replaced two handlers belonging to the previous database driver,
+    # which had outlived it. The import at the top of this file survived the
+    # migration because the development virtualenv still had that package
+    # installed while requirements-prod.txt did not - so the service ran fine on
+    # a laptop and died on import in the container, the first time one was ever
+    # built.
+    #
+    # Only the unreachable case is handled now. The old driver also raised on a
+    # daily read quota, which had a real "come back later" meaning; Atlas has no
+    # such quota, so inventing an equivalent would describe a failure mode this
+    # deployment does not have.
+    #
+    # ConnectionFailure is the base of AutoReconnect, NetworkTimeout and
+    # ServerSelectionTimeoutError - every way the driver says "I could not
+    # reach a server". OperationFailure is deliberately NOT caught: a rejected
+    # query is usually a bug in this service, and mapping it to 503 would tell
+    # the caller to retry something that will never succeed.
+    @app.exception_handler(ConnectionFailure)
+    def handle_storage_unavailable(request: Request, exc: ConnectionFailure):
+        logger.error("MongoDB unreachable on %s: %s", request.url.path, exc)
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Code Coach cannot reach its database right now. "
+                               "Your session is fine - please try again."},
+        )
+
 
     @app.get("/")
     def root():
@@ -90,29 +123,27 @@ def create_app(*, storage=None) -> FastAPI:
         return {"status": "ok"}
 
 
-    @app.post("/analyze", response_model=AnalyzeResponse)
-    def analyze(payload: AnalyzeRequest):
-        diagnostics, analysis_duration_ms = run_analysis(payload)
-        log_analysis_event(payload, diagnostics)
-        return build_analyze_response(
-            diagnostics,
-            analysis_duration_ms,
-            learning_session_id=payload.resolved_session_id,
-        )
-
-
-    @app.post("/debug-ast")
-    def debug_ast(payload: AnalyzeRequest):
-        if payload.language.lower() != "java":
-            return {"status": "unsupported_language"}
-
-        tree, _ = parse_java_code(payload.code)
-
-        return {
-            "status": "ok",
-            "root_type": tree.root_node.type,
-            "tree": str(tree.root_node),
-        }
+    # ============ WHY /analyze AND /debug-ast ARE GONE ============
+    # Both predate the versioned API and neither had a caller. The VS Code
+    # extension posts to /api/v1/code-coach/analyze, the web frontend does not
+    # analyse code at all, and export_api_contract.py already listed both as
+    # "legacy/debug, not part of the contract".
+    #
+    # They were also the only two endpoints on this service that took a
+    # request body without authentication. Rate limiting is applied through
+    # enforce_auth_rate_limit, which only the credential endpoints depend on,
+    # so anyone who could reach the service could run the tree-sitter parse and
+    # the ML inference as often as they liked, without an account.
+    #
+    # /analyze additionally called log_analysis_event, which appends to the
+    # evaluation log this component's results are drawn from - so anonymous
+    # submissions landed in the research record next to real student work,
+    # attributable to nobody.
+    #
+    # /debug-ast returned the full parse tree of whatever Java it was given.
+    # It exists in git history for whoever needs it while working on the
+    # parser; it does not need to exist in a deployment.
+    # ==============================================================
 
     return app
 

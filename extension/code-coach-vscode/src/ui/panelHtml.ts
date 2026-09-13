@@ -183,6 +183,19 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
 
         <div class="btn-row">
           <button class="btn btn-secondary" data-command="panelGoto"><span class="btn-icon">↪</span> Jump to Line ${escapeHtml(String(active?.line ?? ""))}</button>
+          ${/*
+            FR-09's second half: the card navigates to the web dashboard.
+            The panel had no link to it at all - portalUrl was used only by the
+            sign-in flow - so the IDE and the dashboard were two surfaces with
+            nothing joining them.
+
+            Hidden when there is no concept tag, because without one the link
+            can only reach the generic list, and a button that sometimes lands
+            somewhere useful and sometimes does not is worse than no button.
+          */""}
+          ${active?.concept_tag
+            ? `<button class="btn btn-ghost" data-command="openStudy" title="Open the full micro-lesson and your progress in the browser">📖 Study this concept</button>`
+            : ""}
           ${active && state.disputedDiagnosticIds.has(active.diagnostic_id)
             ? `<button class="btn btn-ghost btn-disputed" disabled>✓ Reported — thanks</button>`
             : `<button class="btn btn-ghost" data-command="panelDispute" title="Tell us this warning is wrong — it improves detection">🚩 Not a real bug?</button>`}

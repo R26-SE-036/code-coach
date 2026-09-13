@@ -972,28 +972,20 @@ class MongoStorage:
         )
         return [_copy_document(document) or {} for document in cursor]
 
-# Picks the storage backend from configuration: Firestore when a service
-# account key is configured, MongoDB when a URI is set, in-memory otherwise
-# (development fallback — data does NOT survive a restart).
+# Picks the storage backend from configuration: MongoDB when a URI is set,
+# in-memory otherwise (development fallback — data does NOT survive a restart).
 def build_storage():
+    """The platform store: MongoDB, or in-memory when nothing is configured.
+
+    There used to be a third branch here, checked first, selecting an entirely
+    different database whenever a leftover credential variable was present. It
+    is gone: a dormant branch that silently changes which database the whole
+    platform talks to, on the strength of a stale line in someone's .env, is a
+    worse hazard than the flexibility it bought.
+    """
     settings = get_settings()
 
-    if settings.firebase_credentials_path or settings.firebase_project_id:
-        # Imported lazily so google-cloud-firestore is only required when used.
-        # Key file for local dev; project id alone suffices on Google Cloud
-        # (Application Default Credentials).
-        from app.db.firestore_storage import FirestoreStorage
-
-        storage = FirestoreStorage(
-            settings.firebase_credentials_path,
-            settings.firebase_project_id,
-            settings.firebase_database_id,
-        )
-        print(
-            f"Storage backend: Firestore (project={storage.client.project}, "
-            f"database={settings.firebase_database_id})"
-        )
-    elif settings.mongodb_uri:
+    if settings.mongodb_uri:
         storage = MongoStorage(settings.mongodb_uri, settings.mongodb_db_name)
         print(f"Storage backend: MongoDB (db={settings.mongodb_db_name})")
     else:

@@ -12,6 +12,10 @@
 > - [`openapi.json`](openapi.json) — the same thing for Postman / client
 >   generators.
 > - [`inter-service-events.md`](inter-service-events.md) — the async half.
+> - [`prerequisite-graph.md`](prerequisite-graph.md) — what the concept
+>   prerequisite graph is, how Code Coach derives one from real student
+>   histories, and why it currently refuses to. Written for a reader who
+>   has not seen it before.
 
 ---
 
@@ -403,13 +407,13 @@ service reads it from the environment and none of them hardcode it.
 
 Two things the Code Coach owner must do:
 
-1. **Run on Firestore, not in-memory.** Code Coach falls back to in-memory
+1. **Run on MongoDB, not in-memory.** Code Coach falls back to in-memory
    storage when no credentials are configured, and then every account, session
    and trigger is lost on restart — teammates cannot see each other's data, and
    an already-signed-in VS Code extension gets silently logged out (its stored
    session no longer exists, the 401 clears its tokens, and auto-analysis fails
    quietly with no prompt). Check the startup line says
-   `Storage backend: Firestore`.
+   `Storage backend: MongoDB`.
 2. **Add teammates' origins to CORS.** Browsers calling the tunnel from
    `http://localhost:5173` etc. are blocked otherwise:
 

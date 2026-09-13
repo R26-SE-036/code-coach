@@ -31,7 +31,10 @@ def _timeline_title_and_summary(document: dict[str, Any]) -> tuple[str, str]:
 
     if event_type == "code_diagnostic_detected":
         return (
-            "Code Coach detected an issue",
+            # Named for what happened, not for the service that noticed. This
+            # string is rendered verbatim on the student's timeline, and the
+            # web app deliberately does not surface component names to them.
+            "Issue spotted in your code",
             f"{payload.get('error_type', 'Unknown issue')} in {concept_tag or 'this concept'}.",
         )
     if event_type == "diagnostic_resolved":

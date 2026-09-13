@@ -74,7 +74,6 @@ Response `200`:
     "user_id": "string",
     "full_name": "string",
     "email": "student@example.com",
-    "role": "string",
     "status": "string",
     "created_at": "2026-07-12T10:22:41Z"
   },
@@ -121,7 +120,6 @@ Response `200`:
     "user_id": "string",
     "full_name": "string",
     "email": "student@example.com",
-    "role": "string",
     "status": "string",
     "created_at": "2026-07-12T10:22:41Z"
   },
@@ -166,7 +164,6 @@ Response `200`:
     "user_id": "string",
     "full_name": "string",
     "email": "student@example.com",
-    "role": "string",
     "status": "string",
     "created_at": "2026-07-12T10:22:41Z"
   },
@@ -217,7 +214,6 @@ Response `200`:
     "user_id": "string",
     "full_name": "string",
     "email": "student@example.com",
-    "role": "string",
     "status": "string",
     "created_at": "2026-07-12T10:22:41Z"
   },

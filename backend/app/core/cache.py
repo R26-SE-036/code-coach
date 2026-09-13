@@ -1,6 +1,6 @@
 """Tiny in-process TTL cache.
 
-Why this exists: every Firestore call is a network round trip, and from a
+Why this exists: every database call is a network round trip, and from a
 client far from the database region a round trip can cost ~1 s. The analysis
 itself takes ~7 ms, so request latency was dominated by repeated reads of
 data that barely changes (the caller's auth session, user record, and

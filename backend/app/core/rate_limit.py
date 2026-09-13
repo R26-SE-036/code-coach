@@ -8,7 +8,7 @@ Deliberately in-memory and dependency-free: at this project's scale Cloud Run
 runs a single instance, so per-instance state is effectively global. If the
 service ever scales out, each instance enforces the limit independently —
 an attacker gets (limit × instances), which still blocks brute force. A
-shared store (Firestore/Redis) is the upgrade path if that ever matters.
+shared store (Redis) is the upgrade path if that ever matters.
 """
 
 from __future__ import annotations

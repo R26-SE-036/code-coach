@@ -33,6 +33,7 @@ import { ensureAuthenticated, ensureLearningSession, trackLearningEvent } from "
 import { isSupportedDocument, updateAnalysisStatusBar, formatDuration } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
 import { buildDecorationOptions } from "./ui/decorations";
+import { getPortalUrl } from "./browserAuth";
 
 // ── Range & severity helpers ──
 
@@ -629,6 +630,44 @@ function disputeActiveDiagnostic(state: ExtensionState): void {
  * ONE message handler shared by the coach panel and the sidebar webviews, so
  * the two surfaces can never drift apart in what their buttons do.
  */
+/**
+ * Open the web dashboard on the concept the student is currently stuck on.
+ *
+ * This is the second half of FR-09 - "an IDE summary card that navigates to a
+ * detailed web dashboard for the full lesson". The card existed and the
+ * dashboard existed; nothing joined them. `portalUrl` was configured and read
+ * in exactly one place, the loopback sign-in flow, so the setting looked like
+ * it powered this and did not.
+ *
+ * The concept tag travels as a query parameter rather than a trigger id.
+ * The extension does not have a trigger id: Code Coach raises triggers on its
+ * own schedule, from repeat counts the editor never sees, so a diagnostic on
+ * screen may have no trigger behind it yet. Sending the concept lets the
+ * Study page highlight the matching lesson when one exists and simply list
+ * everything when it does not - which degrades honestly either way.
+ */
+export function openStudyDashboard(state: ExtensionState): void {
+  const uriKey = resolvePanelUriKey(state);
+  const diagnostics = uriKey ? state.lastDiagnosticsByUri.get(uriKey) ?? [] : [];
+
+  let conceptTag: string | undefined;
+  if (diagnostics.length > 0) {
+    const index = Math.min(
+      state.activeHintIndexByUri.get(uriKey as string) ?? 0,
+      diagnostics.length - 1,
+    );
+    conceptTag = diagnostics[index]?.concept_tag;
+  }
+
+  const target = new URL("/study", `${getPortalUrl()}/`);
+  if (conceptTag) {
+    target.searchParams.set("concept", conceptTag);
+  }
+
+  state.outputChannel.appendLine(`Opening study dashboard: ${target.toString()}`);
+  void vscode.env.openExternal(vscode.Uri.parse(target.toString()));
+}
+
 export function handleCoachPanelMessage(
   state: ExtensionState,
   message: { command?: string; index?: number },
@@ -662,6 +701,9 @@ export function handleCoachPanelMessage(
       break;
     case "panelDispute":
       disputeActiveDiagnostic(state);
+      break;
+    case "openStudy":
+      openStudyDashboard(state);
       break;
     case "openOutput":
       state.outputChannel.show(true);

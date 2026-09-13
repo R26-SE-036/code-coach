@@ -1,15 +1,19 @@
-# Code Coach backend — container image for Cloud Run / Render / any host.
+# Code Coach backend - the platform's identity provider and diagnostics store.
 #
-# Build (from the repo root):   docker build -t code-coach-backend .
-# Run locally against Firestore with the dev service-account key:
+# Build (from the repo root):
+#   docker build -t code-coach-backend .
+#
+# Run:
 #   docker run --rm -p 8000:8080 \
-#     -v ./backend/secrets:/app/backend/secrets:ro \
-#     -e FIREBASE_CREDENTIALS_PATH=secrets/firebase-service-account.json \
+#     -e MONGODB_URI='mongodb+srv://...' \
+#     -e MONGODB_DB_NAME=code-guru \
 #     -e JWT_SECRET=<your secret> \
 #     code-coach-backend
 #
-# On Cloud Run no key file is used: set FIREBASE_PROJECT_ID only and the
-# service authenticates as its runtime service account (ADC).
+# MONGODB_URI has no default on purpose. Without it the service falls back to
+# in-memory storage and starts perfectly happily, which in a container means
+# every account and diagnostic disappears on the next restart - a failure that
+# looks like the database being empty rather than never having been configured.
 
 FROM python:3.12-slim
 
@@ -26,7 +30,8 @@ COPY backend/app /app/backend/app
 COPY backend/models /app/backend/models
 COPY knowledge_base /app/knowledge_base
 
-# Cloud Run injects PORT (8080 by default); honor it everywhere else too.
+# PORT is honoured wherever it is injected; 8080 is the default the task
+# definition and the ALB target group both expect.
 ENV PORT=8080
 EXPOSE 8080
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

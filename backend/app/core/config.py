@@ -16,17 +16,12 @@ class Settings(BaseSettings):
     )
 
     # Storage backend selection (checked in this order by build_storage):
-    # 1. Firestore — set firebase_credentials_path to a service account key
-    # 2. MongoDB   — set mongodb_uri
-    # 3. In-memory — fallback for local development; data is LOST on restart
-    firebase_credentials_path: Optional[str] = None
-    firebase_project_id: Optional[str] = None
-    # Firestore database to use. "(default)" is the one created with the
-    # project; set this to a named database when the default one sits in a
-    # distant region (a database's location cannot be changed after creation,
-    # and every round trip pays that distance).
-    firebase_database_id: str = "(default)"
-
+    # 1. MongoDB   — set mongodb_uri
+    # 2. In-memory — fallback for local development; data is LOST on restart
+    #
+    # `extra="ignore"` above means a stale variable left in an old .env is read
+    # and discarded rather than rejected, so nothing breaks for anyone who has
+    # not cleaned theirs up.
     mongodb_uri: Optional[str] = None
     mongodb_db_name: str = "code-guru"
 
