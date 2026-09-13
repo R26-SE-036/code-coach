@@ -186,14 +186,33 @@ def _recommendation_id(trigger_id: str, lesson_id: str) -> str:
 
 
 def _rationale_for_trigger(trigger: dict[str, Any]) -> str:
-    repeat_count = trigger.get("repeatCount", 0)
-    active_count = trigger.get("activeCount", 0)
-    hint_dependency_level = trigger.get("hintDependencyLevel", "low")
-    concept_tag = trigger.get("conceptTag", "this concept")
-    return (
-        f"The student has repeated {concept_tag} errors {repeat_count} time(s), "
-        f"still has {active_count} active issue(s), and shows {hint_dependency_level} hint dependence."
-    )
+    """Why this lesson, addressed to the student it is shown to.
+
+    It described them in the third person with the raw concept tag - "The
+    student has repeated loop_boundaries errors 3 time(s)" - which is a log
+    line, not an explanation. And it assumed every trigger came from Code
+    Coach's own diagnostics, so a lesson opened by an unsolved pair session
+    would have said the student "repeated errors 0 time(s)".
+    """
+    concept = str(trigger.get("conceptTag") or "this concept").replace("_", " ")
+
+    if trigger.get("triggerSource") == "collaborative_studio":
+        return (
+            f"You worked on {concept} with a partner, and the program did not produce "
+            "the expected output before the session ended."
+        )
+
+    repeat_count = int(trigger.get("repeatCount") or 0)
+    active_count = int(trigger.get("activeCount") or 0)
+    times = "once" if repeat_count == 1 else f"{repeat_count} times"
+
+    sentence = f"Code Coach has seen {concept} errors in your code {times}"
+    if active_count:
+        sentence += f", and {active_count} {'is' if active_count == 1 else 'are'} still open"
+    sentence += "."
+    if trigger.get("hintDependencyLevel") == "high":
+        sentence += " You have also been leaning on hints for it."
+    return sentence
 
 
 def build_study_guider_recommendations(

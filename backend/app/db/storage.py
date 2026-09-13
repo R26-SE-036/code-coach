@@ -22,6 +22,20 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _trigger_sources(trigger_source: Any) -> Optional[set[str]]:
+    """No filter, one source, or several.
+
+    Study Guider's recommendations read two sources - Code Coach's own
+    struggles and unsolved pair sessions - and this filter used to take exactly
+    one, which is how a trigger could be stored and never shown to anyone.
+    """
+    if trigger_source is None:
+        return None
+    if isinstance(trigger_source, str):
+        return {trigger_source}
+    return set(trigger_source)
+
+
 def _copy_document(document: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
     if document is None:
         return None
@@ -373,15 +387,16 @@ class InMemoryStorage:
         user_id: str,
         *,
         status: Optional[str] = None,
-        trigger_source: Optional[str] = None,
+        trigger_source: Optional[str | list[str] | tuple[str, ...]] = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
+        sources = _trigger_sources(trigger_source)
         documents = [
             _copy_document(document)
             for document in self.remediation_triggers.values()
             if document["userId"] == user_id
             and (status is None or document["status"] == status)
-            and (trigger_source is None or document["triggerSource"] == trigger_source)
+            and (sources is None or document["triggerSource"] in sources)
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
@@ -905,14 +920,17 @@ class MongoStorage:
         user_id: str,
         *,
         status: Optional[str] = None,
-        trigger_source: Optional[str] = None,
+        trigger_source: Optional[str | list[str] | tuple[str, ...]] = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         query: dict[str, Any] = {"userId": user_id}
         if status is not None:
             query["status"] = status
-        if trigger_source is not None:
-            query["triggerSource"] = trigger_source
+        sources = _trigger_sources(trigger_source)
+        if sources is not None:
+            query["triggerSource"] = (
+                next(iter(sources)) if len(sources) == 1 else {"$in": sorted(sources)}
+            )
 
         cursor = self.db.remediationTriggers.find(
             query,

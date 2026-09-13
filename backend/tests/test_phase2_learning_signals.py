@@ -223,7 +223,9 @@ class Phase2LearningSignalTests(unittest.TestCase):
             recommendation["quiz"]["quiz_id"],
         )
         self.assertEqual("high", recommendation["priority"])
-        self.assertIn("array_indexing", recommendation["rationale"])
+        # Named the way the student reads it. The rationale is shown on the
+        # Study Guider page, so it says "array indexing" rather than the tag.
+        self.assertIn("array indexing", recommendation["rationale"])
 
         signal_events_response = self.client.get(
             "/api/v1/events/me",

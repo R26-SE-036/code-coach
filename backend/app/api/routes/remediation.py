@@ -104,7 +104,10 @@ def get_my_study_guider_recommendations(
     documents = storage.list_remediation_triggers_for_user(
         auth.user_id,
         status="active",
-        trigger_source="code_coach",
+        # Code Coach's own struggles, and pair sessions that ended unsolved.
+        # This read "code_coach" alone, so a trigger raised by any other
+        # component was stored and counted and never offered to the student.
+        trigger_source=("code_coach", "collaborative_studio"),
         limit=limit,
     )
     return build_study_guider_recommendations(documents)

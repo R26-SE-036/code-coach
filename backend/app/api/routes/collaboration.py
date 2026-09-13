@@ -11,6 +11,8 @@ from app.models import (
     CollaborationPromptShownRequest,
     CollaborationSessionCreateRequest,
     CollaborationSessionCreateResponse,
+    PairSessionResultRequest,
+    PairSessionResultResponse,
     PeerReviewSubmittedRequest,
 )
 from app.services.collaboration_service import (
@@ -19,6 +21,7 @@ from app.services.collaboration_service import (
     create_collaboration_session_document,
     record_collaboration_prompt_shown,
     record_pair_session_started,
+    record_pair_session_completed,
     record_peer_review_submitted,
 )
 from app.services.learning_signal_service import build_concept_struggles
@@ -242,4 +245,55 @@ def submit_my_peer_review(
         message="Peer review submission recorded.",
         pair_session_id=payload.pair_session_id,
         created_event_types=[event["eventType"] for event in events],
+    )
+
+
+@router.post("/me/pair-session-results", response_model=PairSessionResultResponse)
+def record_my_pair_session_result(
+    payload: PairSessionResultRequest,
+    auth: AuthContext = Depends(get_current_auth),
+    storage: Any = Depends(get_storage),
+) -> PairSessionResultResponse:
+    """A finished PairPath session, reported for this student.
+
+    The web app sends this from its server, built from PairPath's own record of
+    the session. Like the other /me result endpoints here, it can only ever
+    write into the caller's own record. See record_pair_session_completed for
+    what it changes.
+    """
+    _get_owned_learning_session_or_404(
+        storage,
+        user_id=auth.user_id,
+        learning_session_id=payload.learning_session_id,
+    )
+    result = record_pair_session_completed(
+        storage,
+        user_id=auth.user_id,
+        learning_session_id=payload.learning_session_id,
+        pair_session_id=payload.pair_session_id,
+        task_id=payload.task_id,
+        concept_tags=payload.concept_tags,
+        error_type=payload.error_type,
+        difficulty_level=payload.difficulty_level,
+        solved=payload.solved,
+        run_count=payload.run_count,
+        correct_run_count=payload.correct_run_count,
+        seconds_to_solve=payload.seconds_to_solve,
+        duration_seconds=payload.duration_seconds,
+        review_score_percent=payload.review_score_percent,
+        occurred_at=payload.occurred_at,
+    )
+    if result["already_recorded"]:
+        return PairSessionResultResponse(
+            status="ok",
+            message="This pair session was already recorded.",
+            already_recorded=True,
+            created_event_types=[],
+        )
+    return PairSessionResultResponse(
+        status="ok",
+        message="Pair session result recorded.",
+        created_event_types=[event["eventType"] for event in result["events"]],
+        mastery=result["mastery"],
+        trigger_ids=result["trigger_ids"],
     )
