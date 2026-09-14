@@ -85,6 +85,22 @@ SAMPLES = {
         "class A { void m() { int count = 1; while (count <= 5) { System.out.println(count); } } }",
         "count <= 5",
     ),
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": (
+        "class A { void m(int total, int count) { double average = total / count; } }",
+        "total / count",
+    ),
+    "DECIMAL_EQUALITY_COMPARISON": (
+        "class A { boolean m(double price) { return price == 0.3; } }",
+        "price == 0.3",
+    ),
+    "POSTFIX_INCREMENT_ASSIGNED_BACK": (
+        "class A { void m(int count) { count = count++; } }",
+        "count = count++",
+    ),
+    "ALWAYS_FALSE_AND_CONDITION": (
+        "class A { boolean m(int x) { return x > 10 && x < 5; } }",
+        "x > 10 && x < 5",
+    ),
 }
 
 

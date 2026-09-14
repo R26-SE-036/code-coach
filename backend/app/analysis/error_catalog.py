@@ -13,17 +13,21 @@ from pathlib import Path
 from typing import Callable, List, Literal, Optional
 
 from app.analysis.issue_locators import (
+    locate_always_false_and_conditions,
     locate_always_true_or_conditions,
     locate_array_length_index_misuses,
     locate_constant_false_loop_conditions,
+    locate_decimal_equality_comparisons,
     locate_division_by_zero_literals,
     locate_duplicate_if_else_conditions,
     locate_empty_conditional_bodies,
     locate_ignored_string_method_results,
     locate_incorrect_conditional_operators,
+    locate_integer_division_in_decimal_context,
     locate_loop_update_wrong_directions,
     locate_missing_breaks_in_switch,
     locate_off_by_one_loop_boundaries,
+    locate_postfix_increment_assigned_back,
     locate_self_assignments,
     locate_string_equality_with_operator,
     locate_unreachable_code_after_return,
@@ -162,6 +166,29 @@ ERROR_CATALOG: dict[str, ErrorTypeSpec] = {
         model_file="has_while_not_updated__logistic_regression.joblib",
         ml_threshold=0.5027,
     ),
+    # Added together, all rule-only, each under a concept that already has a
+    # lesson, a game and a collaboration prompt - so a student who keeps
+    # making one of them is sent somewhere real, not to the generic fallback.
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": ErrorTypeSpec(
+        error_type="INTEGER_DIVISION_IN_DECIMAL_CONTEXT",
+        detection_mode="rule_only",
+        locator=locate_integer_division_in_decimal_context,
+    ),
+    "DECIMAL_EQUALITY_COMPARISON": ErrorTypeSpec(
+        error_type="DECIMAL_EQUALITY_COMPARISON",
+        detection_mode="rule_only",
+        locator=locate_decimal_equality_comparisons,
+    ),
+    "POSTFIX_INCREMENT_ASSIGNED_BACK": ErrorTypeSpec(
+        error_type="POSTFIX_INCREMENT_ASSIGNED_BACK",
+        detection_mode="rule_only",
+        locator=locate_postfix_increment_assigned_back,
+    ),
+    "ALWAYS_FALSE_AND_CONDITION": ErrorTypeSpec(
+        error_type="ALWAYS_FALSE_AND_CONDITION",
+        detection_mode="rule_only",
+        locator=locate_always_false_and_conditions,
+    ),
 }
 
 
@@ -175,7 +202,7 @@ def ml_gated_specs() -> list[ErrorTypeSpec]:
     ]
 
 
-# The 12 pure-AST error types (no model). Provided for symmetry/introspection;
+# The pure-AST error types (no model). Provided for symmetry/introspection;
 # analyzer actually iterates the whole ERROR_CATALOG and branches per spec.
 def rule_only_specs() -> list[ErrorTypeSpec]:
     return [

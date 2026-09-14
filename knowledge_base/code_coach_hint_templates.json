@@ -43,5 +43,17 @@
   },
   "WHILE_VARIABLE_NOT_UPDATED": {
     "targeted": "Nothing inside this loop changes {variables}, so `{condition}` gives the same answer on every pass. Which line should be changing it?"
+  },
+  "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+    "targeted": "`{expression}` divides two whole numbers, so Java drops the remainder before the answer is stored in {target}. What happens to the decimal part?"
+  },
+  "DECIMAL_EQUALITY_COMPARISON": {
+    "targeted": "`{comparison}` needs the two decimal values to match exactly, down to the last binary digit, and calculated values often miss by a tiny amount. How close should they be to count as equal?"
+  },
+  "POSTFIX_INCREMENT_ASSIGNED_BACK": {
+    "targeted": "In `{assignment}`, {variable}++ increases {variable} and then hands back its old value, which the assignment stores straight back into {variable}. What is {variable} after this line runs?"
+  },
+  "ALWAYS_FALSE_AND_CONDITION": {
+    "targeted": "Try `{condition}` with a few values of {variable}. Is there any value that makes both sides true at once?"
   }
 }

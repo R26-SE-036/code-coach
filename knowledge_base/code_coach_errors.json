@@ -133,5 +133,41 @@
       "guidance": "List the variables used in the condition and find the line inside the loop that changes any of them.",
       "targeted": "Check whether the loop body should update the variable used in the while condition."
     }
+  },
+  "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+    "concept_tag": "arithmetic_operations",
+    "explanation_key": "integer_division_truncates",
+    "hints": {
+      "concept": "When both numbers in a division are whole numbers, Java does whole-number division and throws the remainder away.",
+      "guidance": "Look at the types of the two values being divided, not at the type of the variable the answer is stored in.",
+      "targeted": "Check whether one side of this division should be a decimal value before the division happens."
+    }
+  },
+  "DECIMAL_EQUALITY_COMPARISON": {
+    "concept_tag": "arithmetic_operations",
+    "explanation_key": "floating_point_exact_comparison",
+    "hints": {
+      "concept": "Most decimal fractions, like 0.1, cannot be stored exactly in a double, so two calculations that should agree can differ by a tiny amount.",
+      "guidance": "Think about how close two decimal results need to be to count as the same, rather than whether they match exactly.",
+      "targeted": "Check whether this comparison should allow a small tolerance instead of using == or !=."
+    }
+  },
+  "POSTFIX_INCREMENT_ASSIGNED_BACK": {
+    "concept_tag": "assignment_logic",
+    "explanation_key": "postfix_result_overwrites_increment",
+    "hints": {
+      "concept": "x++ increases x, but the value it hands back is the value x had before the increase.",
+      "guidance": "Follow the order: the old value is read, x goes up by one, and then the assignment stores the old value back.",
+      "targeted": "Check whether this line should increase the variable without assigning the result back to it."
+    }
+  },
+  "ALWAYS_FALSE_AND_CONDITION": {
+    "concept_tag": "boolean_logic",
+    "explanation_key": "and_of_ranges_never_true",
+    "hints": {
+      "concept": "An AND condition is true only when both of its sides are true at the same time.",
+      "guidance": "Write down the values that make each side true, and look for a value that appears in both lists.",
+      "targeted": "Check whether one of the numbers in this condition is wrong, or whether the two checks should be combined with || instead."
+    }
   }
 }

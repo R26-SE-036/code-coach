@@ -874,3 +874,328 @@ def locate_while_variables_not_updated(parse_result: ParseResult) -> List[Detect
             )
 
     return _deduplicate(findings)
+
+
+# ── Declared types, for the checks that depend on what a variable holds ──
+
+_INTEGER_TYPES = {"int", "long", "short", "byte"}
+_DECIMAL_TYPES = {"double", "float"}
+
+
+def _declared_types(root, source_bytes: bytes) -> Dict[str, str]:
+    """name -> declared type, for every local, field and parameter in the file.
+
+    File-wide rather than scoped, like _collect_string_variable_names. A name
+    declared with two different types in different places is left out, so no
+    check ever decides on a type it cannot be sure of.
+    """
+    types: Dict[str, str] = {}
+    conflicting: set[str] = set()
+
+    def note(name_node, type_text: str) -> None:
+        if name_node is None:
+            return
+        name = _node_text(name_node, source_bytes)
+        if name in types and types[name] != type_text:
+            conflicting.add(name)
+        types[name] = type_text
+
+    for declaration_type in ("local_variable_declaration", "field_declaration"):
+        for declaration in collect_nodes_by_type(root, declaration_type):
+            type_node = declaration.child_by_field_name("type")
+            if type_node is None:
+                continue
+            type_text = _node_text(type_node, source_bytes)
+            for declarator in collect_nodes_by_type(declaration, "variable_declarator"):
+                note(declarator.child_by_field_name("name"), type_text)
+
+    for parameter in collect_nodes_by_type(root, "formal_parameter"):
+        type_node = parameter.child_by_field_name("type")
+        if type_node is not None:
+            note(parameter.child_by_field_name("name"), _node_text(type_node, source_bytes))
+
+    for name in conflicting:
+        types.pop(name, None)
+    return types
+
+
+def _operand_kind(node, source_bytes: bytes, types: Dict[str, str]) -> Optional[str]:
+    """"integer", "decimal", or None when this check cannot tell."""
+    node = _unwrap_parentheses(node)
+    if node is None:
+        return None
+    if node.type == "decimal_integer_literal":
+        return "integer"
+    if node.type == "decimal_floating_point_literal":
+        return "decimal"
+    if node.type == "identifier":
+        declared = types.get(_node_text(node, source_bytes))
+        if declared in _INTEGER_TYPES:
+            return "integer"
+        if declared in _DECIMAL_TYPES:
+            return "decimal"
+    return None
+
+
+# Where the walk up from an expression stops looking for the variable its
+# value is stored in: past these the value is being used, not stored.
+_STORAGE_SEARCH_STOPS = {
+    "expression_statement",
+    "argument_list",
+    "block",
+    "return_statement",
+    "if_statement",
+    "while_statement",
+    "for_statement",
+}
+
+
+# [rule_only] Matches: dividing two whole numbers where the answer is stored in a
+# double or float (double average = total / count). Java finishes the whole-
+# number division - dropping the remainder - before the value reaches the
+# decimal variable, so the decimal type rescues nothing. A cast of ONE operand
+# ((double) total / count) or a decimal literal (total / 2.0) is left alone.
+def locate_integer_division_in_decimal_context(parse_result: ParseResult) -> List[DetectionResult]:
+    root = parse_result.tree.root_node
+    source_bytes = parse_result.source_bytes
+    types = _declared_types(root, source_bytes)
+    findings: List[DetectionResult] = []
+
+    def decimal_target(node) -> Optional[str]:
+        current = node.parent
+        while current is not None and current.type not in _STORAGE_SEARCH_STOPS:
+            if current.type == "variable_declarator":
+                declaration = current.parent
+                type_node = declaration.child_by_field_name("type") if declaration is not None else None
+                name_node = current.child_by_field_name("name")
+                if (
+                    type_node is not None
+                    and name_node is not None
+                    and _node_text(type_node, source_bytes) in _DECIMAL_TYPES
+                ):
+                    return _node_text(name_node, source_bytes)
+                return None
+            if current.type == "assignment_expression":
+                left = current.child_by_field_name("left")
+                if (
+                    left is not None
+                    and left.type == "identifier"
+                    and types.get(_node_text(left, source_bytes)) in _DECIMAL_TYPES
+                ):
+                    return _node_text(left, source_bytes)
+                return None
+            current = current.parent
+        return None
+
+    for binary_node in collect_nodes_by_type(root, "binary_expression"):
+        if _binary_operator(binary_node) != "/":
+            continue
+
+        left = binary_node.child_by_field_name("left")
+        right = binary_node.child_by_field_name("right")
+        if _operand_kind(left, source_bytes, types) != "integer":
+            continue
+        if _operand_kind(right, source_bytes, types) != "integer":
+            continue
+
+        # Dividing by a literal 0 is DIVISION_BY_ZERO_LITERAL's, and the more
+        # urgent of the two: that line crashes.
+        divisor = _unwrap_parentheses(right)
+        if divisor is not None and _node_text(divisor, source_bytes) == "0":
+            continue
+
+        target = decimal_target(binary_node)
+        if target is None:
+            continue
+
+        findings.append(
+            _result(
+                "INTEGER_DIVISION_IN_DECIMAL_CONTEXT",
+                binary_node,
+                source_bytes,
+                0.9,
+                "Both sides of this division are whole numbers, so the remainder is dropped before the result is stored as a decimal.",
+                details={
+                    "expression": _node_text(binary_node, source_bytes),
+                    "target": target,
+                },
+            )
+        )
+
+    return _deduplicate(findings)
+
+
+def _is_zero_literal(node, source_bytes: bytes) -> bool:
+    if node.type not in ("decimal_floating_point_literal", "decimal_integer_literal"):
+        return False
+    try:
+        return float(_node_text(node, source_bytes).rstrip("dDfFlL").replace("_", "")) == 0.0
+    except ValueError:
+        return False
+
+
+# [rule_only] Matches: == or != between decimal values - a decimal literal such as
+# 0.3, or two double/float variables. Decimal fractions are stored in binary,
+# so two calculations that ought to agree (0.1 + 0.2 and 0.3) can differ in the
+# last bit. Comparing against zero is left alone: an exact-zero check is often
+# deliberate, and flagging every one would teach students to ignore this.
+def locate_decimal_equality_comparisons(parse_result: ParseResult) -> List[DetectionResult]:
+    root = parse_result.tree.root_node
+    source_bytes = parse_result.source_bytes
+    types = _declared_types(root, source_bytes)
+    findings: List[DetectionResult] = []
+
+    for binary_node in collect_nodes_by_type(root, "binary_expression"):
+        if _binary_operator(binary_node) not in {"==", "!="}:
+            continue
+
+        left = _unwrap_parentheses(binary_node.child_by_field_name("left"))
+        right = _unwrap_parentheses(binary_node.child_by_field_name("right"))
+        if left is None or right is None:
+            continue
+        if _is_zero_literal(left, source_bytes) or _is_zero_literal(right, source_bytes):
+            continue
+
+        has_decimal_literal = "decimal_floating_point_literal" in {left.type, right.type}
+        both_decimal_variables = (
+            left.type == "identifier"
+            and right.type == "identifier"
+            and _operand_kind(left, source_bytes, types) == "decimal"
+            and _operand_kind(right, source_bytes, types) == "decimal"
+        )
+
+        if has_decimal_literal or both_decimal_variables:
+            findings.append(
+                _result(
+                    "DECIMAL_EQUALITY_COMPARISON",
+                    binary_node,
+                    source_bytes,
+                    0.85,
+                    "Decimal values are compared for an exact match, which calculated doubles often fail by a tiny amount.",
+                    details={"comparison": _node_text(binary_node, source_bytes)},
+                )
+            )
+
+    return _deduplicate(findings)
+
+
+# [rule_only] Matches: x = x++ (or x = x--). The postfix expression increases x and
+# hands back the OLD value, which the assignment then stores straight back - so
+# x never changes. Prefix (x = ++x) does change x and is left alone.
+def locate_postfix_increment_assigned_back(parse_result: ParseResult) -> List[DetectionResult]:
+    root = parse_result.tree.root_node
+    source_bytes = parse_result.source_bytes
+    findings: List[DetectionResult] = []
+
+    for assignment_node in collect_nodes_by_type(root, "assignment_expression"):
+        if _binary_operator(assignment_node) != "=":
+            continue
+
+        left = assignment_node.child_by_field_name("left")
+        right = _unwrap_parentheses(assignment_node.child_by_field_name("right"))
+        if left is None or right is None or right.type != "update_expression":
+            continue
+
+        update_text = _node_text(right, source_bytes)
+        if not (update_text.endswith("++") or update_text.endswith("--")):
+            continue
+
+        variable = update_text[:-2].strip()
+        if variable != _node_text(left, source_bytes):
+            continue
+
+        findings.append(
+            _result(
+                "POSTFIX_INCREMENT_ASSIGNED_BACK",
+                assignment_node,
+                source_bytes,
+                0.95,
+                "The old value from the postfix ++ or -- is stored straight back, so the variable never changes.",
+                details={
+                    "assignment": _node_text(assignment_node, source_bytes),
+                    "variable": variable,
+                },
+            )
+        )
+
+    return _deduplicate(findings)
+
+
+_FLIPPED_COMPARISON = {"<": ">", "<=": ">=", ">": "<", ">=": "<=", "==": "=="}
+
+
+def _integer_range(node, source_bytes: bytes) -> Optional[tuple]:
+    """(variable, lowest, highest) allowed by `name OP integer` or `integer OP name`."""
+    node = _unwrap_parentheses(node)
+    if node is None or node.type != "binary_expression":
+        return None
+
+    operator = _binary_operator(node)
+    if operator not in _FLIPPED_COMPARISON:
+        return None
+
+    left = node.child_by_field_name("left")
+    right = node.child_by_field_name("right")
+    if left is None or right is None:
+        return None
+
+    if left.type == "identifier" and right.type == "decimal_integer_literal":
+        variable, literal = left, right
+    elif right.type == "identifier" and left.type == "decimal_integer_literal":
+        variable, literal = right, left
+        operator = _FLIPPED_COMPARISON[operator]
+    else:
+        return None
+
+    try:
+        value = int(_node_text(literal, source_bytes).replace("_", ""))
+    except ValueError:
+        return None
+
+    lowest, highest = float("-inf"), float("inf")
+    if operator == "<":
+        highest = value - 1
+    elif operator == "<=":
+        highest = value
+    elif operator == ">":
+        lowest = value + 1
+    elif operator == ">=":
+        lowest = value
+    else:
+        lowest = highest = value
+    return _node_text(variable, source_bytes), lowest, highest
+
+
+# [rule_only] Matches: an && of two comparisons on the same variable that no value
+# can satisfy at once (x > 10 && x < 5, age >= 18 && age < 18, x == 1 && x == 2),
+# so the condition is always false - the mirror image of ALWAYS_TRUE_OR_CONDITION.
+def locate_always_false_and_conditions(parse_result: ParseResult) -> List[DetectionResult]:
+    root = parse_result.tree.root_node
+    source_bytes = parse_result.source_bytes
+    findings: List[DetectionResult] = []
+
+    for binary_node in collect_nodes_by_type(root, "binary_expression"):
+        if _binary_operator(binary_node) != "&&":
+            continue
+
+        first = _integer_range(binary_node.child_by_field_name("left"), source_bytes)
+        second = _integer_range(binary_node.child_by_field_name("right"), source_bytes)
+        if first is None or second is None or first[0] != second[0]:
+            continue
+
+        if max(first[1], second[1]) > min(first[2], second[2]):
+            findings.append(
+                _result(
+                    "ALWAYS_FALSE_AND_CONDITION",
+                    binary_node,
+                    source_bytes,
+                    0.92,
+                    "No value can make both sides of this && true at once, so the condition is always false.",
+                    details={
+                        "condition": _node_text(binary_node, source_bytes),
+                        "variable": first[0],
+                    },
+                )
+            )
+
+    return _deduplicate(findings)
