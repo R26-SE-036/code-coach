@@ -1,0 +1,47 @@
+{
+  "OFF_BY_ONE_LOOP_BOUNDARY": {
+    "targeted": "This loop keeps going while `{condition}`, so on its last pass the index is {array}.length. Is there an element of {array} at that position?"
+  },
+  "INCORRECT_CONDITIONAL_OPERATOR": {
+    "targeted": "`{assignment}` stores a value in {variable} instead of comparing it, and the condition then tests whatever was stored. Which operator compares two values?"
+  },
+  "ARRAY_LENGTH_INDEX_MISUSE": {
+    "targeted": "`{access}` reads position {array}.length. If the positions of {array} start at 0, which position is its last one?"
+  },
+  "STRING_EQUALITY_WITH_OPERATOR": {
+    "targeted": "`{comparison}` asks whether both sides are the very same String object, not whether they hold the same text. Which String method compares the text itself?"
+  },
+  "LOOP_UPDATE_WRONG_DIRECTION": {
+    "targeted": "The loop keeps going while `{condition}`, and every pass does `{update}`. Does that bring the counter closer to making the condition false, or take it further away?"
+  },
+  "UNREACHABLE_CODE_AFTER_RETURN": {
+    "targeted": "`{statement}` comes after a return in the same block, so the method has always left before it gets there. When did you want this line to run?"
+  },
+  "MISSING_BREAK_IN_SWITCH": {
+    "targeted": "After the statements under `{case}` finish, nothing stops execution, so the next case's statements run as well. Is that meant to happen here?"
+  },
+  "EMPTY_CONDITIONAL_BODY": {
+    "targeted": "In `{statement}` the semicolon straight after the condition is the whole body, so the block underneath runs either way. What is the condition controlling at the moment?"
+  },
+  "SELF_ASSIGNMENT": {
+    "targeted": "`{assignment}` puts the value of {variable} back into {variable}, so nothing changes. Which value did you mean to store there?"
+  },
+  "ALWAYS_TRUE_OR_CONDITION": {
+    "targeted": "Try `{condition}` with a few real values of {variable}. Is there any value at all that makes the whole condition false?"
+  },
+  "IGNORED_STRING_METHOD_RESULT": {
+    "targeted": "`{call}` builds a new String, but nothing keeps it, so {target} is exactly the same afterwards. Where should the new String go?"
+  },
+  "DIVISION_BY_ZERO_LITERAL": {
+    "targeted": "`{expression}` divides by the literal 0, which stops the program every time this line runs. What should the divisor really be?"
+  },
+  "CONSTANT_FALSE_LOOP_CONDITION": {
+    "targeted": "{variable} starts at {start}, and `{condition}` is already false for that value, so the loop body never runs at all. Which of the two numbers is not the one you meant?"
+  },
+  "DUPLICATE_IF_ELSE_CONDITION": {
+    "targeted": "`{condition}` was already tested earlier in this if / else-if chain, so a value that reaches this branch has already been handled above. Which situation was this branch meant for?"
+  },
+  "WHILE_VARIABLE_NOT_UPDATED": {
+    "targeted": "Nothing inside this loop changes {variables}, so `{condition}` gives the same answer on every pass. Which line should be changing it?"
+  }
+}

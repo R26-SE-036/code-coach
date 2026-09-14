@@ -121,6 +121,9 @@ def _finalize_finding(
         detection_engine=detection_engine,
         ml_probability=ml_probability,
         locator_confidence=locator_confidence,
+        # Rebuilt field by field, so anything not named here is lost - which
+        # is how the code-specific hints would quietly fall back to generic.
+        details=finding.details,
     )
 
 

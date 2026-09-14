@@ -23,7 +23,8 @@ Shape of every locator (they all follow this template):
     return _deduplicate(findings)
 """
 
-from typing import List
+import re
+from typing import Dict, List, Optional
 
 from app.models import DetectionResult, ParseResult
 from app.analysis.parser_utils import (
@@ -54,6 +55,19 @@ def _node_context(node, source_bytes: bytes) -> str:
     return _first_line(get_node_text(node, source_bytes))
 
 
+# Code quoted back to the student inside a hint: one line, whitespace
+# collapsed, and short enough to read in a hover. A hint that pastes a whole
+# statement is harder to use than one that points at the part that matters.
+_SNIPPET_LIMIT = 60
+
+
+def _snippet(text: str) -> str:
+    collapsed = " ".join(text.split())
+    if len(collapsed) <= _SNIPPET_LIMIT:
+        return collapsed
+    return collapsed[: _SNIPPET_LIMIT - 1] + "…"
+
+
 # Shared factory: build one DetectionResult from the node that pinpoints the bug.
 # `node` decides the reported line/column (via node_to_span logic); `context_node`
 # (if given) supplies the human-readable code snippet shown in the editor.
@@ -68,7 +82,11 @@ def _result(
     *,
     context_node=None,
     severity: str = "warning",
+    details: Optional[Dict[str, str]] = None,
 ) -> DetectionResult:
+    # `details` is what the locator matched - the loop condition, the array,
+    # the two strings compared - so hint_engine can write a targeted hint about
+    # THIS code instead of the generic one for the error type.
     return DetectionResult(
         error_type=error_type,
         line=_node_line(node),
@@ -78,6 +96,7 @@ def _result(
         message=message,
         code_context=_node_context(context_node or node, source_bytes),
         locator_confidence=locator_confidence,
+        details={key: _snippet(value) for key, value in (details or {}).items() if value},
     )
 
 
@@ -121,6 +140,7 @@ def locate_off_by_one_loop_boundaries(parse_result: ParseResult) -> List[Detecti
         condition_text = _node_text(condition_node, source_bytes) # 3. the TEXT of it
 
         if "<=" in condition_text and ".length" in condition_text: # 4. crude string check
+            array_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)\.length", condition_text)
             findings.append(
                 _result(
                     "OFF_BY_ONE_LOOP_BOUNDARY",
@@ -129,6 +149,10 @@ def locate_off_by_one_loop_boundaries(parse_result: ParseResult) -> List[Detecti
                     0.95,
                     "Possible off-by-one loop boundary issue detected.",
                     context_node=for_node,
+                    details={
+                        "condition": condition_text,
+                        "array": array_match.group(1) if array_match else "",
+                    },
                 )
             )
 
@@ -159,6 +183,7 @@ def locate_incorrect_conditional_operators(parse_result: ParseResult) -> List[De
         if assignment_node is None:
             continue
 
+        assigned = assignment_node.child_by_field_name("left")
         findings.append(
             _result(
                 "INCORRECT_CONDITIONAL_OPERATOR",
@@ -167,6 +192,10 @@ def locate_incorrect_conditional_operators(parse_result: ParseResult) -> List[De
                 0.92,
                 "Possible assignment used inside a condition.",
                 context_node=conditional_node,
+                details={
+                    "assignment": _node_text(assignment_node, source_bytes),
+                    "variable": _node_text(assigned, source_bytes) if assigned is not None else "",
+                },
             )
         )
 
@@ -201,6 +230,10 @@ def locate_array_length_index_misuses(parse_result: ParseResult) -> List[Detecti
                     0.94,
                     "Possible array index out-of-bounds issue detected.",
                     context_node=array_access_node,
+                    details={
+                        "access": _node_text(array_access_node, source_bytes),
+                        "array": array_text,
+                    },
                 )
             )
 
@@ -298,6 +331,7 @@ def locate_string_equality_with_operator(parse_result: ParseResult) -> List[Dete
                     source_bytes,
                     0.93,
                     "Possible string comparison using == or != instead of .equals().",
+                    details={"comparison": _node_text(binary_node, source_bytes)},
                 )
             )
 
@@ -338,6 +372,10 @@ def locate_loop_update_wrong_directions(parse_result: ParseResult) -> List[Detec
                     0.94,
                     "Loop update moves the counter away from the loop bound, so the loop may never finish.",
                     context_node=for_node,
+                    details={
+                        "condition": _node_text(condition, source_bytes),
+                        "update": update_text,
+                    },
                 )
             )
 
@@ -367,6 +405,7 @@ def locate_unreachable_code_after_return(parse_result: ParseResult) -> List[Dete
                         source_bytes,
                         0.97,
                         "This statement can never run because the method returns before it.",
+                        details={"statement": _node_context(statements[index + 1], source_bytes)},
                     )
                 )
                 break
@@ -408,6 +447,10 @@ def locate_missing_breaks_in_switch(parse_result: ParseResult) -> List[Detection
                 continue
 
             if statements[-1].type not in _SWITCH_EXIT_STATEMENTS:
+                label = next(
+                    (child for child in group.named_children if child.type == "switch_label"),
+                    None,
+                )
                 findings.append(
                     _result(
                         "MISSING_BREAK_IN_SWITCH",
@@ -415,6 +458,7 @@ def locate_missing_breaks_in_switch(parse_result: ParseResult) -> List[Detection
                         source_bytes,
                         0.85,
                         "This case may fall through into the next case because it does not end with break.",
+                        details={"case": _node_text(label, source_bytes) if label is not None else ""},
                     )
                 )
 
@@ -446,6 +490,7 @@ def locate_empty_conditional_bodies(parse_result: ParseResult) -> List[Detection
                         source_bytes,
                         0.93,
                         "A semicolon right after the condition makes the body empty, so the condition controls nothing.",
+                        details={"statement": _node_context(statement_node, source_bytes)},
                     )
                 )
 
@@ -476,6 +521,10 @@ def locate_self_assignments(parse_result: ParseResult) -> List[DetectionResult]:
                     source_bytes,
                     0.96,
                     "This assigns a variable to itself, so nothing changes.",
+                    details={
+                        "assignment": _node_text(assignment_node, source_bytes),
+                        "variable": _node_text(left, source_bytes),
+                    },
                 )
             )
 
@@ -537,6 +586,10 @@ def locate_always_true_or_conditions(parse_result: ParseResult) -> List[Detectio
                     source_bytes,
                     0.9,
                     "This condition is always true: a value always differs from at least one of two different constants.",
+                    details={
+                        "condition": _node_text(binary_node, source_bytes),
+                        "variable": _node_text(left_var, source_bytes),
+                    },
                 )
             )
 
@@ -587,6 +640,10 @@ def locate_ignored_string_method_results(parse_result: ParseResult) -> List[Dete
                     source_bytes,
                     0.88,
                     "This String method returns a new value that is thrown away; strings are never changed in place.",
+                    details={
+                        "call": _node_text(invocation, source_bytes),
+                        "target": _node_text(object_node, source_bytes),
+                    },
                 )
             )
 
@@ -620,6 +677,7 @@ def locate_division_by_zero_literals(parse_result: ParseResult) -> List[Detectio
                     source_bytes,
                     0.97,
                     "Dividing by the literal 0 will crash the program with an ArithmeticException.",
+                    details={"expression": _node_text(binary_node, source_bytes)},
                 )
             )
 
@@ -691,6 +749,11 @@ def locate_constant_false_loop_conditions(parse_result: ParseResult) -> List[Det
                     0.95,
                     "The loop condition is already false at the first check, so the loop body never runs.",
                     context_node=for_node,
+                    details={
+                        "variable": _node_text(name_node, source_bytes),
+                        "start": _node_text(value_node, source_bytes),
+                        "condition": _node_text(condition, source_bytes),
+                    },
                 )
             )
 
@@ -734,6 +797,12 @@ def locate_duplicate_if_else_conditions(parse_result: ParseResult) -> List[Detec
                         0.95,
                         "This else-if repeats an earlier condition, so this branch can never run.",
                         context_node=current,
+                        details={
+                            "condition": _node_text(
+                                _unwrap_parentheses(current.child_by_field_name("condition")) or current,
+                                source_bytes,
+                            ),
+                        },
                     )
                 )
             seen_conditions.add(condition_text)
@@ -797,6 +866,10 @@ def locate_while_variables_not_updated(parse_result: ParseResult) -> List[Detect
                     0.86,
                     "No variable used in this while condition changes inside the loop, so the loop may never end.",
                     context_node=while_node,
+                    details={
+                        "condition": _node_text(_unwrap_parentheses(condition_node), source_bytes),
+                        "variables": ", ".join(sorted(condition_variables)),
+                    },
                 )
             )
 

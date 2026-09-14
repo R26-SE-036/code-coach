@@ -47,6 +47,11 @@ class DetectionResult(BaseModel):
     detection_engine: str = "ml_gated_ast_locator"
     ml_probability: Optional[float] = None
     locator_confidence: Optional[float] = None
+    # What the locator matched - the loop condition, the array, the strings
+    # compared - for targeted hints that quote the student's own code. Stays
+    # inside the analyzer: Diagnostic, which leaves the service, has no such
+    # field, so this adds nothing to the API.
+    details: dict[str, str] = Field(default_factory=dict)
 
 
 class Diagnostic(BaseModel):
