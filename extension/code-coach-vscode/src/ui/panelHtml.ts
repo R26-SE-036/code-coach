@@ -2,6 +2,12 @@ import * as vscode from "vscode";
 import { CoachPanelState, ExtensionState } from "../types";
 import { isSupportedDocument, formatDuration } from "./statusBar";
 
+const HINT_ORDER = ["concept", "guidance", "targeted"];
+
+function hintReached(revealed: string, level: string): boolean {
+  return HINT_ORDER.indexOf(revealed) >= HINT_ORDER.indexOf(level);
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -138,6 +144,7 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
       : "";
 
     const overallPct = active ? `${Math.round(active.confidence * 100)}%` : "—";
+    const revealed = active ? state.revealedHintLevels.get(active.diagnostic_id) ?? "concept" : "concept";
 
     content = `
       <div class="card issue-card">
@@ -172,14 +179,26 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
           <div class="hint-header"><span class="hint-icon">💡</span><h3>Concept Hint</h3></div>
           <p>${escapeHtml(active?.hints.concept ?? "")}</p>
         </div>
-        <div class="hint-block hint-guidance">
+        ${/*
+          Guidance and targeted wait to be asked for, one at a time - see
+          "Hint levels, in order" in analysis.ts. All three used to be printed
+          at once, so the hint that nearly gives the fix away was on screen
+          before the student had read the first one.
+        */""}
+        ${hintReached(revealed, "guidance")
+          ? `<div class="hint-block hint-guidance">
           <div class="hint-header"><span class="hint-icon">🧭</span><h3>Guidance Hint</h3></div>
           <p>${escapeHtml(active?.hints.guidance ?? "")}</p>
-        </div>
-        <div class="hint-block hint-targeted">
+        </div>`
+          : `<button class="btn btn-secondary hint-reveal" data-command="panelRevealHint" title="Still stuck after the concept hint? This one narrows it down.">🧭 Show the guidance hint</button>`}
+        ${hintReached(revealed, "targeted")
+          ? `<div class="hint-block hint-targeted">
           <div class="hint-header"><span class="hint-icon">🎯</span><h3>Targeted Hint</h3></div>
           <p>${escapeHtml(active?.hints.targeted ?? "")}</p>
-        </div>
+        </div>`
+          : hintReached(revealed, "guidance")
+            ? `<button class="btn btn-secondary hint-reveal" data-command="panelRevealHint" title="The last hint looks at this exact line of your code.">🎯 Show the targeted hint</button>`
+            : ""}
 
         <div class="btn-row">
           <button class="btn btn-secondary" data-command="panelGoto"><span class="btn-icon">↪</span> Jump to Line ${escapeHtml(String(active?.line ?? ""))}</button>
@@ -328,6 +347,7 @@ body{
 .mono{font-family:var(--vscode-editor-font-family);font-size:12px}
 
 /* ── Hint blocks ── */
+.hint-reveal{width:100%;justify-content:center;margin:2px 0 4px}
 .hint-block{
   display:flex;flex-direction:column;gap:6px;
   padding:12px 14px;border-radius:8px;

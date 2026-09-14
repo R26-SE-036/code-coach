@@ -67,12 +67,57 @@ def _event_payload_from_diagnostic(document: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+# Hint levels in the order a student meets them; "none" when no hint about the
+# finding had been shown by the time it was fixed.
+HINT_LEVELS = ("none", "concept", "guidance", "targeted")
+
+
+def _as_utc(moment: Any) -> datetime | None:
+    if not isinstance(moment, datetime):
+        return None
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+def deepest_hint_level_before(
+    hint_events: Iterable[dict[str, Any]],
+    diagnostic_id: str | None,
+    before: Any,
+) -> str:
+    """The furthest hint level shown for one finding by the time it was fixed.
+
+    Whether a student fixed a mistake on their own, after the concept, or only
+    once the targeted hint all but pointed at the line are different outcomes,
+    and time to fix alone cannot tell them apart. This is only meaningful
+    because a finding's id now survives edits to the rest of the file - under
+    line-based ids, the hints a student opened belonged to an id that had
+    already been "resolved" by the time they fixed anything.
+    """
+    deepest = 0
+    cutoff = _as_utc(before)
+    for event in hint_events:
+        if event.get("eventType") not in HINT_EVENT_TYPES:
+            continue
+        payload = event.get("payload") or {}
+        if not diagnostic_id or payload.get("diagnostic_id") != diagnostic_id:
+            continue
+        shown_at = _as_utc(event.get("occurredAt"))
+        if cutoff is not None and shown_at is not None and shown_at > cutoff:
+            continue
+        level = payload.get("hint_level")
+        if level in HINT_LEVELS:
+            deepest = max(deepest, HINT_LEVELS.index(level))
+    return HINT_LEVELS[deepest]
+
+
 def build_code_coach_learning_events(
     user_id: str,
     learning_session_id: str,
     sync_result: DiagnosticSyncResult,
+    *,
+    hint_events: Iterable[dict[str, Any]] = (),
 ) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
+    hint_events = list(hint_events)
 
     for document in sync_result.newly_detected_documents:
         events.append(
@@ -100,6 +145,11 @@ def build_code_coach_learning_events(
         payload = _event_payload_from_diagnostic(document)
         payload["resolved_at"] = resolved_at
         payload["time_to_fix_seconds"] = time_to_fix_seconds
+        payload["hint_level_before_fix"] = deepest_hint_level_before(
+            hint_events,
+            document.get("diagnosticId"),
+            resolved_at,
+        )
 
         events.append(
             build_learning_event_document(

@@ -58,8 +58,16 @@ def _persist_analysis(
         sync_result = storage.sync_code_diagnostics(
             user_id, learning_session_id, diagnostic_documents,
         )
+
+        # Read only when something was fixed: most analyses fix nothing, and
+        # this would otherwise add a query to every one of them. The latest
+        # 500 events reach back well past any finding still being worked on.
+        hint_events: list[dict] = []
+        if sync_result.resolved_documents:
+            hint_events = storage.list_learning_events_for_user(user_id, limit=500)
+
         learning_events = build_code_coach_learning_events(
-            user_id, learning_session_id, sync_result,
+            user_id, learning_session_id, sync_result, hint_events=hint_events,
         )
         if learning_events:
             storage.create_learning_events(learning_events)

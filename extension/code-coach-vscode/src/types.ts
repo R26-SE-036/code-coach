@@ -147,6 +147,13 @@ export type ExtensionState = {
   lastDiagnosticsByUri: Map<string, DiagnosticItem[]>;
   lastAnalysisSnapshotByUri: Map<string, AnalysisSnapshot>;
   activeHintIndexByUri: Map<string, number>;
+  /**
+   * The furthest hint level the student has opened, per diagnostic_id. The
+   * concept hint is always shown; guidance and targeted wait until asked for,
+   * one at a time. Keyed by the finding's id, which stays the same while the
+   * rest of the file is edited, so re-analysis does not hide what was opened.
+   */
+  revealedHintLevels: Map<string, "concept" | "guidance" | "targeted">;
   debounceTimers: Map<string, ReturnType<typeof setTimeout>>;
   activeAnalysisUriKey: string | undefined;
   /**
