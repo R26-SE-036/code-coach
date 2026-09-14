@@ -11,6 +11,7 @@ from app.models import (
     LearningEventListResponse,
     LearningEventView,
 )
+from app.services.dispute_service import DISPUTE_EVENT_TYPE, record_dispute
 from app.services.learning_signal_service import build_learning_event_document
 from app.services.remediation_service import sync_code_coach_remediation_triggers
 
@@ -61,7 +62,19 @@ def create_learning_event(
         payload=payload.payload,
     )
     storage.create_learning_events([document])
-    if component == "code_coach":
+
+    # A false-positive report is acted on, not only stored - see
+    # dispute_service. Before the triggers are re-synced below, so the counts
+    # they are built from no longer include the finding the student disputed.
+    disputed = event_type == DISPUTE_EVENT_TYPE and record_dispute(
+        storage,
+        user_id=auth.user_id,
+        learning_session_id=payload.learning_session_id,
+        concept_tag=concept_tag,
+        payload=payload.payload,
+    )
+
+    if component == "code_coach" or disputed:
         sync_code_coach_remediation_triggers(
             storage,
             user_id=auth.user_id,

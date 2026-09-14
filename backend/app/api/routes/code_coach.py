@@ -13,6 +13,7 @@ from app.services.code_coach_service import (
     build_diagnostic_records,
     run_analysis,
 )
+from app.services.dispute_service import disputed_ids_for
 from app.services.evaluation_logger import log_analysis_event
 from app.services.learning_signal_service import build_code_coach_learning_events
 from app.services.remediation_service import sync_code_coach_remediation_triggers
@@ -43,6 +44,17 @@ def _persist_analysis(
     editor experience — so failures are logged, not raised.
     """
     try:
+        # Disputes read fresh here, not from the cache the response used. A
+        # dispute recorded by another process since that cache filled would
+        # otherwise be stored as an active finding, and go back to counting
+        # against the student who disputed it.
+        disputed = disputed_ids_for(storage, user_id, fresh=True)
+        diagnostic_documents = [
+            document
+            for document in diagnostic_documents
+            if document["diagnosticId"] not in disputed
+        ]
+
         sync_result = storage.sync_code_diagnostics(
             user_id, learning_session_id, diagnostic_documents,
         )
@@ -93,7 +105,14 @@ def analyze_for_authenticated_user(
         _SESSION_CACHE.set(session_key, True)
 
     # Calls code_coach_service.py — pure computation, no database.
-    diagnostics, analysis_duration_ms = run_analysis(payload)
+    detected, analysis_duration_ms = run_analysis(payload)
+
+    # A finding this student has disputed is not shown to them again - see
+    # dispute_service. The evaluation log below still gets everything the
+    # detector found, because it is a record of the detector.
+    disputed = disputed_ids_for(storage, auth.user_id)
+    diagnostics = [item for item in detected if item.diagnostic_id not in disputed]
+
     diagnostic_documents = build_diagnostic_records(
         auth.user_id,
         learning_session_id,
@@ -111,7 +130,7 @@ def analyze_for_authenticated_user(
 
     log_analysis_event(
         payload,
-        diagnostics,
+        detected,
         user_id=auth.user_id,
         learning_session_id=learning_session_id,
     )
