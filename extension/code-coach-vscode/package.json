@@ -49,8 +49,8 @@
       "properties": {
         "codeCoach.backendUrl": {
           "type": "string",
-          "default": "http://127.0.0.1:8000",
-          "description": "Local Code Coach backend URL."
+          "default": "http://localhost:8090",
+          "description": "Where the extension calls Code Coach's API. The compose stack serves it through Caddy at the same address as the web app: http://localhost:8090, or http://localhost with whatever HTTP_PORT is. Running the backend on its own with uvicorn, use http://127.0.0.1:8000."
         },
         "codeCoach.enableEvaluationLogging": {
           "type": "boolean",
@@ -59,8 +59,8 @@
         },
         "codeCoach.portalUrl": {
           "type": "string",
-          "default": "http://localhost:4200",
-          "description": "The Code Guru web app (codeguru-web). Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. `npm run dev` serves it on port 4200; through the compose stack, use http://localhost with the HTTP_PORT Caddy publishes."
+          "default": "http://localhost:8090",
+          "description": "The Code Guru web app (codeguru-web). Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. The compose stack serves it at http://localhost:8090 (http://localhost with whatever HTTP_PORT Caddy publishes); `npm run dev` serves it at http://localhost:4200."
         }
       }
     },

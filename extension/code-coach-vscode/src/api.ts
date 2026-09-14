@@ -25,12 +25,12 @@ import {
   AuthResponse,
   ExtensionState,
 } from "./types";
-import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "./constants";
+import { ACCESS_TOKEN_SECRET, DEFAULT_PLATFORM_URL, REFRESH_TOKEN_SECRET } from "./constants";
 
 export function getBackendUrl(): string {
   return vscode.workspace
     .getConfiguration("codeCoach")
-    .get<string>("backendUrl", "http://127.0.0.1:8000")
+    .get<string>("backendUrl", DEFAULT_PLATFORM_URL)
     .replace(/\/$/, "");
 }
 

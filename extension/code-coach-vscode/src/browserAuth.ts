@@ -45,6 +45,7 @@ import * as http from "http";
 import * as vscode from "vscode";
 
 import { requestJson, storeAuthResponse } from "./api";
+import { DEFAULT_PLATFORM_URL } from "./constants";
 import { ApiError, AuthResponse, ExtensionState } from "./types";
 
 /** Must match VSCODE_LOOPBACK_PORT in the portal, and its allow-list entry. */
@@ -57,7 +58,7 @@ const SIGN_IN_TIMEOUT_MS = 3 * 60 * 1000;
 export function getPortalUrl(): string {
   return vscode.workspace
     .getConfiguration("codeCoach")
-    .get<string>("portalUrl", "http://localhost:4200")
+    .get<string>("portalUrl", DEFAULT_PLATFORM_URL)
     .replace(/\/$/, "");
 }
 
