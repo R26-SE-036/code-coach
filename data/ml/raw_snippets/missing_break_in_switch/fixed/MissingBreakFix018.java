@@ -1,0 +1,21 @@
+package data.ml.raw_snippets.missing_break_in_switch.fixed;
+
+public class MissingBreakFix018 {
+    static double discountFor(String tier) {
+        double discount = 0;
+        switch (tier) {
+            case "gold":
+                discount = 0.20;
+                break;
+            case "silver":
+                discount = 0.10;
+                break;
+            case "bronze":
+                discount = 0.05;
+                break;
+            default:
+                discount = 0;
+        }
+        return discount;
+    }
+}

@@ -1,0 +1,21 @@
+package data.ml.raw_snippets.missing_break_in_switch.buggy;
+
+public class MissingBreakBug020 {
+    static int fee(int category) {
+        int total = 0;
+        switch (category) {
+            case 0:
+                total = 0;
+                break;
+            case 1:
+                total = 50;
+            case 2:
+                total = 100;
+                break;
+            case 3:
+                total = 150;
+                break;
+        }
+        return total;
+    }
+}
