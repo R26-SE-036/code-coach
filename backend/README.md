@@ -19,7 +19,7 @@
 
 Optional:
 
-- `MONGODB_DB_NAME` defaults to `code-guru`
+- `MONGODB_DB_NAME` defaults to `code_coach`
 - `ACCESS_TOKEN_TTL_SECONDS` defaults to `3600`
 - `REFRESH_TOKEN_TTL_SECONDS` defaults to `604800`
 
