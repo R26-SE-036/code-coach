@@ -70,14 +70,26 @@ class AnalyzerRequirementTests(unittest.TestCase):
                 "class A{void m(){int i = 0;"
                 ' while(i < 5){System.out.println("x");}}}'
             ),
+            "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": (
+                "class A{void m(int total, int count){double average = total / count;}}"
+            ),
+            "DECIMAL_EQUALITY_COMPARISON": (
+                "class A{void m(double price){if(price == 0.3){System.out.println(price);}}}"
+            ),
+            "POSTFIX_INCREMENT_ASSIGNED_BACK": "class A{void m(int count){count = count++;}}",
+            "ALWAYS_FALSE_AND_CONDITION": (
+                "class A{void m(int x){if(x > 10 && x < 5){System.out.println(x);}}}"
+            ),
         }
 
         for expected_error_type, code in cases.items():
             with self.subTest(expected_error_type=expected_error_type):
                 self.assert_detects(expected_error_type, code)
 
-    def test_catalog_registers_fifteen_validated_error_types(self) -> None:
-        self.assertEqual(len(ERROR_CATALOG), 15)
+    def test_catalog_registers_nineteen_validated_error_types(self) -> None:
+        # Pinned on purpose: adding an error type should be a decision this
+        # file hears about, along with a detection case above.
+        self.assertEqual(len(ERROR_CATALOG), 19)
         validate_catalog()
 
     def test_diagnostic_payload_explains_ml_and_locator_roles(self) -> None:

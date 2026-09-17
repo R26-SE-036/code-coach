@@ -6,6 +6,8 @@ from typing import Any, Optional
 
 from app.core.config import get_settings
 from app.models import DiagnosticSyncResult
+from app.services.diagnostic_matching import match_diagnostics
+from app.services.dispute_service import DISPUTED_STATUS
 
 try:
     from pymongo import ASCENDING, DESCENDING, MongoClient
@@ -22,6 +24,20 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _trigger_sources(trigger_source: Any) -> Optional[set[str]]:
+    """No filter, one source, or several.
+
+    Study Guider's recommendations read two sources - Code Coach's own
+    struggles and unsolved pair sessions - and this filter used to take exactly
+    one, which is how a trigger could be stored and never shown to anyone.
+    """
+    if trigger_source is None:
+        return None
+    if isinstance(trigger_source, str):
+        return {trigger_source}
+    return set(trigger_source)
+
+
 def _copy_document(document: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
     if document is None:
         return None
@@ -29,6 +45,14 @@ def _copy_document(document: Optional[dict[str, Any]]) -> Optional[dict[str, Any
     copied = deepcopy(document)
     copied.pop("_id", None)
     return copied
+
+
+# Disputed findings are left out of every diagnostics list unless a caller
+# asks for them, by status or explicitly. Seven readers turn these lists into
+# repeat counts, mastery and Study Guider triggers; leaving the exclusion to
+# each of them is how one of them would miss it. See services/dispute_service.py.
+def _visible(document: dict[str, Any], *, status: Optional[str], include_disputed: bool) -> bool:
+    return include_disputed or status is not None or document.get("status") != DISPUTED_STATUS
 
 
 def _sort_by_created_desc(documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -64,6 +88,8 @@ class InMemoryStorage:
         self.auth_sessions: dict[str, dict[str, Any]] = {}
         self.learning_sessions: dict[str, dict[str, Any]] = {}
         self.code_diagnostics: dict[str, dict[str, Any]] = {}
+        # "userId:diagnosticId" -> the student's first report of that finding.
+        self.diagnostic_disputes: dict[str, dict[str, Any]] = {}
         self.learning_events: dict[str, dict[str, Any]] = {}
         self.collaboration_sessions: dict[str, dict[str, Any]] = {}
         self.remediation_triggers: dict[str, dict[str, Any]] = {}
@@ -175,37 +201,34 @@ class InMemoryStorage:
             and document["learningSessionId"] == learning_session_id
             and document["status"] == "active"
         ]
-        active_by_diagnostic_id = {
-            document["diagnosticId"]: document for document in active_documents
-        }
-        current_ids = {document["diagnosticId"] for document in diagnostics}
-        resolved_documents: list[dict[str, Any]] = []
-        newly_detected_documents: list[dict[str, Any]] = []
+        match = match_diagnostics(active_documents, diagnostics)
 
-        for document in active_documents:
-            if document["diagnosticId"] not in current_ids:
-                document["status"] = "resolved"
-                document["resolvedAt"] = now
-                document["lastSeenAt"] = now
-                resolved_documents.append(_copy_document(document) or {})
+        resolved_documents: list[dict[str, Any]] = []
+        for document in match.resolved:
+            document["status"] = "resolved"
+            document["resolvedAt"] = now
+            document["lastSeenAt"] = now
+            resolved_documents.append(_copy_document(document) or {})
 
         stored_current_documents: list[dict[str, Any]] = []
-        for incoming in diagnostics:
-            existing = active_by_diagnostic_id.get(incoming["diagnosticId"])
-            if existing is not None:
-                preserved_record_id = existing.get("diagnosticRecordId")
-                preserved_created_at = existing.get("createdAt")
-                existing.update(deepcopy(incoming))
-                if preserved_record_id is not None:
-                    existing["diagnosticRecordId"] = preserved_record_id
-                if preserved_created_at is not None:
-                    existing["createdAt"] = preserved_created_at
-                existing["status"] = "active"
-                existing["resolvedAt"] = None
-                existing["lastSeenAt"] = now
-                stored_current_documents.append(_copy_document(existing) or {})
-                continue
+        for existing, incoming in match.carried:
+            # The incoming record may carry a new diagnosticId (a record from
+            # before ids stopped using the line); it keeps its own record id
+            # and creation time, so time to fix still runs from first sight.
+            preserved_record_id = existing.get("diagnosticRecordId")
+            preserved_created_at = existing.get("createdAt")
+            existing.update(deepcopy(incoming))
+            if preserved_record_id is not None:
+                existing["diagnosticRecordId"] = preserved_record_id
+            if preserved_created_at is not None:
+                existing["createdAt"] = preserved_created_at
+            existing["status"] = "active"
+            existing["resolvedAt"] = None
+            existing["lastSeenAt"] = now
+            stored_current_documents.append(_copy_document(existing) or {})
 
+        newly_detected_documents: list[dict[str, Any]] = []
+        for incoming in match.new:
             stored = deepcopy(incoming)
             stored["lastSeenAt"] = now
             self.code_diagnostics[stored["diagnosticRecordId"]] = stored
@@ -227,6 +250,7 @@ class InMemoryStorage:
         error_type: Optional[str] = None,
         status: Optional[str] = None,
         limit: int = 50,
+        include_disputed: bool = False,
     ) -> list[dict[str, Any]]:
         documents = [
             _copy_document(document)
@@ -235,6 +259,7 @@ class InMemoryStorage:
             and (learning_session_id is None or document["learningSessionId"] == learning_session_id)
             and (error_type is None or document["errorType"] == error_type)
             and (status is None or document["status"] == status)
+            and _visible(document, status=status, include_disputed=include_disputed)
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
@@ -244,15 +269,56 @@ class InMemoryStorage:
         learning_session_id: str,
         *,
         user_id: Optional[str] = None,
+        include_disputed: bool = False,
     ) -> list[dict[str, Any]]:
         documents = [
             _copy_document(document)
             for document in self.code_diagnostics.values()
             if document["learningSessionId"] == learning_session_id
             and (user_id is None or document["userId"] == user_id)
+            and _visible(document, status=None, include_disputed=include_disputed)
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)
+
+    def record_diagnostic_dispute(
+        self,
+        document: dict[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        key = f"{document['userId']}:{document['diagnosticId']}"
+        existing = self.diagnostic_disputes.get(key)
+        if existing is not None:
+            # The first report stands. Reporting it again is not a second dispute.
+            return _copy_document(existing) or {}, False
+        stored = deepcopy(document)
+        self.diagnostic_disputes[key] = stored
+        return _copy_document(stored) or {}, True
+
+    def mark_diagnostics_disputed(
+        self,
+        user_id: str,
+        diagnostic_id: str,
+        *,
+        disputed_at: datetime,
+    ) -> int:
+        marked = 0
+        for document in self.code_diagnostics.values():
+            if (
+                document["userId"] == user_id
+                and document["diagnosticId"] == diagnostic_id
+                and document["status"] != DISPUTED_STATUS
+            ):
+                document["status"] = DISPUTED_STATUS
+                document["disputedAt"] = disputed_at
+                marked += 1
+        return marked
+
+    def list_disputed_diagnostic_ids(self, user_id: str) -> list[str]:
+        return [
+            document["diagnosticId"]
+            for document in self.diagnostic_disputes.values()
+            if document["userId"] == user_id
+        ]
 
     def find_diagnostic_by_id(
         self,
@@ -373,15 +439,16 @@ class InMemoryStorage:
         user_id: str,
         *,
         status: Optional[str] = None,
-        trigger_source: Optional[str] = None,
+        trigger_source: Optional[str | list[str] | tuple[str, ...]] = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
+        sources = _trigger_sources(trigger_source)
         documents = [
             _copy_document(document)
             for document in self.remediation_triggers.values()
             if document["userId"] == user_id
             and (status is None or document["status"] == status)
-            and (trigger_source is None or document["triggerSource"] == trigger_source)
+            and (sources is None or document["triggerSource"] in sources)
         ]
         documents = [item for item in documents if item is not None]
         return _sort_by_created_desc(documents)[:limit]
@@ -485,6 +552,14 @@ class MongoStorage:
         )
         self.db.codeDiagnostics.create_index(
             [("userId", ASCENDING), ("learningSessionId", ASCENDING), ("diagnosticId", ASCENDING), ("status", ASCENDING)],
+        )
+        # A dispute marks every record of the finding, in every session.
+        self.db.codeDiagnostics.create_index(
+            [("userId", ASCENDING), ("diagnosticId", ASCENDING)],
+        )
+        self.db.diagnosticDisputes.create_index(
+            [("userId", ASCENDING), ("diagnosticId", ASCENDING)],
+            unique=True,
         )
         self.db.collaborationSessions.create_index(
             [("pairSessionId", ASCENDING)],
@@ -634,61 +709,53 @@ class MongoStorage:
         diagnostics: list[dict[str, Any]],
     ) -> DiagnosticSyncResult:
         now = _utcnow()
+        session_filter = {"userId": user_id, "learningSessionId": learning_session_id}
         existing_active_documents = [
             _copy_document(document) or {}
-            for document in self.db.codeDiagnostics.find(
+            for document in self.db.codeDiagnostics.find({**session_filter, "status": "active"})
+        ]
+        match = match_diagnostics(existing_active_documents, diagnostics)
+
+        # Resolved by record id, not as "every active id this analysis did not
+        # return": a record carried over under a new diagnosticId is not in
+        # that list either, and it has not been fixed.
+        resolved_record_ids = [document["diagnosticRecordId"] for document in match.resolved]
+        if resolved_record_ids:
+            self.db.codeDiagnostics.update_many(
+                {"diagnosticRecordId": {"$in": resolved_record_ids}, "status": "active"},
+                {"$set": {"status": "resolved", "resolvedAt": now, "lastSeenAt": now}},
+            )
+        resolved_documents = [
+            {**document, "status": "resolved", "resolvedAt": now, "lastSeenAt": now}
+            for document in match.resolved
+        ]
+
+        for existing, incoming in match.carried:
+            update_fields = deepcopy(incoming)
+            update_fields.pop("diagnosticRecordId", None)
+            update_fields.pop("createdAt", None)
+            self.db.codeDiagnostics.update_one(
+                {"diagnosticRecordId": existing["diagnosticRecordId"]},
                 {
-                    "userId": user_id,
-                    "learningSessionId": learning_session_id,
-                    "status": "active",
+                    "$set": {
+                        **update_fields,
+                        "status": "active",
+                        "resolvedAt": None,
+                        "lastSeenAt": now,
+                    },
                 },
             )
-        ]
-        active_by_diagnostic_id = {
-            document["diagnosticId"]: document for document in existing_active_documents
-        }
-        current_ids = {document["diagnosticId"] for document in diagnostics}
-        resolved_documents = [
-            {
-                **document,
-                "status": "resolved",
-                "resolvedAt": now,
-                "lastSeenAt": now,
-            }
-            for document in existing_active_documents
-            if document["diagnosticId"] not in current_ids
-        ]
+
         newly_detected_ids: set[str] = set()
-
-        self.db.codeDiagnostics.update_many(
-            {
-                "userId": user_id,
-                "learningSessionId": learning_session_id,
-                "status": "active",
-                "diagnosticId": {"$nin": list(current_ids)},
-            },
-            {
-                "$set": {
-                    "status": "resolved",
-                    "resolvedAt": now,
-                    "lastSeenAt": now,
-                },
-            },
-        )
-
-        for incoming in diagnostics:
+        for incoming in match.new:
             update_fields = deepcopy(incoming)
             diagnostic_record_id = update_fields.pop("diagnosticRecordId")
             created_at = update_fields.pop("createdAt")
-            if incoming["diagnosticId"] not in active_by_diagnostic_id:
-                newly_detected_ids.add(incoming["diagnosticId"])
+            newly_detected_ids.add(incoming["diagnosticId"])
+            # An upsert, not an insert: two overlapping analyses of one session
+            # must not store the same new finding twice.
             self.db.codeDiagnostics.update_one(
-                {
-                    "userId": user_id,
-                    "learningSessionId": learning_session_id,
-                    "diagnosticId": incoming["diagnosticId"],
-                    "status": "active",
-                },
+                {**session_filter, "diagnosticId": incoming["diagnosticId"], "status": "active"},
                 {
                     "$set": {
                         **update_fields,
@@ -707,11 +774,7 @@ class MongoStorage:
         active_documents = [
             _copy_document(document) or {}
             for document in self.db.codeDiagnostics.find(
-                {
-                    "userId": user_id,
-                    "learningSessionId": learning_session_id,
-                    "status": "active",
-                },
+                {**session_filter, "status": "active"},
                 sort=[("createdAt", DESCENDING)],
             )
         ]
@@ -734,6 +797,7 @@ class MongoStorage:
         error_type: Optional[str] = None,
         status: Optional[str] = None,
         limit: int = 50,
+        include_disputed: bool = False,
     ) -> list[dict[str, Any]]:
         query: dict[str, Any] = {"userId": user_id}
         if learning_session_id is not None:
@@ -742,6 +806,8 @@ class MongoStorage:
             query["errorType"] = error_type
         if status is not None:
             query["status"] = status
+        elif not include_disputed:
+            query["status"] = {"$ne": DISPUTED_STATUS}
 
         cursor = self.db.codeDiagnostics.find(
             query,
@@ -755,18 +821,56 @@ class MongoStorage:
         learning_session_id: str,
         *,
         user_id: Optional[str] = None,
+        include_disputed: bool = False,
     ) -> list[dict[str, Any]]:
         query: dict[str, Any] = {"learningSessionId": learning_session_id}
         if user_id is not None:
             query["userId"] = user_id
+        if not include_disputed:
+            query["status"] = {"$ne": DISPUTED_STATUS}
 
         cursor = self.db.codeDiagnostics.find(
-            {
-                **query,
-            },
+            query,
             sort=[("createdAt", DESCENDING)],
         )
         return [_copy_document(document) or {} for document in cursor]
+
+    def record_diagnostic_dispute(
+        self,
+        document: dict[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        key = {"userId": document["userId"], "diagnosticId": document["diagnosticId"]}
+        # $setOnInsert only: the first report stands, and reporting the same
+        # finding again is not a second dispute.
+        result = self.db.diagnosticDisputes.update_one(
+            key,
+            {"$setOnInsert": deepcopy(document)},
+            upsert=True,
+        )
+        stored = self.db.diagnosticDisputes.find_one(key)
+        return _copy_document(stored) or {}, result.upserted_id is not None
+
+    def mark_diagnostics_disputed(
+        self,
+        user_id: str,
+        diagnostic_id: str,
+        *,
+        disputed_at: datetime,
+    ) -> int:
+        result = self.db.codeDiagnostics.update_many(
+            {
+                "userId": user_id,
+                "diagnosticId": diagnostic_id,
+                "status": {"$ne": DISPUTED_STATUS},
+            },
+            {"$set": {"status": DISPUTED_STATUS, "disputedAt": disputed_at}},
+        )
+        return result.modified_count
+
+    def list_disputed_diagnostic_ids(self, user_id: str) -> list[str]:
+        return list(
+            self.db.diagnosticDisputes.distinct("diagnosticId", {"userId": user_id})
+        )
 
     def find_diagnostic_by_id(
         self,
@@ -905,14 +1009,17 @@ class MongoStorage:
         user_id: str,
         *,
         status: Optional[str] = None,
-        trigger_source: Optional[str] = None,
+        trigger_source: Optional[str | list[str] | tuple[str, ...]] = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         query: dict[str, Any] = {"userId": user_id}
         if status is not None:
             query["status"] = status
-        if trigger_source is not None:
-            query["triggerSource"] = trigger_source
+        sources = _trigger_sources(trigger_source)
+        if sources is not None:
+            query["triggerSource"] = (
+                next(iter(sources)) if len(sources) == 1 else {"$in": sorted(sources)}
+            )
 
         cursor = self.db.remediationTriggers.find(
             query,

@@ -47,6 +47,11 @@ class DetectionResult(BaseModel):
     detection_engine: str = "ml_gated_ast_locator"
     ml_probability: Optional[float] = None
     locator_confidence: Optional[float] = None
+    # What the locator matched - the loop condition, the array, the strings
+    # compared - for targeted hints that quote the student's own code. Stays
+    # inside the analyzer: Diagnostic, which leaves the service, has no such
+    # field, so this adds nothing to the API.
+    details: dict[str, str] = Field(default_factory=dict)
 
 
 class Diagnostic(BaseModel):
@@ -597,6 +602,41 @@ class PeerReviewSubmittedRequest(BaseModel):
     feedback_quality_score: float = Field(ge=0.0, le=1.0)
     review_comment: Optional[str] = Field(default=None, max_length=1000)
     occurred_at: Optional[datetime] = None
+
+
+class PairSessionResultRequest(BaseModel):
+    """One student's outcome for a finished PairPath session."""
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    learning_session_id: str = Field(
+        alias="learningSessionId",
+        min_length=3,
+        max_length=80,
+    )
+    pair_session_id: str = Field(min_length=3, max_length=80)
+    task_id: Optional[str] = Field(default=None, max_length=120)
+    concept_tags: List[str] = Field(min_length=1, max_length=14)
+    error_type: Optional[str] = Field(default=None, max_length=64)
+    difficulty_level: Optional[str] = Field(default=None, max_length=32)
+    # None when nothing in the session could be graded, which is not the same
+    # as unsolved - see record_pair_session_completed.
+    solved: Optional[bool] = None
+    run_count: int = Field(ge=0, le=1000)
+    correct_run_count: int = Field(ge=0, le=1000)
+    seconds_to_solve: Optional[int] = Field(default=None, ge=0, le=604800)
+    duration_seconds: Optional[int] = Field(default=None, ge=0, le=604800)
+    review_score_percent: Optional[int] = Field(default=None, ge=0, le=100)
+    occurred_at: Optional[datetime] = None
+
+
+class PairSessionResultResponse(BaseModel):
+    status: str
+    message: str
+    already_recorded: bool = False
+    created_event_types: List[str]
+    mastery: List[ConceptMasteryView] = Field(default_factory=list)
+    trigger_ids: List[str] = Field(default_factory=list)
 
 
 class CollaborationActionResponse(BaseModel):

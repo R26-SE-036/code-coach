@@ -45,6 +45,7 @@ import * as http from "http";
 import * as vscode from "vscode";
 
 import { requestJson, storeAuthResponse } from "./api";
+import { DEFAULT_PLATFORM_URL } from "./constants";
 import { ApiError, AuthResponse, ExtensionState } from "./types";
 
 /** Must match VSCODE_LOOPBACK_PORT in the portal, and its allow-list entry. */
@@ -57,7 +58,7 @@ const SIGN_IN_TIMEOUT_MS = 3 * 60 * 1000;
 export function getPortalUrl(): string {
   return vscode.workspace
     .getConfiguration("codeCoach")
-    .get<string>("portalUrl", "http://localhost:4200")
+    .get<string>("portalUrl", DEFAULT_PLATFORM_URL)
     .replace(/\/$/, "");
 }
 
@@ -108,12 +109,18 @@ function waitForCode(token: vscode.CancellationToken): Promise<string | null> {
 
       // Browsers ask for this unprompted; answering 404 keeps it out of the log.
       if (url.pathname === "/favicon.ico") {
-        response.writeHead(404).end();
+        response.writeHead(404, { Connection: "close" }).end();
         return;
       }
 
       const code = url.searchParams.get("code");
-      response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      // Connection: close, because this listener is about to shut. close()
+      // stops new connections but keeps serving kept-alive ones, and this
+      // handler has already settled - so a client reusing the connection for
+      // the NEXT sign-in, within the keep-alive window, delivered its code here
+      // and it was silently dropped, while the new listener waited until it
+      // timed out. The extension's own tests hit exactly that.
+      response.writeHead(200, { "Content-Type": "text/html; charset=utf-8", Connection: "close" });
       response.end(
         code
           ? resultPage("You are signed in", "You can close this tab and return to VS Code.")
@@ -182,31 +189,51 @@ export async function signInThroughBrowser(
       cancellable: true,
     },
     async (_progress, token) => {
-      const codePromise = waitForCode(token);
-
-      // Opened after the listener is up, so a very fast sign-in cannot arrive
-      // before there is anything to receive it.
-      const opened = await vscode.env.openExternal(vscode.Uri.parse(target.toString()));
-      if (!opened) {
-        throw new Error("VS Code could not open a browser window.");
-      }
-
-      state.outputChannel.appendLine(`Browser sign-in started: ${target.toString()}`);
-
-      const code = await codePromise;
-      if (!code) return null;
+      // The listener's own cancellation, so it can be shut when the browser
+      // never opens - not only when the student cancels or it times out.
+      const listening = new vscode.CancellationTokenSource();
+      const forwarded = token.onCancellationRequested(() => listening.cancel());
 
       try {
-        const response = await redeemHandoffCode(state, code);
-        state.outputChannel.appendLine(`Signed in as ${response.user.email} (browser)`);
-        return response;
-      } catch (error) {
-        if (error instanceof ApiError && error.statusCode === 400) {
-          // Single-use and short-lived: this is what a replayed or stale code
-          // looks like, and it is worth saying so plainly.
-          throw new Error("That sign-in link had already been used. Please try again.");
+        const codePromise = waitForCode(listening.token);
+        // A listener that fails to start rejects at once, possibly before the
+        // browser call below returns. Marked handled here; it is still awaited,
+        // and still thrown, further down.
+        codePromise.catch(() => undefined);
+
+        // Opened after the listener is up, so a very fast sign-in cannot arrive
+        // before there is anything to receive it.
+        const opened = await vscode.env.openExternal(vscode.Uri.parse(target.toString()));
+        if (!opened) {
+          // Shut the listener before falling back. Left open it held the port
+          // for the whole three-minute timeout, so a student who tried Sign In
+          // again was told port 53682 was already in use - by the attempt
+          // before.
+          listening.cancel();
+          await codePromise.catch(() => null);
+          throw new Error("VS Code could not open a browser window.");
         }
-        throw error;
+
+        state.outputChannel.appendLine(`Browser sign-in started: ${target.toString()}`);
+
+        const code = await codePromise;
+        if (!code) return null;
+
+        try {
+          const response = await redeemHandoffCode(state, code);
+          state.outputChannel.appendLine(`Signed in as ${response.user.email} (browser)`);
+          return response;
+        } catch (error) {
+          if (error instanceof ApiError && error.statusCode === 400) {
+            // Single-use and short-lived: this is what a replayed or stale code
+            // looks like, and it is worth saying so plainly.
+            throw new Error("That sign-in link had already been used. Please try again.");
+          }
+          throw error;
+        }
+      } finally {
+        forwarded.dispose();
+        listening.dispose();
       }
     },
   );

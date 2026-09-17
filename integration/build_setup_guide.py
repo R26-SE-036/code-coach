@@ -494,7 +494,7 @@ A(table([
     ["Variable", "Mode A (local)", "Mode B (Cloudflare)", "Required?"],
     ["CODE_COACH_URL", "http://127.0.0.1:8000", "the shared tunnel URL", "Yes"],
     ["PORT", "3002", "3002", "Yes"],
-    ["MONGODB_URI", "mongodb://localhost:27017/code-guru", "same", "Yes - games and questions"],
+    ["MONGODB_URI", "mongodb://localhost:27017/adaptive_gamification", "same", "Yes - games and questions"],
     ["ML_SERVICE_URL", "http://127.0.0.1:8030", "same", "Difficulty prediction only"],
     ["CORS_ORIGINS", "leave the default", "leave the default", "Yes"],
 ], [40 * mm, 45 * mm, 38 * mm, 45 * mm], mono_cols=(0,)))

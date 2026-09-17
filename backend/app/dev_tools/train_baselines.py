@@ -210,7 +210,10 @@ def main() -> None:
                 {
                     "target": target,
                     "model_name": model_name,
-                    "model_path": str(model_path),
+                    # Relative to the repository. An absolute path records
+                    # whose machine trained the model, and went stale the
+                    # first time the repository moved.
+                    "model_path": model_path.relative_to(PROJECT_ROOT).as_posix(),
                     "val_precision": val_metrics["precision"],
                     "val_recall": val_metrics["recall"],
                     "val_f1": val_metrics["f1"],

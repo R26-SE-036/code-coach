@@ -1,0 +1,11 @@
+target,error_type,source_type,positives,negatives,has_positive_examples,gate_tp,gate_fp,gate_fn,gate_precision,gate_recall,gate_f1,pipeline_tp,pipeline_fp,pipeline_fn,pipeline_precision,pipeline_recall,pipeline_f1
+has_array_length_index_misuse,ARRAY_LENGTH_INDEX_MISUSE,manual_curated,30,300,True,27,0,3,1.0,0.9,0.9473684210526316,27,0,3,1.0,0.9,0.9473684210526316
+has_array_length_index_misuse,ARRAY_LENGTH_INDEX_MISUSE,synthetic_generated,27,290,True,27,0,0,1.0,1.0,1.0,27,0,0,1.0,1.0,1.0
+has_incorrect_conditional,INCORRECT_CONDITIONAL_OPERATOR,manual_curated,30,300,True,28,0,2,1.0,0.9333333333333333,0.9655172413793104,28,0,2,1.0,0.9333333333333333,0.9655172413793104
+has_incorrect_conditional,INCORRECT_CONDITIONAL_OPERATOR,synthetic_generated,27,290,True,27,0,0,1.0,1.0,1.0,27,0,0,1.0,1.0,1.0
+has_missing_break,MISSING_BREAK_IN_SWITCH,manual_curated,30,300,True,28,1,2,0.9655172413793104,0.9333333333333333,0.9491525423728815,28,1,2,0.9655172413793104,0.9333333333333333,0.9491525423728815
+has_missing_break,MISSING_BREAK_IN_SWITCH,synthetic_generated,27,290,True,27,0,0,1.0,1.0,1.0,27,0,0,1.0,1.0,1.0
+has_off_by_one,OFF_BY_ONE_LOOP_BOUNDARY,manual_curated,30,300,True,27,0,3,1.0,0.9,0.9473684210526316,27,0,3,1.0,0.9,0.9473684210526316
+has_off_by_one,OFF_BY_ONE_LOOP_BOUNDARY,synthetic_generated,27,290,True,27,0,0,1.0,1.0,1.0,27,0,0,1.0,1.0,1.0
+has_while_not_updated,WHILE_VARIABLE_NOT_UPDATED,manual_curated,30,300,True,26,0,4,1.0,0.8666666666666667,0.9285714285714286,26,0,4,1.0,0.8666666666666667,0.9285714285714286
+has_while_not_updated,WHILE_VARIABLE_NOT_UPDATED,synthetic_generated,27,290,True,27,0,0,1.0,1.0,1.0,27,0,0,1.0,1.0,1.0

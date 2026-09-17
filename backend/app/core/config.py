@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # and discarded rather than rejected, so nothing breaks for anyone who has
     # not cleaned theirs up.
     mongodb_uri: Optional[str] = None
-    mongodb_db_name: str = "code-guru"
+    mongodb_db_name: str = "code_coach"
 
     # Browser clients (the CodeGuru website, teammates' dev servers) need CORS.
     # Comma-separated origins; the VS Code extension is unaffected (Node fetch).

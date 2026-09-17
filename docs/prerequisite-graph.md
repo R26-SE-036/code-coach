@@ -299,7 +299,7 @@ rather than a result, and note that the derivation exists and is gated.
 |---|---|
 | The derivation tool | `code-coach/backend/app/dev_tools/derive_concept_prerequisites.py` |
 | Its tests (9) | `code-coach/backend/tests/test_concept_prerequisite_derivation.py` |
-| The raw data it reads | MongoDB `code-guru` → `codeDiagnostics` |
+| The raw data it reads | MongoDB `code_coach` → `codeDiagnostics` |
 | The hand-written ordering in use today | `Study-Guider/backend/app/core/concepts.py` |
 | The backwards-walk query | `Study-Guider/backend/app/services/learning_path_service.py` |
 

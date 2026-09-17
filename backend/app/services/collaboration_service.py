@@ -16,7 +16,13 @@ from app.models import (
     ConceptStruggleView,
 )
 from app.services.learning_signal_service import build_learning_event_document
-from app.services.mastery_service import build_concept_mastery_view
+from app.services.mastery_service import (
+    blend_mastery_scores,
+    build_concept_mastery_document,
+    build_concept_mastery_view,
+    practice_mastery_scores,
+)
+from app.services.remediation_service import build_remediation_trigger_document
 
 
 class CollaborationPromptTemplate(BaseModel):
@@ -434,3 +440,218 @@ def record_peer_review_submitted(
     )
     storage.create_learning_events([event])
     return [event]
+
+
+# ── Finished PairPath sessions ───────────────────────────────────────────────
+
+
+def _pairpath_record_id(user_id: str, pair_session_id: str) -> str:
+    # Per student AND session. Both members of a pair report the same PairPath
+    # session id, each into their own record.
+    digest = hashlib.sha1(f"{user_id}|{pair_session_id}".encode("utf-8")).hexdigest()[:16]
+    return f"collab_pp_{digest}"
+
+
+def record_pair_session_completed(
+    storage: Any,
+    *,
+    user_id: str,
+    learning_session_id: str,
+    pair_session_id: str,
+    task_id: str | None,
+    concept_tags: list[str],
+    error_type: str | None,
+    difficulty_level: str | None,
+    solved: bool | None,
+    run_count: int,
+    correct_run_count: int,
+    seconds_to_solve: int | None,
+    duration_seconds: int | None,
+    review_score_percent: int | None,
+    occurred_at=None,
+) -> dict[str, Any]:
+    """Record one student's finished PairPath session, once.
+
+    ======================== WHAT IT CHANGES ========================
+    Always: a `pair_session_completed` event on the student's timeline.
+
+    When the session was graded - at least one run compared against the
+    exercise's expected output - mastery moves for every concept the exercise
+    practises, through the same scoring and the same 65/35 blend a finished
+    game uses. An ungraded session moves nothing: a pair that ended without
+    running anything, or a session from before grading existed, is evidence
+    of neither mastery nor struggle.
+
+    When a graded session ended unsolved and the exercise names the error it
+    is built around, a remediation trigger opens for the primary concept with
+    source `collaborative_studio`, which Study Guider offers as a lesson. One
+    trigger rather than one per concept: an exercise tagged with two concepts
+    would otherwise open two lessons for one unsolved problem.
+    ================================================================
+
+    Idempotent per student and session. The results page reports on every
+    visit, so a repeat report returns early and writes nothing.
+    """
+    event_time = occurred_at or utcnow()
+    record_id = _pairpath_record_id(user_id, pair_session_id)
+
+    if storage.find_collaboration_session_by_id(record_id) is not None:
+        return {"already_recorded": True, "events": [], "mastery": [], "trigger_ids": []}
+
+    tags = list(dict.fromkeys(_normalize_token(tag) for tag in concept_tags if tag and tag.strip()))
+    correct = max(0, min(correct_run_count, run_count))
+
+    storage.create_collaboration_session(
+        {
+            "pairSessionId": record_id,
+            "userId": user_id,
+            "learningSessionId": learning_session_id,
+            "collaborationMode": "pair_programming",
+            "partnerUserId": None,
+            "taskId": task_id,
+            "linkedLearningSessionId": None,
+            "externalPairSessionId": pair_session_id,
+            "status": "completed",
+            "startedAt": event_time,
+            "lastActivityAt": event_time,
+        }
+    )
+
+    events: list[dict[str, Any]] = [
+        build_learning_event_document(
+            user_id,
+            learning_session_id,
+            component="collaborative_studio",
+            event_type="pair_session_completed",
+            concept_tag=tags[0] if tags else None,
+            occurred_at=event_time,
+            payload={
+                "pair_session_id": pair_session_id,
+                "task_id": task_id,
+                "concept_tags": tags,
+                "error_type": error_type,
+                "difficulty_level": difficulty_level,
+                "solved": solved,
+                "run_count": run_count,
+                "correct_run_count": correct,
+                "seconds_to_solve": seconds_to_solve,
+                "duration_seconds": duration_seconds,
+                "review_score_percent": review_score_percent,
+            },
+        )
+    ]
+    mastery_views: list[ConceptMasteryView] = []
+    trigger_ids: list[str] = []
+
+    if solved is None or run_count == 0:
+        storage.create_learning_events(events)
+        return {"already_recorded": False, "events": events, "mastery": mastery_views, "trigger_ids": trigger_ids}
+
+    observed_mastery, observed_struggle = practice_mastery_scores(
+        score_percent=100 if solved else 0,
+        error_count=run_count - correct,
+        attempt_count=max(1, run_count),
+        hint_usage=0,
+        passed=bool(solved),
+    )
+
+    primary_struggle = observed_struggle
+    for tag in tags:
+        existing = next(
+            iter(storage.list_concept_mastery_for_user(user_id, concept_tag=tag, limit=1)),
+            None,
+        )
+        mastery_score, struggle_score = blend_mastery_scores(
+            existing,
+            mastery_score=observed_mastery,
+            struggle_score=observed_struggle,
+        )
+        if tag == tags[0]:
+            primary_struggle = struggle_score
+
+        document = build_concept_mastery_document(
+            user_id,
+            learning_session_id,
+            concept_tag=tag,
+            error_type=error_type or (existing.get("lastErrorType") if existing else None),
+            trigger_id=existing.get("lastTriggerId") if existing else None,
+            mastery_score=mastery_score,
+            struggle_score=struggle_score,
+            update_source="pair_session_completed",
+            source_component="collaborative_studio",
+            occurred_at=event_time,
+        )
+        document["lastPairSessionId"] = pair_session_id
+        stored = storage.upsert_concept_mastery(document)
+        mastery_views.append(build_concept_mastery_view(stored))
+        events.append(
+            build_learning_event_document(
+                user_id,
+                learning_session_id,
+                component="collaborative_studio",
+                event_type="mastery_updated",
+                concept_tag=tag,
+                occurred_at=event_time,
+                payload={
+                    "concept_tag": tag,
+                    "mastery_score": mastery_score,
+                    "struggle_score": struggle_score,
+                    "observed_mastery_score": observed_mastery,
+                    "observed_struggle_score": observed_struggle,
+                    "update_source": "pair_session_completed",
+                    "pair_session_id": pair_session_id,
+                },
+            )
+        )
+
+    if solved is False and error_type and tags:
+        failed_runs = run_count - correct
+        struggle = ConceptStruggleView(
+            concept_tag=tags[0],
+            error_type=error_type,
+            repeat_count=max(1, failed_runs),
+            active_count=1,
+            resolved_count=0,
+            unique_learning_sessions=1,
+            last_seen_at=event_time,
+            struggle_score=primary_struggle,
+            struggle_level="high" if failed_runs >= 3 else "medium",
+            recommended_action="trigger_study_guider",
+        )
+        trigger_document = build_remediation_trigger_document(
+            user_id,
+            learning_session_id,
+            trigger_source="collaborative_studio",
+            struggle=struggle,
+        )
+        trigger_document["reason"] = "pair_session_unsolved"
+        trigger_document["pairSessionId"] = pair_session_id
+
+        stored_trigger, created = storage.upsert_remediation_trigger(trigger_document)
+        trigger_ids.append(stored_trigger["triggerId"])
+        if created:
+            events.append(
+                build_learning_event_document(
+                    user_id,
+                    learning_session_id,
+                    component="collaborative_studio",
+                    event_type="struggle_signal_created",
+                    concept_tag=tags[0],
+                    occurred_at=event_time,
+                    payload={
+                        "trigger_id": stored_trigger["triggerId"],
+                        "trigger_source": "collaborative_studio",
+                        "concept_tag": tags[0],
+                        "error_type": error_type,
+                        "reason": stored_trigger["reason"],
+                        "repeat_count": struggle.repeat_count,
+                        "struggle_score": struggle.struggle_score,
+                        "struggle_level": struggle.struggle_level,
+                        "recommended_action": struggle.recommended_action,
+                        "pair_session_id": pair_session_id,
+                    },
+                )
+            )
+
+    storage.create_learning_events(events)
+    return {"already_recorded": False, "events": events, "mastery": mastery_views, "trigger_ids": trigger_ids}

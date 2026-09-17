@@ -6,7 +6,7 @@
 # Run:
 #   docker run --rm -p 8000:8080 \
 #     -e MONGODB_URI='mongodb+srv://...' \
-#     -e MONGODB_DB_NAME=code-guru \
+#     -e MONGODB_DB_NAME=code_coach \
 #     -e JWT_SECRET=<your secret> \
 #     code-coach-backend
 #

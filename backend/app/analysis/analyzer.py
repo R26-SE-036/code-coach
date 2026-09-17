@@ -9,7 +9,7 @@ one-to-one onto the pipeline stages:
     ml_engine.predict_issue_types       -> numbers into MLPredictions (the gate)
     error_catalog.ERROR_CATALOG         -> the list of error types + their mode
     issue_locators (via spec.locator)   -> tree into located DetectionResults
-    hint_engine.build_diagnostic        -> DetectionResult into final Diagnostic
+    hint_engine.build_diagnostics       -> DetectionResults into final Diagnostics
 
 Input: raw Java source (str) from the request. Output: a list of Diagnostic,
 sorted by confidence, that the service/route layers serialize back to VS Code.
@@ -22,7 +22,7 @@ from typing import Dict, List, Optional
 
 from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec
 from app.analysis.feature_extractor import extract_features
-from app.analysis.hint_engine import build_diagnostic
+from app.analysis.hint_engine import build_diagnostics
 from app.analysis.ml_engine import (
     CandidatePrediction,
     MLPrediction,
@@ -121,6 +121,9 @@ def _finalize_finding(
         detection_engine=detection_engine,
         ml_probability=ml_probability,
         locator_confidence=locator_confidence,
+        # Rebuilt field by field, so anything not named here is lost - which
+        # is how the code-specific hints would quietly fall back to generic.
+        details=finding.details,
     )
 
 
@@ -211,14 +214,14 @@ def analyze_code(code: str) -> List[Diagnostic]:
     }
 
     # 4. detect and localize each catalog entry
-    diagnostics: List[Diagnostic] = []
+    findings: List[DetectionResult] = []
 
     for spec in ERROR_CATALOG.values():
-        findings = _detect_for_spec(spec, parse_result, predictions_by_error_type)
+        findings.extend(_detect_for_spec(spec, parse_result, predictions_by_error_type))
 
-        # 5. build diagnostics with hints
-        for finding in findings:
-            diagnostics.append(build_diagnostic(finding))
+    # 5. build diagnostics with hints - all at once, not one finding at a
+    # time, because a finding's id counts the identical mistakes above it.
+    diagnostics: List[Diagnostic] = build_diagnostics(findings)
 
     # 6. sort diagnostics by confidence
     diagnostics.sort(key=lambda item: item.confidence, reverse=True)

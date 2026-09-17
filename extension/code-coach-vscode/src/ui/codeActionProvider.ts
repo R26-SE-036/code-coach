@@ -49,29 +49,36 @@ export class CoachCodeActionProvider implements vscode.CodeActionProvider {
       conceptAction.isPreferred = true;
       actions.push(conceptAction);
 
-      // Guidance hint action
-      const guidanceAction = new vscode.CodeAction(
-        `🧭 Guidance: ${truncate(diag.hints.guidance, 70)}`,
-        vscode.CodeActionKind.QuickFix,
-      );
-      guidanceAction.command = {
-        title: "Show Guidance Hint",
-        command: "code-coach-vscode.showCodeLensHint",
-        arguments: [0, "guidance", diag],
-      };
-      actions.push(guidanceAction);
-
-      // Targeted hint action
-      const targetedAction = new vscode.CodeAction(
-        `🎯 Targeted: ${truncate(diag.hints.targeted, 70)}`,
-        vscode.CodeActionKind.QuickFix,
-      );
-      targetedAction.command = {
-        title: "Show Targeted Hint",
-        command: "code-coach-vscode.showCodeLensHint",
-        arguments: [0, "targeted", diag],
-      };
-      actions.push(targetedAction);
+      // The next hint level, by name only. These titles used to carry the
+      // guidance and targeted text itself, so opening the lightbulb showed
+      // the most specific hint before the student had asked for any - see
+      // "Hint levels, in order" in analysis.ts.
+      const revealed = this.state.revealedHintLevels.get(diag.diagnostic_id) ?? "concept";
+      if (revealed === "concept" || revealed === "guidance") {
+        const next = revealed === "concept" ? "guidance" : "targeted";
+        const nextAction = new vscode.CodeAction(
+          next === "guidance" ? "🧭 Code Coach: show the guidance hint" : "🎯 Code Coach: show the targeted hint",
+          vscode.CodeActionKind.QuickFix,
+        );
+        nextAction.command = {
+          title: "Show Next Hint",
+          command: "code-coach-vscode.revealNextHint",
+          arguments: [diag],
+        };
+        actions.push(nextAction);
+      } else {
+        // Already opened, so it may be read again from here.
+        const targetedAction = new vscode.CodeAction(
+          `🎯 Targeted: ${truncate(diag.hints.targeted, 70)}`,
+          vscode.CodeActionKind.QuickFix,
+        );
+        targetedAction.command = {
+          title: "Show Targeted Hint",
+          command: "code-coach-vscode.showCodeLensHint",
+          arguments: [0, "targeted", diag],
+        };
+        actions.push(targetedAction);
+      }
 
       // Open Coach Panel action
       const panelAction = new vscode.CodeAction(

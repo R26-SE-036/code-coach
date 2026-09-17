@@ -110,7 +110,8 @@ Commands:
 
 Settings:
 
-- `codeCoach.backendUrl` - local backend URL, default `http://127.0.0.1:8000`.
+- `codeCoach.backendUrl` - Code Coach's API, default `http://localhost:8090` (the compose stack's edge). Set it to `http://127.0.0.1:8000` when running the backend on its own.
+- `codeCoach.portalUrl` - the web app sign-in opens, default `http://localhost:8090`. Set it to `http://localhost:4200` when running the web app with `npm run dev`.
 - `codeCoach.enableEvaluationLogging` - sends anonymized diagnostic events to the local backend when enabled.
 
 ## ML Pipeline

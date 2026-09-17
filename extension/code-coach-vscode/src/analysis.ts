@@ -230,6 +230,68 @@ async function showHintAtIndex(
   });
 }
 
+// ── Hint levels, in order ──
+//
+// ================= CONCEPT FIRST, TARGETED ONLY IF ASKED =================
+// The three levels exist so a student can be nudged a little, then a little
+// more, and do the rest of the thinking themselves. The coach panel printed
+// all three at once and the lightbulb menu put the guidance and targeted text
+// straight into its titles, so the most specific hint - the one that all but
+// points at the fix - was the first thing on screen. The levels were a
+// labelling scheme, not a sequence.
+//
+// The concept hint is always shown. Guidance and targeted each wait for the
+// student to ask, and each request is recorded, so the backend can say how
+// far into the hints a student had gone before fixing the mistake.
+// ========================================================================
+type HintLevel = "concept" | "guidance" | "targeted";
+const HINT_ORDER: HintLevel[] = ["concept", "guidance", "targeted"];
+
+export function revealedHintLevel(state: ExtensionState, diagnostic: DiagnosticItem): HintLevel {
+  return state.revealedHintLevels.get(diagnostic.diagnostic_id) ?? "concept";
+}
+
+export function nextHintLevel(level: HintLevel): HintLevel | undefined {
+  return HINT_ORDER[HINT_ORDER.indexOf(level) + 1];
+}
+
+/** Open the next hint level for one finding, record it, and show it. */
+export function revealNextHint(
+  state: ExtensionState,
+  diagnostic: DiagnosticItem,
+  surface: "coach_panel" | "code_action" | "analysis_popup",
+): void {
+  const next = nextHintLevel(revealedHintLevel(state, diagnostic));
+  if (!next) { return; }
+
+  state.revealedHintLevels.set(diagnostic.diagnostic_id, next);
+  const hintText = hintTextForLevel(diagnostic, next);
+
+  // The panel shows the new level in place; elsewhere there is nowhere to
+  // show it but a message.
+  if (surface !== "coach_panel") {
+    void vscode.window.showInformationMessage(
+      `Code Coach ${next} hint (line ${diagnostic.line}): ${hintText}`,
+    );
+  }
+
+  if (state.currentLearningSessionId) {
+    trackLearningEvent(state, {
+      learning_session_id: state.currentLearningSessionId,
+      event_type: "hint_level_requested",
+      concept_tag: diagnostic.concept_tag,
+      occurred_at: new Date().toISOString(),
+      payload: {
+        diagnostic_id: diagnostic.diagnostic_id, error_type: diagnostic.error_type,
+        explanation_key: diagnostic.explanation_key, hint_level: next,
+        hint_text: hintText, surface, source_command: `reveal_${next}`,
+      },
+    });
+  }
+
+  updateCoachPanel(state);
+}
+
 // ── Output writer ──
 
 function writeAnalysisOutput(state: ExtensionState, result: AnalyzeResponse): void {
@@ -393,10 +455,10 @@ export async function runAnalysisForEditor(
 
         void vscode.window.showWarningMessage(
           `Code Coach found ${result.diagnostics.length} issue(s). First issue on line ${first.line}: ${first.message}`,
-          "Go to First Issue", "Show Guidance Hint", "Open Coach Panel", "Open Output",
+          "Go to First Issue", "Show Next Hint", "Open Coach Panel", "Open Output",
         ).then((action) => {
           if (action === "Go to First Issue") { focusDiagnostic(editor, first); }
-          else if (action === "Show Guidance Hint") { void showHintAtIndex(state, editor, result.diagnostics, 0, { level: "guidance", sourceCommand: "analysis_popup" }); }
+          else if (action === "Show Next Hint") { focusDiagnostic(editor, first); revealNextHint(state, first, "analysis_popup"); }
           else if (action === "Open Coach Panel") { openCoachPanelFromState(state); }
           else if (action === "Open Output") { state.outputChannel.show(true); }
         });
@@ -482,8 +544,10 @@ export function showHintForActiveEditor(state: ExtensionState, direction: 1 | -1
   }
   const currentIndex = state.activeHintIndexByUri.get(uriKey) ?? 0;
   const nextIndex = (currentIndex + direction + diagnostics.length) % diagnostics.length;
+  // The level the student has already opened for that finding - moving
+  // between findings is not a request for a more specific hint.
   void showHintAtIndex(state, editor, diagnostics, nextIndex, {
-    level: "guidance",
+    level: revealedHintLevel(state, diagnostics[nextIndex]),
     navigationDirection: direction === 1 ? "next" : "previous",
     sourceCommand: direction === 1 ? "next_hint" : "previous_hint",
   });
@@ -531,7 +595,7 @@ function setPanelHintIndex(state: ExtensionState, uriKey: string, index: number)
       occurred_at: new Date().toISOString(),
       payload: {
         diagnostic_id: diagnostic.diagnostic_id, error_type: diagnostic.error_type,
-        explanation_key: diagnostic.explanation_key, hint_level: "concept",
+        explanation_key: diagnostic.explanation_key, hint_level: revealedHintLevel(state, diagnostic),
         direction: "panel_select", shown_index: bounded + 1,
         total_diagnostics: diagnostics.length, source_command: "coach_panel",
       },
@@ -615,6 +679,15 @@ export function reportFalsePositive(
     "Code Coach: thanks — your report helps improve detection accuracy.",
   );
   updateCoachPanel(state);
+}
+
+function revealActiveHint(state: ExtensionState): void {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return; }
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return; }
+  const index = Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, diagnostics.length - 1);
+  revealNextHint(state, diagnostics[index], "coach_panel");
 }
 
 function disputeActiveDiagnostic(state: ExtensionState): void {
@@ -701,6 +774,9 @@ export function handleCoachPanelMessage(
       break;
     case "panelDispute":
       disputeActiveDiagnostic(state);
+      break;
+    case "panelRevealHint":
+      revealActiveHint(state);
       break;
     case "openStudy":
       openStudyDashboard(state);

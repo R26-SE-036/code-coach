@@ -31,6 +31,7 @@ import {
   clearFeedbackForDocument,
   handleCoachPanelMessage,
   reportFalsePositive,
+  revealNextHint,
 } from "./analysis";
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
@@ -56,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
     lastDiagnosticsByUri: new Map(),
     lastAnalysisSnapshotByUri: new Map(),
     activeHintIndexByUri: new Map(),
+    revealedHintLevels: new Map(),
     debounceTimers: new Map(),
     activeAnalysisUriKey: undefined,
     lastSupportedUriKey: undefined,
@@ -219,6 +221,13 @@ export function activate(context: vscode.ExtensionContext) {
     (diag: DiagnosticItem) => { reportFalsePositive(state, diag, "code_action"); },
   );
 
+  // Reached from the lightbulb menu, which offers the next hint level rather
+  // than printing every level's text in its titles.
+  const revealNextHintCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.revealNextHint",
+    (diag: DiagnosticItem) => { revealNextHint(state, diag, "code_action"); },
+  );
+
   const openWalkthroughCommand = vscode.commands.registerCommand(
     "code-coach-vscode.openWalkthrough", () => {
       void vscode.commands.executeCommand(
@@ -312,7 +321,7 @@ export function activate(context: vscode.ExtensionContext) {
     uriHandler,
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
-    showCodeLensHintCommand, reportFalsePositiveCommand, openWalkthroughCommand,
+    showCodeLensHintCommand, reportFalsePositiveCommand, revealNextHintCommand, openWalkthroughCommand,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
     sidebarRegistration, codeLensRegistration, codeLensProvider, codeActionRegistration,
