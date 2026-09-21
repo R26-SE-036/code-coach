@@ -1,0 +1,127 @@
+# Test and package the VS Code extension; publish a GitHub Release when its
+# version changes on main.
+#
+#   push / pull request touching the extension  ->  tests + a .vsix artifact
+#   push to main with a version not yet released ->  also a GitHub Release,
+#                                                   tagged extension-v<version>,
+#                                                   with the .vsix attached
+#
+# Students install the .vsix from the Releases page ("Install from VSIX..."), so
+# a release is only ever created, never replaced: a merge that leaves
+# package.json's version alone publishes nothing, and what people installed
+# stays what the release page says it is. To ship, raise the version and add a
+# CHANGELOG entry - the entry becomes the release notes.
+name: Extension release
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - extension/code-coach-vscode/**
+      - .github/workflows/extension-release.yml
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - extension/code-coach-vscode/**
+      - .github/workflows/extension-release.yml
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: extension/code-coach-vscode
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: extension/code-coach-vscode/package-lock.json
+      - run: npm ci
+      # The suite runs inside a real VS Code, which needs a display.
+      #
+      # On main the live tests run against the deployed platform - the one this
+      # release will talk to - and create clearly named example.com accounts
+      # there. Elsewhere CODE_COACH_TEST_URL is unset, nothing answers at the
+      # local-stack default, and the live tests skip themselves.
+      - name: Run the extension tests
+        run: |
+          if [ "$GITHUB_REF" = refs/heads/main ] && [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            export CODE_COACH_TEST_URL="${{ vars.PUBLIC_URL }}"
+            echo "Live tests against $CODE_COACH_TEST_URL"
+          fi
+          xvfb-run -a npm test
+
+  package:
+    name: Package
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: extension/code-coach-vscode/package-lock.json
+      - run: npm ci
+      - id: meta
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      # --no-dependencies: the extension has none at runtime.
+      # --skip-license: the repository has no licence file yet, and vsce would
+      # otherwise stop to ask.
+      - run: >
+          npx --yes @vscode/vsce@3 package --no-dependencies --skip-license
+          -o code-coach-${{ steps.meta.outputs.version }}.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: code-coach-${{ steps.meta.outputs.version }}
+          path: extension/code-coach-vscode/code-coach-${{ steps.meta.outputs.version }}.vsix
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: package
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.package.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: code-coach-${{ needs.package.outputs.version }}
+          path: extension/code-coach-vscode
+      - name: Publish, unless this version is already released
+        run: |
+          tag="extension-v$VERSION"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released; raise the version in package.json to publish a new one."
+            exit 0
+          fi
+          # This version's CHANGELOG section, without its heading, as the notes.
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/      { exit }
+            found                  { print }
+          ' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Code Coach extension $VERSION." > notes.md
+          cat >> notes.md <<EOF
+
+          ### Install
+          Download \`code-coach-$VERSION.vsix\` below, then in VS Code open the Extensions view,
+          choose **... > Install from VSIX...**, and pick the file - or run
+          \`code --install-extension code-coach-$VERSION.vsix\`.
+          EOF
+          gh release create "$tag" "code-coach-$VERSION.vsix" \
+            --target "$GITHUB_SHA" \
+            --title "Code Coach extension v$VERSION" \
+            --notes-file notes.md

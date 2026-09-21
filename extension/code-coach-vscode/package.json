@@ -3,12 +3,31 @@
   "publisher": "codeguru",
   "displayName": "Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/R26-SE-036/code-coach.git",
+    "directory": "extension/code-coach-vscode"
+  },
+  "homepage": "https://github.com/R26-SE-036/code-coach/tree/main/extension/code-coach-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/R26-SE-036/code-coach/issues"
+  },
+  "keywords": [
+    "java",
+    "beginner",
+    "learning",
+    "education",
+    "hints",
+    "diagnostics"
+  ],
   "engines": {
     "vscode": "^1.110.0"
   },
   "categories": [
-    "Other"
+    "Education",
+    "Linters",
+    "Programming Languages"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -49,18 +68,18 @@
       "properties": {
         "codeCoach.backendUrl": {
           "type": "string",
-          "default": "http://localhost:8090",
-          "description": "Where the extension calls Code Coach's API. The compose stack serves it through Caddy at the same address as the web app: http://localhost:8090, or http://localhost with whatever HTTP_PORT is. Running the backend on its own with uvicorn, use http://127.0.0.1:8000."
+          "default": "https://13-202-201-115.sslip.io",
+          "description": "Where the extension calls Code Coach's API. The default is the deployed Code Guru platform. Developers running the compose stack use http://localhost:8090; the backend on its own under uvicorn is http://127.0.0.1:8000. Keep it on the same host as Portal URL."
         },
         "codeCoach.enableEvaluationLogging": {
           "type": "boolean",
           "default": false,
-          "description": "Send anonymized diagnostic events to the local backend for research evaluation logging."
+          "description": "Send anonymized diagnostic events to Code Coach for research evaluation logging. Off by default."
         },
         "codeCoach.portalUrl": {
           "type": "string",
-          "default": "http://localhost:8090",
-          "description": "The Code Guru web app (codeguru-web). Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. The compose stack serves it at http://localhost:8090 (http://localhost with whatever HTTP_PORT Caddy publishes); `npm run dev` serves it at http://localhost:4200."
+          "default": "https://13-202-201-115.sslip.io",
+          "description": "The Code Guru web app. Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. The default is the deployed platform; the compose stack serves it at http://localhost:8090, and `npm run dev` at http://localhost:4200."
         }
       }
     },

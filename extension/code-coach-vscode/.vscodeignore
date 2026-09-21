@@ -9,3 +9,8 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+# The compiled test suite, the toolchain and earlier packages are not part of
+# the extension. There are no runtime dependencies, so node_modules is all dev.
+out/test/**
+node_modules/**
+*.vsix

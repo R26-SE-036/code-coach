@@ -7,10 +7,19 @@ export const DEBOUNCE_DELAY_MS = 900;
 
 /**
  * Where the platform is, unless the student's settings say otherwise: the
- * compose stack's edge (Caddy, HTTP_PORT=8090), which serves both the web app
- * and Code Coach's /api/v1. Both settings used to default to dev-server ports -
- * the portal to 4200, the backend to 8000 - so against the stack, sign-in opened
- * a page nothing was serving and then redeemed its code at a port nothing was
- * listening on. Must match the defaults in package.json.
+ * deployed edge (Caddy on the AWS host), which serves both the web app and
+ * Code Coach's /api/v1 from one origin.
+ *
+ * It used to be the compose stack's http://localhost:8090, which suited running
+ * the extension with F5 and nothing else: an installed copy, on a student's own
+ * machine with no stack running, would open a sign-in page nothing served. A
+ * developer running the stack sets both settings to http://localhost:8090.
+ *
+ * Both settings once defaulted to dev-server ports instead - the portal to 4200,
+ * the backend to 8000 - so sign-in opened one server and redeemed its code at
+ * another. One address for both is the point. Must match package.json.
  */
-export const DEFAULT_PLATFORM_URL = "http://localhost:8090";
+export const DEFAULT_PLATFORM_URL = "https://13-202-201-115.sslip.io";
+
+/** The compose stack's edge, for developers and for the test suite's default. */
+export const LOCAL_STACK_URL = "http://localhost:8090";
