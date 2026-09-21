@@ -12,9 +12,11 @@
  *                       the code, redeem it - against a fake Code Coach started
  *                       by the test. Needs nothing running.
  *   Live platform       The prompt fallback and a real analysis, against the
- *                       running stack at CODE_COACH_TEST_URL (default: the
- *                       extension's own default). Skipped, and says so, when
- *                       nothing answers there.
+ *                       running stack at CODE_COACH_TEST_URL (default: the local
+ *                       compose stack, not the extension's default - that is the
+ *                       deployed platform, and a local test run should not create
+ *                       accounts there unasked). CI sets it to the deployed URL
+ *                       on purpose. Skipped, and says so, when nothing answers.
  */
 import * as assert from "assert";
 import * as fs from "fs/promises";
@@ -26,7 +28,7 @@ import * as vscode from "vscode";
 
 import { getBackendUrl } from "../api";
 import { LOOPBACK_PORT, getPortalUrl } from "../browserAuth";
-import { DEFAULT_PLATFORM_URL } from "../constants";
+import { DEFAULT_PLATFORM_URL, LOCAL_STACK_URL } from "../constants";
 
 type TestAccount = {
   fullName: string;
@@ -37,7 +39,7 @@ type TestAccount = {
 type Messages = { info: string[]; warning: string[]; error: string[] };
 
 const ARTIFACT_PATH = path.join(os.tmpdir(), "code-coach-extension-flow.json");
-const LIVE_URL = (process.env.CODE_COACH_TEST_URL ?? DEFAULT_PLATFORM_URL).replace(/\/$/, "");
+const LIVE_URL = (process.env.CODE_COACH_TEST_URL ?? LOCAL_STACK_URL).replace(/\/$/, "");
 
 function uniqueAccount(): TestAccount {
   const suffix = `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-10);
@@ -234,8 +236,9 @@ const callback = (query = "") => fetch(`http://127.0.0.1:${LOOPBACK_PORT}/callba
 // ── Settings ────────────────────────────────────────────────────────────────
 
 suite("Settings", () => {
-  test("both addresses default to the platform edge", () => {
-    assert.strictEqual(DEFAULT_PLATFORM_URL, "http://localhost:8090");
+  test("both addresses default to the deployed platform's edge", () => {
+    // One origin for both, over HTTPS: an installed copy has no local stack.
+    assert.match(DEFAULT_PLATFORM_URL, /^https:\/\/[^/]+$/);
     for (const key of ["portalUrl", "backendUrl"]) {
       assert.strictEqual(
         settings().inspect<string>(key)?.defaultValue,
