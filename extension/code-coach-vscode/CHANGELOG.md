@@ -4,6 +4,11 @@ All notable changes to the Code Coach extension are recorded here. Each version
 listed is published as a GitHub Release tagged `extension-v<version>`, with its
 `.vsix` attached.
 
+## [Unreleased]
+
+- **Released under the MIT License.** The `.vsix` now includes the licence
+  text.
+
 ## [0.1.0] - 2026-09-21
 
 The first release installable outside a development host.
