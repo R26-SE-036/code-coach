@@ -72,11 +72,10 @@ jobs:
       - run: npm ci
       - id: meta
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-      # --no-dependencies: the extension has none at runtime.
-      # --skip-license: the repository has no licence file yet, and vsce would
-      # otherwise stop to ask.
+      # --no-dependencies: the extension has none at runtime. vsce packs the
+      # LICENSE next to package.json into the .vsix.
       - run: >
-          npx --yes @vscode/vsce@3 package --no-dependencies --skip-license
+          npx --yes @vscode/vsce@3 package --no-dependencies
           -o code-coach-${{ steps.meta.outputs.version }}.vsix
       - uses: actions/upload-artifact@v4
         with:

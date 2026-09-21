@@ -25,6 +25,7 @@ feed the portal's study plan, practice games and pair programming.
 - [Troubleshooting](#troubleshooting)
 - [For developers](#for-developers)
 - [Releasing a new version](#releasing-a-new-version)
+- [Licence](#licence)
 
 ---
 
@@ -298,3 +299,10 @@ Releases are automated by the `Extension release` workflow in this repository
 A merge that leaves the version unchanged runs the tests and packaging but
 publishes nothing, so ordinary changes never overwrite a release people have
 installed.
+
+## Licence
+
+Code Coach is released under the [MIT License](LICENSE). You may use, copy,
+modify and share it, including in your own projects, provided the copyright and
+licence notice stays with every copy. It comes with no warranty. The same text
+is in the repository root and inside every `.vsix`.
