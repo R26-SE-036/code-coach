@@ -6,11 +6,18 @@
 #                                                   tagged extension-v<version>,
 #                                                   with the .vsix attached
 #
-# Students install the .vsix from the Releases page ("Install from VSIX..."), so
-# a release is only ever created, never replaced: a merge that leaves
+#   the same push, when the store tokens are set  ->  also the Visual Studio
+#                                                   Marketplace (VSCE_PAT) and
+#                                                   Open VSX (OVSX_PAT)
+#
+# A release is only ever created, never replaced: a merge that leaves
 # package.json's version alone publishes nothing, and what people installed
-# stays what the release page says it is. To ship, raise the version and add a
-# CHANGELOG entry - the entry becomes the release notes.
+# stays what the release page says it is. The stores behave the same way - a
+# version already there is skipped, never overwritten. To ship, raise the
+# version and add a CHANGELOG entry - the entry becomes the release notes.
+#
+# The same .vsix goes everywhere, built once by the Package job, so the file on
+# GitHub and the one the stores install cannot differ.
 name: Extension release
 
 on:
@@ -116,11 +123,60 @@ jobs:
           cat >> notes.md <<EOF
 
           ### Install
-          Download \`code-coach-$VERSION.vsix\` below, then in VS Code open the Extensions view,
-          choose **... > Install from VSIX...**, and pick the file - or run
+          In VS Code, open the Extensions view, search for **Code Guru**, and install
+          *Code Guru: Code Coach* (Cursor and VSCodium find it on Open VSX).
+
+          Without store access: download \`code-coach-$VERSION.vsix\` below, then choose
+          **... > Install from VSIX...** in the Extensions view and pick the file - or run
           \`code --install-extension code-coach-$VERSION.vsix\`.
           EOF
           gh release create "$tag" "code-coach-$VERSION.vsix" \
             --target "$GITHUB_SHA" \
             --title "Code Coach extension v$VERSION" \
             --notes-file notes.md
+
+  stores:
+    name: Publish to the extension stores
+    needs: package
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.package.outputs.version }}
+      # Personal access tokens, stored as repository secrets. Either may be
+      # missing; that store is then skipped with a notice rather than failing
+      # the release, so the GitHub Release never waits on a store account.
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          name: code-coach-${{ needs.package.outputs.version }}
+          path: extension/code-coach-vscode
+      # VS Code's own store. vsce reads the token from VSCE_PAT.
+      #
+      # A Marketplace token needs an Azure DevOps organization, which now needs
+      # an Azure subscription. Without one the .vsix is uploaded by hand on the
+      # publisher page, and this step says which file.
+      - name: Visual Studio Marketplace
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::Marketplace: upload code-coach-$VERSION.vsix from the GitHub Release at https://marketplace.visualstudio.com/manage/publishers/codeguru-sliit (New extension, or Update on the existing one)."
+            exit 0
+          fi
+          npx --yes @vscode/vsce@3 publish --packagePath "code-coach-$VERSION.vsix" --skip-duplicate
+      # The store Cursor, VSCodium and Windsurf install from. ovsx reads the
+      # token from OVSX_PAT. The namespace (the publisher name) has to exist
+      # before the first upload; creating it again is refused harmlessly.
+      - name: Open VSX
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT is not set, so Open VSX was skipped."
+            exit 0
+          fi
+          publisher=$(node -p "require('./package.json').publisher")
+          npx --yes ovsx@0 create-namespace "$publisher" || echo "Namespace $publisher already exists."
+          npx --yes ovsx@0 publish "code-coach-$VERSION.vsix" --skip-duplicate
