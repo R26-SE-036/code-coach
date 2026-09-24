@@ -3,7 +3,7 @@
   "publisher": "codeguru",
   "displayName": "Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "icon": "media/logo.png",
   "repository": {

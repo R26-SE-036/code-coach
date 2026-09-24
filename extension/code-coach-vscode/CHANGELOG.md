@@ -6,6 +6,8 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-24
+
 - **Released under the MIT License.** The `.vsix` now includes the licence
   text.
 - **Email and password when browser sign-in cannot finish.** A cancelled or
