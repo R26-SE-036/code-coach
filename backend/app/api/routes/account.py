@@ -39,6 +39,7 @@ from app.models import (
     ResetPasswordRequest,
     StatusResponse,
 )
+from app.services.email_templates import password_reset_email, recovery_email_confirmation
 from app.services.mailer import send_mail
 
 router = APIRouter(prefix="/api/v1/auth", tags=["account"])
@@ -103,17 +104,19 @@ def forgot_password(
             storage, user["userId"], RESET, timedelta(minutes=settings.password_reset_ttl_minutes)
         )
         link = _link("/reset-password", token)
+        email = password_reset_email(
+            name=user["fullName"],
+            account_email=user["email"],
+            link=link,
+            minutes=settings.password_reset_ttl_minutes,
+        )
         background.add_task(
             send_mail,
             [user["email"], user.get("recoveryEmail")],
-            "Reset your Code Guru password",
-            f"Hi {user['fullName']},\n\n"
-            f"Someone asked to reset the password for the Code Guru account {user['email']}.\n"
-            f"To choose a new password, open this link within "
-            f"{settings.password_reset_ttl_minutes} minutes:\n\n{link}\n\n"
-            "The link works once. If you did not ask for this, ignore this email - "
-            "your password has not changed.\n",
+            email.subject,
+            email.text,
             link=link,
+            html=email.html,
         )
 
     return StatusResponse(status="ok", message=_FORGOT_ANSWER)
@@ -189,16 +192,13 @@ def set_recovery_email(
         storage, user_id, RECOVERY, timedelta(hours=settings.recovery_email_ttl_hours), email=address
     )
     link = _link("/confirm-email", token)
-    background.add_task(
-        send_mail,
-        [address],
-        "Confirm your Code Guru recovery email",
-        f"Hi {user.get('fullName', '')},\n\n"
-        f"{user.get('email')} asked to use this address to recover their Code Guru account.\n"
-        f"To confirm it, open this link within {settings.recovery_email_ttl_hours} hours:\n\n"
-        f"{link}\n\nIf you do not know this account, ignore this email and nothing will change.\n",
+    email = recovery_email_confirmation(
+        name=user.get("fullName", ""),
+        account_email=user.get("email", ""),
         link=link,
+        hours=settings.recovery_email_ttl_hours,
     )
+    background.add_task(send_mail, [address], email.subject, email.text, link=link, html=email.html)
     return StatusResponse(
         status="ok",
         message=f"We sent a confirmation link to {address}. The address is used once you open it.",

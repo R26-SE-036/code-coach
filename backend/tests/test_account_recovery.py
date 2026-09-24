@@ -22,8 +22,10 @@ PASSWORD = "GoodPass123!"
 def outbox(monkeypatch):
     sent: list[dict] = []
 
-    def record(recipients, subject, body, *, link=""):
-        sent.append({"to": [r for r in recipients if r], "subject": subject, "link": link})
+    def record(recipients, subject, body, *, link="", html=None):
+        sent.append(
+            {"to": [r for r in recipients if r], "subject": subject, "link": link, "text": body, "html": html}
+        )
         return True
 
     monkeypatch.setattr(account_routes, "send_mail", record)
@@ -228,3 +230,71 @@ def test_guessing_one_account_is_still_stopped(client):
     # A classmate on the same network is unaffected.
     register(client, email="ben@example.com")
     assert login(client, email="ben@example.com").status_code == 200
+
+
+# ── The emails themselves ────────────────────────────────────────────────
+
+
+def test_both_emails_are_sent_as_html_with_the_link_in_the_text_too(client, outbox):
+    access = register(client)
+    client.post("/api/v1/auth/password/forgot", json={"email": "ana@example.com"})
+    client.put(
+        "/api/v1/auth/me/recovery-email",
+        json={"recovery_email": "ana.backup@example.org", "password": PASSWORD},
+        headers={"Authorization": f"Bearer {access}"},
+    )
+
+    for mail in outbox:
+        assert mail["html"] and 'src="cid:logo"' in mail["html"]
+        # Mail clients that show only text still get a working link.
+        assert mail["link"] in mail["text"]
+        assert f'href="{mail["link"]}"' in mail["html"]
+
+
+def test_a_name_is_escaped_in_the_html():
+    from app.services.email_templates import password_reset_email
+
+    email = password_reset_email(
+        name='<img src=x onerror="alert(1)">', account_email="a@b.co", link="https://x/#token=t", minutes=30
+    )
+
+    assert "<img src=x" not in email.html
+    assert "&lt;img src=x" in email.html
+
+
+def test_the_sent_message_carries_text_html_and_the_logo_inline(monkeypatch):
+    from app.services import mailer
+
+    sent = []
+
+    class FakeSMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def starttls(self):
+            pass
+
+        def login(self, *args):
+            pass
+
+        def send_message(self, message):
+            sent.append(message)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    settings = mailer.get_settings()
+    monkeypatch.setattr(settings, "smtp_host", "smtp.example.com")
+    monkeypatch.setattr(settings, "mail_from", "codeguru@example.com")
+    monkeypatch.setattr(mailer.smtplib, "SMTP", FakeSMTP)
+
+    assert mailer.send_mail(["ana@example.com"], "Subject", "plain body", html="<p>rich</p>")
+
+    parts = {part.get_content_type(): part for part in sent[0].walk()}
+    assert "plain body" in parts["text/plain"].get_content()
+    assert "rich" in parts["text/html"].get_content()
+    assert parts["image/png"]["Content-ID"] == "<logo>"
+    assert parts["image/png"].get_content_disposition() == "inline"
