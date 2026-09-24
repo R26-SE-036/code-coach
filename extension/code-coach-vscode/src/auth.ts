@@ -89,9 +89,17 @@ async function tryBrowserSignIn(
   try {
     const response = await signInThroughBrowser(state, mode);
     if (!response) {
-      // Cancelled or timed out. The student made a choice; do not immediately
-      // ask them for a password instead.
-      return "cancelled";
+      // Cancelled or timed out. This used to end here, which locked out any
+      // student whose security software blocks the loopback address: the
+      // browser sign-in could never finish, and the prompts were only reached
+      // when it failed outright. They are offered now rather than opened, so a
+      // student who simply changed their mind is not asked for a password.
+      const choice = await vscode.window.showInformationMessage(
+        "Browser sign-in did not finish. If your browser could not get back " +
+          "to VS Code, you can use your email and password here instead.",
+        "Use email and password",
+      );
+      return choice ? "fallback" : "cancelled";
     }
 
     vscode.window.showInformationMessage(

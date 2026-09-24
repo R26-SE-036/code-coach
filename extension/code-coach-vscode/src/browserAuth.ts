@@ -10,19 +10,17 @@
  * ---------------------------------------------------------------------------
  * How the token gets back
  * ---------------------------------------------------------------------------
- * Two routes, tried in that order:
+ * A loopback HTTP server on 127.0.0.1:53682. It works in the Extension
+ * Development Host with no publisher id and no marketplace listing - which
+ * matters, since this extension is also run with F5 rather than installed.
  *
- *   1. A loopback HTTP server on 127.0.0.1:53682. This is the primary route
- *      because it works in the Extension Development Host with no publisher id
- *      and no marketplace listing - which matters, since this extension is run
- *      with F5 rather than installed.
- *   2. A vscode:// URI handler, registered in extension.ts. Useful if the
- *      browser cannot reach the loopback server, but it needs the extension to
- *      be properly identified, and a vscode:// link can surface in a different
- *      window than the one that asked for it.
+ * There is no second route. A vscode:// handler used to be registered as one,
+ * but the portal never produced such a link - see extension.ts.
  *
- * If both fail, or the student cancels, or the window is remote, auth.ts falls
- * back to the original prompts. Nothing is lost.
+ * If the listener cannot start, the browser does not open, or the window is
+ * remote, auth.ts falls back to the original prompts. If the sign-in is
+ * cancelled or times out - which is also what a blocked loopback address looks
+ * like - it offers them. Nothing is lost.
  *
  * ---------------------------------------------------------------------------
  * Why a fixed port

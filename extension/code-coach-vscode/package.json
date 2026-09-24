@@ -41,8 +41,7 @@
     "onCommand:code-coach-vscode.analyzeCurrentFile",
     "onCommand:code-coach-vscode.openCoachPanel",
     "onCommand:code-coach-vscode.previousHint",
-    "onCommand:code-coach-vscode.nextHint",
-    "onUri"
+    "onCommand:code-coach-vscode.nextHint"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -100,10 +99,6 @@
       {
         "command": "code-coach-vscode.signOut",
         "title": "Code Coach: Sign Out"
-      },
-      {
-        "command": "code-coach-vscode.analyzeCurrentFile",
-        "title": "Code Coach: Analyze Current File"
       },
       {
         "command": "code-coach-vscode.openCoachPanel",

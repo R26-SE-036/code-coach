@@ -8,6 +8,15 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 
 - **Released under the MIT License.** The `.vsix` now includes the licence
   text.
+- **Email and password when browser sign-in cannot finish.** A cancelled or
+  timed-out browser sign-in now offers the prompts, so a student whose security
+  software blocks `127.0.0.1:53682` can still sign in.
+- **The `vscode://` sign-in handler is removed.** The portal never produced that
+  link, so the fallback 0.1.0 described did not exist, and the handler would
+  redeem a code from any `vscode://` link.
+- **The hover card shows one hint level at a time**, with a link to the next,
+  like the lightbulb and the Coach Panel. It used to show all three at once.
+- **Analyze Current File is listed once** in the command contributions.
 
 ## [0.1.0] - 2026-09-21
 

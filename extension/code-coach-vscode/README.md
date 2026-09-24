@@ -129,13 +129,14 @@ Your sign-in lasts across restarts. **Code Coach: Sign Out** ends it.
   sends the browser back to that address with a **single-use code** that is
   valid for two minutes. The extension exchanges the code for its own session,
   so no password or token ever appears in a URL.
-- **Fallbacks.** If the browser cannot reach that address, the portal can hand
-  the session back through a `vscode://` link instead. If that fails too, Code
-  Coach asks for your email and password in VS Code.
+- **Fallback.** If the browser cannot reach that address (security software
+  sometimes blocks it), the sign-in cannot finish. When it is cancelled or times
+  out, Code Coach offers to sign you in with your email and password in VS Code
+  instead.
 - **Remote windows.** In SSH, WSL, dev containers and Codespaces, the loopback
   address is not your machine, so Code Coach uses those VS Code prompts directly.
 - **Timeout.** A browser sign-in that has not finished after three minutes is
-  cancelled, and you can start again.
+  cancelled. You can start again, or take the email and password offer.
 
 </details>
 
@@ -199,8 +200,8 @@ You are not signed in, or your session has expired. Run
 **The browser opened, I signed in, and VS Code did not notice.**
 - Make sure you signed in within three minutes, then try again.
 - Security software sometimes blocks the local address `127.0.0.1:53682`. If it
-  keeps failing, cancel the browser sign-in and use the email and password
-  prompts VS Code offers instead.
+  keeps failing, cancel the browser sign-in and choose **Use email and password**
+  when VS Code offers it.
 
 **"Port 53682 is already in use".**
 Another VS Code window is part-way through signing in. Finish or cancel it
