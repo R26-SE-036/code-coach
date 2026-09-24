@@ -87,9 +87,12 @@ sign in, open a Java file, analyse it, explore the hints, and use the panel.
 Code Coach is distributed as a `.vsix` file on the project's GitHub Releases
 page.
 
-1. Open **<https://github.com/R26-SE-036/code-coach/releases>** and find the newest
-   release named **Code Coach extension vX.Y.Z**.
-2. Under **Assets**, download `code-coach-X.Y.Z.vsix`.
+1. Download the newest `code-coach-X.Y.Z.vsix`: on the Code Guru website choose
+   **Get the VS Code extension** in the sidebar, or open
+   **<https://13-202-201-115.sslip.io/download/vscode-extension>**.
+2. Or take it from GitHub yourself: open
+   **<https://github.com/R26-SE-036/code-coach/releases>**, find the newest release
+   named **Code Coach extension vX.Y.Z**, and download the `.vsix` under **Assets**.
 3. Install it in VS Code in one of two ways:
    - **From the Extensions view:** press `Ctrl+Shift+X` (`Cmd+Shift+X` on macOS),
      open the **⋯** menu at the top of the view, choose **Install from VSIX…**,
@@ -129,13 +132,14 @@ Your sign-in lasts across restarts. **Code Coach: Sign Out** ends it.
   sends the browser back to that address with a **single-use code** that is
   valid for two minutes. The extension exchanges the code for its own session,
   so no password or token ever appears in a URL.
-- **Fallbacks.** If the browser cannot reach that address, the portal can hand
-  the session back through a `vscode://` link instead. If that fails too, Code
-  Coach asks for your email and password in VS Code.
+- **Fallback.** If the browser cannot reach that address (security software
+  sometimes blocks it), the sign-in cannot finish. When it is cancelled or times
+  out, Code Coach offers to sign you in with your email and password in VS Code
+  instead.
 - **Remote windows.** In SSH, WSL, dev containers and Codespaces, the loopback
   address is not your machine, so Code Coach uses those VS Code prompts directly.
 - **Timeout.** A browser sign-in that has not finished after three minutes is
-  cancelled, and you can start again.
+  cancelled. You can start again, or take the email and password offer.
 
 </details>
 
@@ -199,8 +203,8 @@ You are not signed in, or your session has expired. Run
 **The browser opened, I signed in, and VS Code did not notice.**
 - Make sure you signed in within three minutes, then try again.
 - Security software sometimes blocks the local address `127.0.0.1:53682`. If it
-  keeps failing, cancel the browser sign-in and use the email and password
-  prompts VS Code offers instead.
+  keeps failing, cancel the browser sign-in and choose **Use email and password**
+  when VS Code offers it.
 
 **"Port 53682 is already in use".**
 Another VS Code window is part-way through signing in. Finish or cancel it

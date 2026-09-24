@@ -180,6 +180,267 @@
         ]
       }
     },
+    "/api/v1/auth/handoff": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Create Handoff Code",
+        "description": "Mint a one-time code for the signed-in student's other client.",
+        "operationId": "create_handoff_code_api_v1_auth_handoff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/handoff/redeem": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Redeem Handoff Code",
+        "description": "Trade a one-time code for a real session. The code dies on first use.",
+        "operationId": "redeem_handoff_code_api_v1_auth_handoff_redeem_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffRedeemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/forgot": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Forgot Password",
+        "description": "Send a reset link to the account's email and its confirmed recovery email.\n\nThe answer is identical whether or not the account exists, and the email is\nsent after the response, so neither the words nor the timing tell a caller\nwhich addresses have accounts.",
+        "operationId": "forgot_password_api_v1_auth_password_forgot_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/reset": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Reset Password",
+        "description": "Set the new password and sign the account out everywhere.\n\nEvery session ends, because a reset usually means the old password is no\nlonger trusted - a session started with it should not survive.",
+        "operationId": "reset_password_api_v1_auth_password_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me/recovery-email": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Set Recovery Email",
+        "description": "Ask to use a recovery address, or remove the current one.\n\nA new address is not used until the student clicks the confirmation sent\nto it - a typo would otherwise send reset links to a stranger.",
+        "operationId": "set_recovery_email_api_v1_auth_me_recovery_email_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/recovery-email/confirm": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Confirm Recovery Email",
+        "operationId": "confirm_recovery_email_api_v1_auth_recovery_email_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/learning-sessions": {
       "post": {
         "tags": [
@@ -498,6 +759,53 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CollaborationActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/collaboration/me/pair-session-results": {
+      "post": {
+        "tags": [
+          "collaboration"
+        ],
+        "summary": "Record My Pair Session Result",
+        "description": "A finished PairPath session, reported for this student.\n\nThe web app sends this from its server, built from PairPath's own record of\nthe session. Like the other /me result endpoints here, it can only ever\nwrite into the caller's own record. See record_pair_session_completed for\nwhat it changes.",
+        "operationId": "record_my_pair_session_result_api_v1_collaboration_me_pair_session_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairSessionResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairSessionResultResponse"
                 }
               }
             }
@@ -1533,80 +1841,6 @@
           }
         }
       }
-    },
-    "/analyze": {
-      "post": {
-        "summary": "Analyze",
-        "operationId": "analyze_analyze_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AnalyzeRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AnalyzeResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/debug-ast": {
-      "post": {
-        "summary": "Debug Ast",
-        "operationId": "debug_ast_debug_ast_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AnalyzeRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -1789,10 +2023,6 @@
             "format": "email",
             "title": "Email"
           },
-          "role": {
-            "type": "string",
-            "title": "Role"
-          },
           "status": {
             "type": "string",
             "title": "Status"
@@ -1801,6 +2031,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "recovery_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Email"
           }
         },
         "type": "object",
@@ -1808,7 +2050,6 @@
           "user_id",
           "full_name",
           "email",
-          "role",
           "status",
           "created_at"
         ],
@@ -2477,6 +2718,40 @@
             "format": "date-time",
             "title": "Last Seen At"
           },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen At"
+          },
+          "median_seconds_between_occurrences": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Seconds Between Occurrences"
+          },
+          "seconds_since_last_occurrence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds Since Last Occurrence"
+          },
           "hint_event_count": {
             "type": "integer",
             "title": "Hint Event Count",
@@ -2617,6 +2892,21 @@
           "last_seen_at"
         ],
         "title": "ConceptSummaryView"
+      },
+      "ConfirmTokenRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 16,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "ConfirmTokenRequest"
       },
       "DashboardConceptTrendView": {
         "properties": {
@@ -3113,6 +3403,20 @@
         ],
         "title": "ErrorTypeSummaryView"
       },
+      "ForgotPasswordRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "ForgotPasswordRequest"
+      },
       "GamificationActionResponse": {
         "properties": {
           "status": {
@@ -3531,6 +3835,58 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HandoffRedeemRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 16,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "HandoffRedeemRequest"
+      },
+      "HandoffRequest": {
+        "properties": {
+          "client_name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Client Name",
+            "default": "code-coach-vscode"
+          }
+        },
+        "type": "object",
+        "title": "HandoffRequest",
+        "description": "Ask for a one-time code that another client can redeem for a session."
+      },
+      "HandoffResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "expires_in"
+        ],
+        "title": "HandoffResponse"
       },
       "HintSet": {
         "properties": {
@@ -3959,6 +4315,196 @@
         ],
         "title": "MicroLessonRecommendationView"
       },
+      "PairSessionResultRequest": {
+        "properties": {
+          "learningSessionId": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Learningsessionid"
+          },
+          "pair_session_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Pair Session Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "concept_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 14,
+            "minItems": 1,
+            "title": "Concept Tags"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          },
+          "difficulty_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty Level"
+          },
+          "solved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solved"
+          },
+          "run_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Run Count"
+          },
+          "correct_run_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Correct Run Count"
+          },
+          "seconds_to_solve": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 604800.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds To Solve"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 604800.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "review_score_percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Score Percent"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "learningSessionId",
+          "pair_session_id",
+          "concept_tags",
+          "run_count",
+          "correct_run_count"
+        ],
+        "title": "PairSessionResultRequest",
+        "description": "One student's outcome for a finished PairPath session."
+      },
+      "PairSessionResultResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "already_recorded": {
+            "type": "boolean",
+            "title": "Already Recorded",
+            "default": false
+          },
+          "created_event_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created Event Types"
+          },
+          "mastery": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptMasteryView"
+            },
+            "type": "array",
+            "title": "Mastery"
+          },
+          "trigger_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Trigger Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "created_event_types"
+        ],
+        "title": "PairSessionResultResponse"
+      },
       "PeerReviewSubmittedRequest": {
         "properties": {
           "learningSessionId": {
@@ -4248,6 +4794,34 @@
           "focus_points"
         ],
         "title": "QuizRecommendationView"
+      },
+      "RecoveryEmailRequest": {
+        "properties": {
+          "recovery_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "RecoveryEmailRequest",
+        "description": "Set, change or (with null) remove the recovery address.\n\nThe current password is required: whoever controls the recovery address\ncan reset the password, so adding one is as sensitive as changing it."
       },
       "RefreshRequest": {
         "properties": {
@@ -4549,6 +5123,28 @@
           "updated_at"
         ],
         "title": "RemediationTriggerView"
+      },
+      "ResetPasswordRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 16,
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "ResetPasswordRequest"
       },
       "StatusResponse": {
         "properties": {

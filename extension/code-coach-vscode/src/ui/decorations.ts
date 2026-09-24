@@ -22,11 +22,22 @@ export function createWarningDecorationType(): vscode.TextEditorDecorationType {
   });
 }
 
+type HintLevel = "concept" | "guidance" | "targeted";
+
 /**
  * Builds a rich, structured hover MarkdownString for a diagnostic item.
  * Features: severity emoji, organized sections, code block, visual confidence bars.
+ *
+ * Hints are shown up to `revealed` only. The hover used to print all three
+ * levels at once, so the targeted hint - the one that points at the fix - was
+ * on screen before the student had asked for anything, which undid the
+ * progressive hints everywhere else. The next level is a link that goes
+ * through revealNextHint, so it is recorded like every other request.
  */
-export function buildHoverMarkdown(item: DiagnosticItem): vscode.MarkdownString {
+export function buildHoverMarkdown(
+  item: DiagnosticItem,
+  revealed: HintLevel = "concept",
+): vscode.MarkdownString {
   const severityEmoji =
     item.severity === "error"
       ? "❌"
@@ -40,7 +51,9 @@ export function buildHoverMarkdown(item: DiagnosticItem): vscode.MarkdownString 
   };
 
   const md = new vscode.MarkdownString(undefined, true);
-  md.isTrusted = true;
+  // Trusted for the one command its link runs, not for every command: the
+  // hint and message text come from the backend and are rendered in here.
+  md.isTrusted = { enabledCommands: ["code-coach-vscode.revealNextHint"] };
   md.supportHtml = true;
 
   md.appendMarkdown(
@@ -61,12 +74,23 @@ export function buildHoverMarkdown(item: DiagnosticItem): vscode.MarkdownString 
     `---\n\n` +
     `### 💡 Hints\n\n` +
     `**💡 Concept:**\n` +
-    `> ${item.hints.concept}\n\n` +
-    `**🧭 Guidance:**\n` +
-    `> ${item.hints.guidance}\n\n` +
-    `**🎯 Targeted:**\n` +
-    `> ${item.hints.targeted}\n`,
+    `> ${item.hints.concept}\n\n`,
   );
+
+  if (revealed !== "concept") {
+    md.appendMarkdown(`**🧭 Guidance:**\n> ${item.hints.guidance}\n\n`);
+  }
+  if (revealed === "targeted") {
+    md.appendMarkdown(`**🎯 Targeted:**\n> ${item.hints.targeted}\n`);
+  } else {
+    const next = revealed === "concept" ? "guidance" : "targeted";
+    // The id only: the whole finding would put the unopened hints' text into
+    // the link, and so into the hover's markdown.
+    const args = encodeURIComponent(JSON.stringify([item.diagnostic_id, "hover"]));
+    md.appendMarkdown(
+      `[Show the ${next} hint](command:code-coach-vscode.revealNextHint?${args})\n`,
+    );
+  }
 
   return md;
 }
@@ -79,12 +103,13 @@ export function buildDecorationOptions(
   editor: vscode.TextEditor,
   diagnostics: DiagnosticItem[],
   createRange: (doc: vscode.TextDocument, d: DiagnosticItem) => vscode.Range,
+  revealedHintLevels?: ExtensionState["revealedHintLevels"],
 ): vscode.DecorationOptions[] {
   return diagnostics.map((item) => {
     const range = createRange(editor.document, item);
     return {
       range,
-      hoverMessage: buildHoverMarkdown(item),
+      hoverMessage: buildHoverMarkdown(item, revealedHintLevels?.get(item.diagnostic_id)),
       renderOptions: {
         after: {
           contentText: `  ◆ ${item.concept_tag}`,

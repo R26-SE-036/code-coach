@@ -29,6 +29,8 @@ import * as vscode from "vscode";
 import { getBackendUrl } from "../api";
 import { LOOPBACK_PORT, getPortalUrl } from "../browserAuth";
 import { DEFAULT_PLATFORM_URL, LOCAL_STACK_URL } from "../constants";
+import { DiagnosticItem } from "../types";
+import { buildHoverMarkdown } from "../ui/decorations";
 
 type TestAccount = {
   fullName: string;
@@ -36,7 +38,7 @@ type TestAccount = {
   password: string;
 };
 
-type Messages = { info: string[]; warning: string[]; error: string[] };
+type Messages = { info: string[]; warning: string[]; error: string[]; prompts: string[] };
 
 const ARTIFACT_PATH = path.join(os.tmpdir(), "code-coach-extension-flow.json");
 const LIVE_URL = (process.env.CODE_COACH_TEST_URL ?? LOCAL_STACK_URL).replace(/\/$/, "");
@@ -82,9 +84,14 @@ async function waitFor<T>(
   throw new Error(`Timed out after ${timeoutMs} ms.`);
 }
 
-/** Answer prompts from a queue and record every message shown. */
+/**
+ * Answer prompts from a queue and record every message shown.
+ *
+ * `choose` is the button picked on any information message that offers it;
+ * otherwise every message is dismissed.
+ */
 async function withPatchedWindow<T>(
-  options: { inputQueue?: string[]; allowErrors?: boolean },
+  options: { inputQueue?: string[]; allowErrors?: boolean; choose?: string },
   callback: (messages: Messages) => Promise<T>,
 ): Promise<T> {
   const windowApi = vscode.window as unknown as {
@@ -102,15 +109,21 @@ async function withPatchedWindow<T>(
   };
 
   const queuedInputs = [...(options.inputQueue ?? [])];
-  const messages: Messages = { info: [], warning: [], error: [] };
+  const messages: Messages = { info: [], warning: [], error: [], prompts: [] };
   const record = (bucket: string[]) =>
     (async (message: string) => {
       bucket.push(message);
       return undefined;
     }) as never;
 
-  windowApi.showInputBox = (async () => queuedInputs.shift()) as typeof vscode.window.showInputBox;
-  windowApi.showInformationMessage = record(messages.info);
+  windowApi.showInputBox = (async (box?: vscode.InputBoxOptions) => {
+    messages.prompts.push(box?.prompt ?? "");
+    return queuedInputs.shift();
+  }) as typeof vscode.window.showInputBox;
+  windowApi.showInformationMessage = (async (message: string, ...items: string[]) => {
+    messages.info.push(message);
+    return options.choose && items.includes(options.choose) ? options.choose : undefined;
+  }) as never;
   windowApi.showWarningMessage = record(messages.warning);
   windowApi.showErrorMessage = record(messages.error);
 
@@ -330,6 +343,30 @@ suite("Browser sign-in", () => {
         await registering;
 
         assert.deepStrictEqual(messages.warning, [], "a cancelled sign-in should not fall back to prompts");
+        assert.deepStrictEqual(messages.prompts, [], "the prompts should be offered, not opened");
+      }),
+    );
+  });
+
+  test("a sign-in that does not finish offers the email and password prompts", async function () {
+    this.timeout(60000);
+
+    // What a student whose security software blocks the loopback address sees:
+    // the browser never gets back, and the attempt ends without a code. The
+    // prompts used to be unreachable from here.
+    await withOpenExternal(true, (opened) =>
+      withPatchedWindow({ inputQueue: [], choose: "Use email and password" }, async (messages) => {
+        const signingIn = vscode.commands.executeCommand("code-coach-vscode.signIn");
+        await waitFor(() => opened[0], 10000);
+
+        await callback();
+        await signingIn;
+
+        assert.ok(
+          messages.info.some((message) => message.includes("did not finish")),
+          `no offer among: ${messages.info.join(" | ")}`,
+        );
+        assert.deepStrictEqual(messages.prompts, ["Enter your email"]);
       }),
     );
   });
@@ -383,6 +420,34 @@ suite("Browser sign-in", () => {
         );
       }),
     );
+  });
+});
+
+suite("Hover card", () => {
+  const finding: DiagnosticItem = {
+    diagnostic_id: "d-1", error_type: "OffByOne", severity: "warning",
+    line: 3, column: 5, confidence: 0.9, message: "Loop runs one step too far.",
+    code_context: "for (int i = 0; i <= n; i++)", concept_tag: "loop_boundaries",
+    explanation_key: "off_by_one", status: "active", detection_engine: "ml",
+    hints: { concept: "CONCEPT-TEXT", guidance: "GUIDANCE-TEXT", targeted: "TARGETED-TEXT" },
+  };
+
+  // The hover printed all three levels at once, so the targeted hint - the one
+  // that points at the fix - was on screen before the student asked for it.
+  test("shows only the levels the student has opened, and links the next one", () => {
+    const fresh = buildHoverMarkdown(finding).value;
+    assert.ok(fresh.includes("CONCEPT-TEXT"));
+    assert.ok(!fresh.includes("GUIDANCE-TEXT"));
+    assert.ok(!fresh.includes("TARGETED-TEXT"));
+    assert.ok(fresh.includes("command:code-coach-vscode.revealNextHint"));
+
+    const guided = buildHoverMarkdown(finding, "guidance").value;
+    assert.ok(guided.includes("GUIDANCE-TEXT"));
+    assert.ok(!guided.includes("TARGETED-TEXT"));
+
+    const all = buildHoverMarkdown(finding, "targeted").value;
+    assert.ok(all.includes("TARGETED-TEXT"));
+    assert.ok(!all.includes("command:"), "nothing left to reveal");
   });
 });
 

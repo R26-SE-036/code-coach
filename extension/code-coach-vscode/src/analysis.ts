@@ -136,7 +136,9 @@ function applyEditorFeedback(
     vscodeDiagnostics.push(diagnostic);
   }
 
-  const decorationOptions = buildDecorationOptions(editor, backendDiagnostics, createRangeFromDiagnostic);
+  const decorationOptions = buildDecorationOptions(
+    editor, backendDiagnostics, createRangeFromDiagnostic, state.revealedHintLevels,
+  );
 
   state.lastDiagnosticsByUri.set(uriKey, backendDiagnostics);
   state.lastSupportedUriKey = uriKey;
@@ -259,13 +261,26 @@ export function nextHintLevel(level: HintLevel): HintLevel | undefined {
 export function revealNextHint(
   state: ExtensionState,
   diagnostic: DiagnosticItem,
-  surface: "coach_panel" | "code_action" | "analysis_popup",
+  surface: "coach_panel" | "code_action" | "analysis_popup" | "hover",
 ): void {
   const next = nextHintLevel(revealedHintLevel(state, diagnostic));
   if (!next) { return; }
 
   state.revealedHintLevels.set(diagnostic.diagnostic_id, next);
   const hintText = hintTextForLevel(diagnostic, next);
+
+  // The hover is built when the decorations are set, so rebuild them for every
+  // open editor showing this finding - otherwise the next hover would still
+  // offer the level that was just opened.
+  for (const editor of vscode.window.visibleTextEditors) {
+    const cached = state.lastDiagnosticsByUri.get(editor.document.uri.toString());
+    if (cached?.some((item) => item.diagnostic_id === diagnostic.diagnostic_id)) {
+      editor.setDecorations(
+        state.warningDecorationType,
+        buildDecorationOptions(editor, cached, createRangeFromDiagnostic, state.revealedHintLevels),
+      );
+    }
+  }
 
   // The panel shows the new level in place; elsewhere there is nowhere to
   // show it but a message.
@@ -513,7 +528,7 @@ export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextE
     if (cached && cached.length > 0) {
       editor.setDecorations(
         state.warningDecorationType,
-        buildDecorationOptions(editor, cached, createRangeFromDiagnostic),
+        buildDecorationOptions(editor, cached, createRangeFromDiagnostic, state.revealedHintLevels),
       );
     }
     updateAnalysisStatusBar(state, editor);

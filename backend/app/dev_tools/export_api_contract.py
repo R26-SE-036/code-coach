@@ -33,6 +33,11 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "service receives, call GET /api/v1/auth/me with it.",
      ["/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh",
       "/api/v1/auth/logout", "/api/v1/auth/me"]),
+    ("Account recovery (Website)",
+     "Forgot password, reset from an emailed link, and a confirmed recovery email. "
+     "Links go to the website with the token in the URL fragment.",
+     ["/api/v1/auth/password/forgot", "/api/v1/auth/password/reset",
+      "/api/v1/auth/me/recovery-email", "/api/v1/auth/recovery-email/confirm"]),
     ("Learning sessions (every service)",
      "A learning session groups a student's activity. Create or reuse one before "
      "submitting analysis or events.",
@@ -127,7 +132,9 @@ def render_endpoint(path: str, method: str, operation: dict, spec: dict) -> list
         lines += [summary, ""]
 
     needs_auth = path not in {"/health", "/api/v1/auth/register", "/api/v1/auth/login",
-                              "/api/v1/auth/refresh"}
+                              "/api/v1/auth/refresh", "/api/v1/auth/password/forgot",
+                              "/api/v1/auth/password/reset",
+                              "/api/v1/auth/recovery-email/confirm"}
     lines.append(f"Auth: {'`Authorization: Bearer <access_token>`' if needs_auth else 'none required'}")
     lines.append("")
 

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.core.common import generate_prefixed_id, utcnow
 from app.core.config import get_settings
 from app.core.dependencies import (
     AuthContext,
+    enforce_account_rate_limit,
     enforce_auth_rate_limit,
     get_current_auth,
     get_storage,
@@ -51,6 +52,7 @@ def _serialize_user(document: dict[str, Any]) -> AuthUser:
         email=document["email"],
         status=document["status"],
         created_at=document["createdAt"],
+        recovery_email=document.get("recoveryEmail"),
     )
 
 
@@ -156,10 +158,12 @@ def register(
 @router.post("/login", response_model=AuthResponse)
 def login(
     payload: LoginRequest,
+    request: Request,
     storage: Any = Depends(get_storage),
     _rate_limit: None = Depends(enforce_auth_rate_limit),
 ) -> AuthResponse:
     identifier = payload.identifier.strip()
+    enforce_account_rate_limit(request, f"login:{_normalize_email(identifier)}")
     user_document = storage.find_user_by_email(_normalize_email(identifier))
 
     if user_document is None or not verify_password(

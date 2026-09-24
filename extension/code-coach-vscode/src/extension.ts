@@ -22,7 +22,6 @@ import * as vscode from "vscode";
 import { AuthUser, DiagnosticItem, ExtensionState } from "./types";
 import { USER_STATE_KEY, LEARNING_SESSION_KEY } from "./constants";
 import { signIn, signOut, createAccount, restoreAuthSession } from "./auth";
-import { redeemHandoffCode } from "./browserAuth";
 import {
   runAnalysisForEditor,
   scheduleAutoAnalysis,
@@ -222,10 +221,17 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Reached from the lightbulb menu, which offers the next hint level rather
-  // than printing every level's text in its titles.
+  // than printing every level's text in its titles, and from the link in the
+  // hover card. The hover passes the finding's id rather than the finding, and
+  // "hover" so the request is recorded as such.
   const revealNextHintCommand = vscode.commands.registerCommand(
     "code-coach-vscode.revealNextHint",
-    (diag: DiagnosticItem) => { revealNextHint(state, diag, "code_action"); },
+    (target: DiagnosticItem | string, surface?: "hover") => {
+      const diag = typeof target === "string"
+        ? [...state.lastDiagnosticsByUri.values()].flat().find((d) => d.diagnostic_id === target)
+        : target;
+      if (diag) { revealNextHint(state, diag, surface ?? "code_action"); }
+    },
   );
 
   const openWalkthroughCommand = vscode.commands.registerCommand(
@@ -287,38 +293,14 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // ── Push disposables ──
-  // ── Browser sign-in return path ──
-  // The loopback listener in browserAuth.ts is the primary way a browser
-  // sign-in gets back here. This is the second route: a vscode:// link, which
-  // works when the browser cannot reach the loopback server. It carries the
-  // same single-use code and redeems it the same way.
-  const uriHandler = vscode.window.registerUriHandler({
-    async handleUri(uri: vscode.Uri) {
-      if (uri.path !== "/auth") { return; }
-
-      const code = new URLSearchParams(uri.query).get("code");
-      if (!code) {
-        vscode.window.showErrorMessage("Code Coach: that sign-in link carried no code.");
-        return;
-      }
-
-      try {
-        const response = await redeemHandoffCode(state, code);
-        vscode.window.showInformationMessage(
-          `Signed in to Code Coach as ${response.user.full_name}.`,
-        );
-        if (vscode.window.activeTextEditor) {
-          scheduleAutoAnalysis(state, vscode.window.activeTextEditor);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Sign in failed.";
-        vscode.window.showErrorMessage(`Code Coach error: ${message}`);
-      }
-    },
-  });
+  // There is no vscode:// sign-in route. A handler for one was registered here
+  // as a second way back from the browser, but the portal never produced such
+  // a link, so it could not help anyone - and it would redeem a code from ANY
+  // vscode:// link, which lets a link someone else sent sign the student into
+  // that person's account. The loopback listener in browserAuth.ts is the one
+  // route; when it cannot finish, auth.ts offers the email and password prompts.
 
   context.subscriptions.push(
-    uriHandler,
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
     showCodeLensHintCommand, reportFalsePositiveCommand, revealNextHintCommand, openWalkthroughCommand,

@@ -3,8 +3,9 @@
   "publisher": "codeguru",
   "displayName": "Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
+  "icon": "media/logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/R26-SE-036/code-coach.git",
@@ -41,8 +42,7 @@
     "onCommand:code-coach-vscode.analyzeCurrentFile",
     "onCommand:code-coach-vscode.openCoachPanel",
     "onCommand:code-coach-vscode.previousHint",
-    "onCommand:code-coach-vscode.nextHint",
-    "onUri"
+    "onCommand:code-coach-vscode.nextHint"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -100,10 +100,6 @@
       {
         "command": "code-coach-vscode.signOut",
         "title": "Code Coach: Sign Out"
-      },
-      {
-        "command": "code-coach-vscode.analyzeCurrentFile",
-        "title": "Code Coach: Analyze Current File"
       },
       {
         "command": "code-coach-vscode.openCoachPanel",

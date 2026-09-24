@@ -112,10 +112,11 @@ a loopback HTTP server never receives a URL fragment:
   fight over rotation, and signing out in the browser would silently sign the
   student out of their editor.
 
-A `vscode://codeguru.code-coach-vscode/auth?code=…` handler is registered as a
-second route. The original input-box prompts remain as the fallback for remote
-/ SSH / WSL windows, where a loopback listener on the remote host is not the
-loopback the local browser reaches.
+There is no `vscode://` route: the portal never produced one, and a handler
+would redeem a code from any link. The original input-box prompts remain as the
+fallback for remote / SSH / WSL windows, where a loopback listener on the remote
+host is not the loopback the local browser reaches, and are offered when a
+browser sign-in is cancelled or times out.
 
 ### Working on localhost
 
@@ -347,9 +348,9 @@ credentials, and the errors the extension finds drive the lessons the portal
 sends them to. This is the shape GitHub uses: one account, reached from the
 web, a CLI, or an IDE.
 
-The extension cannot use the portal handoff because a redirect back into VS
-Code needs a `vscode://` URI handler — doable, but a separate piece of work.
-Until then the IDE keeps its own sign-in prompt against the same endpoints.
+The extension signs in through the portal handoff, coming back over the
+loopback address described above. Its own prompts against the same endpoints
+remain for when that round trip cannot finish.
 
 ---
 

@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.core.rate_limit import SlidingWindowLimiter
 from app.analysis.error_catalog import validate_catalog
 from app.api.routes.auth import router as auth_router
+from app.api.routes.account import router as account_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
 from app.api.routes.dashboard import router as dashboard_router
@@ -52,6 +53,14 @@ def create_app(*, storage=None) -> FastAPI:
         settings.auth_rate_limit_attempts,
         settings.auth_rate_limit_window_seconds,
     )
+    app.state.account_limiter = SlidingWindowLimiter(
+        settings.auth_account_rate_limit_attempts,
+        settings.auth_rate_limit_window_seconds,
+    )
+    app.state.reset_mail_limiter = SlidingWindowLimiter(
+        settings.reset_emails_per_address,
+        15 * 60,
+    )
 
     # Browser-based clients (the CodeGuru website, teammates' frontends) are
     # blocked by the browser without this. Origins come from settings so the
@@ -71,6 +80,7 @@ def create_app(*, storage=None) -> FastAPI:
 
     # registered routes
     app.include_router(auth_router)
+    app.include_router(account_router)
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)
     app.include_router(code_coach_router)

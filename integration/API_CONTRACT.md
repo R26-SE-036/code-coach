@@ -75,7 +75,8 @@ Response `200`:
     "full_name": "string",
     "email": "student@example.com",
     "status": "string",
-    "created_at": "2026-07-12T10:22:41Z"
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
   },
   "auth_session": {
     "auth_session_id": "string",
@@ -121,7 +122,8 @@ Response `200`:
     "full_name": "string",
     "email": "student@example.com",
     "status": "string",
-    "created_at": "2026-07-12T10:22:41Z"
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
   },
   "auth_session": {
     "auth_session_id": "string",
@@ -165,7 +167,8 @@ Response `200`:
     "full_name": "string",
     "email": "student@example.com",
     "status": "string",
-    "created_at": "2026-07-12T10:22:41Z"
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
   },
   "auth_session": {
     "auth_session_id": "string",
@@ -215,7 +218,8 @@ Response `200`:
     "full_name": "string",
     "email": "student@example.com",
     "status": "string",
-    "created_at": "2026-07-12T10:22:41Z"
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
   },
   "auth_session": {
     "auth_session_id": "string",
@@ -225,6 +229,97 @@ Response `200`:
     "last_seen_at": "2026-07-12T10:22:41Z",
     "expires_at": "2026-07-12T10:22:41Z"
   }
+}
+```
+
+---
+
+## Account recovery (Website)
+
+Forgot password, reset from an emailed link, and a confirmed recovery email. Links go to the website with the token in the URL fragment.
+
+### `POST /api/v1/auth/password/forgot`
+
+Forgot Password
+
+Auth: none required
+
+Request body:
+
+```json
+{
+  "email": "student@example.com"
+}
+```
+
+### `POST /api/v1/auth/password/reset`
+
+Reset Password
+
+Auth: none required
+
+Request body:
+
+```json
+{
+  "token": "string",
+  "new_password": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string"
+}
+```
+
+### `PUT /api/v1/auth/me/recovery-email`
+
+Set Recovery Email
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "recovery_email": "student@example.com",
+  "password": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string"
+}
+```
+
+### `POST /api/v1/auth/recovery-email/confirm`
+
+Confirm Recovery Email
+
+Auth: none required
+
+Request body:
+
+```json
+{
+  "token": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string"
 }
 ```
 
@@ -454,6 +549,9 @@ Response `200`:
       "resolved_count": "...",
       "unique_learning_sessions": "...",
       "last_seen_at": "...",
+      "first_seen_at": "...",
+      "median_seconds_between_occurrences": "...",
+      "seconds_since_last_occurrence": "...",
       "hint_event_count": "...",
       "hint_shown_count": "...",
       "hint_request_count": "...",
@@ -1279,3 +1377,140 @@ Response `200`:
 ```
 
 ---
+
+## Other endpoints
+
+Not yet grouped — ask before relying on these.
+
+### `POST /api/v1/auth/handoff`
+
+Create Handoff Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "client_name": "code-coach-vscode"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "code": "string",
+  "expires_in": 0
+}
+```
+
+### `POST /api/v1/auth/handoff/redeem`
+
+Redeem Handoff Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "code": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string",
+  "user": {
+    "user_id": "string",
+    "full_name": "string",
+    "email": "student@example.com",
+    "status": "string",
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
+  },
+  "auth_session": {
+    "auth_session_id": "string",
+    "client_name": "string",
+    "status": "string",
+    "created_at": "2026-07-12T10:22:41Z",
+    "last_seen_at": "2026-07-12T10:22:41Z",
+    "expires_at": "2026-07-12T10:22:41Z"
+  },
+  "tokens": {
+    "token_type": "Bearer",
+    "access_token": "string",
+    "refresh_token": "string",
+    "expires_in": 0
+  }
+}
+```
+
+### `POST /api/v1/collaboration/me/pair-session-results`
+
+Record My Pair Session Result
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "learningSessionId": "string",
+  "pair_session_id": "string",
+  "task_id": "string",
+  "concept_tags": [
+    "string"
+  ],
+  "error_type": "string",
+  "difficulty_level": "string",
+  "solved": false,
+  "run_count": 0,
+  "correct_run_count": 0,
+  "seconds_to_solve": 0,
+  "duration_seconds": 0,
+  "review_score_percent": 0,
+  "occurred_at": "2026-07-12T10:22:41Z"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string",
+  "already_recorded": false,
+  "created_event_types": [
+    "string"
+  ],
+  "mastery": [
+    {
+      "concept_tag": "...",
+      "mastery_score": "...",
+      "struggle_score": "...",
+      "mastery_level": "...",
+      "update_source": "...",
+      "last_learning_session_id": "...",
+      "last_error_type": "...",
+      "last_trigger_id": "...",
+      "last_quiz_id": "...",
+      "last_quiz_score_percent": "...",
+      "last_quiz_passed": "...",
+      "last_game_id": "...",
+      "last_game_type": "...",
+      "last_game_score_percent": "...",
+      "last_game_difficulty_level": "...",
+      "last_updated_at": "..."
+    }
+  ],
+  "trigger_ids": [
+    "string"
+  ]
+}
+```
