@@ -98,6 +98,30 @@ class RefreshRequest(BaseModel):
     refresh_token: str = Field(min_length=16, max_length=256)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=256)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class RecoveryEmailRequest(BaseModel):
+    """Set, change or (with null) remove the recovery address.
+
+    The current password is required: whoever controls the recovery address
+    can reset the password, so adding one is as sensitive as changing it.
+    """
+
+    recovery_email: Optional[EmailStr] = None
+    password: str = Field(min_length=8, max_length=128)
+
+
+class ConfirmTokenRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=256)
+
+
 class HandoffRequest(BaseModel):
     """Ask for a one-time code that another client can redeem for a session."""
 
@@ -120,6 +144,9 @@ class AuthUser(BaseModel):
     email: EmailStr
     status: str
     created_at: datetime
+    # A confirmed second address that reset links also go to. Null until the
+    # student has clicked the confirmation sent to it.
+    recovery_email: Optional[EmailStr] = None
 
 
 class AuthSessionView(BaseModel):

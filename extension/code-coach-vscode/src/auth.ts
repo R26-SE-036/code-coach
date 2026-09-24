@@ -23,6 +23,7 @@
  */
 import * as vscode from "vscode";
 import {
+  ApiError,
   AuthResponse,
   ExtensionState,
   LearningEventCreateResponse,
@@ -38,7 +39,7 @@ import {
   requestJson,
   storeAuthResponse,
 } from "./api";
-import { signInThroughBrowser } from "./browserAuth";
+import { getPortalUrl, signInThroughBrowser } from "./browserAuth";
 import { updateAuthStatusBar, updateAnalysisStatusBar } from "./ui/statusBar";
 import { scheduleAutoAnalysis } from "./analysis";
 
@@ -271,6 +272,19 @@ async function signInWithPrompts(state: ExtensionState): Promise<void> {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Sign in failed.";
+
+    // A wrong password: offer the website's reset page, since there is no
+    // way to reset one from inside the editor.
+    if (error instanceof ApiError && error.statusCode === 401) {
+      const choice = await vscode.window.showErrorMessage(
+        `Code Coach error: ${message}`,
+        "Forgot password?",
+      );
+      if (choice) {
+        void vscode.env.openExternal(vscode.Uri.parse(`${getPortalUrl()}/forgot-password`));
+      }
+      return;
+    }
     vscode.window.showErrorMessage(`Code Coach error: ${message}`);
   }
 }

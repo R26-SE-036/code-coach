@@ -46,6 +46,11 @@ PUBLIC = {
     ("POST", "/api/v1/auth/login"): "exchanges a password for a token",
     ("POST", "/api/v1/auth/refresh"): "presents a refresh token, not an access one",
     ("POST", "/api/v1/auth/handoff/redeem"): "presents a handoff code, not an access token",
+    # Account recovery. Whoever uses these has lost their password, or is
+    # confirming an address from an email - neither has an access token.
+    ("POST", "/api/v1/auth/password/forgot"): "asks for a reset email; same answer for every address",
+    ("POST", "/api/v1/auth/password/reset"): "presents a single-use emailed reset token",
+    ("POST", "/api/v1/auth/recovery-email/confirm"): "presents a single-use emailed confirmation token",
 }
 
 REFUSALS = {401, 403}

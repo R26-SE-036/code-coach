@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- The extension's icon in the Extensions view: the website's mark on the
+       website's violet-to-sky square (codeguru-web/app/icon.svg). -->
+  <defs>
+    <linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="55%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#cg)"/>
+  <g transform="translate(24 24) scale(3.3333)" fill="none">
+    <path d="M9.5 7.5 5.5 12l4 4.5" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m15.4 6.6.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" fill="#fff"/>
+    <path d="M13.4 17.6h4.6" stroke="#fff" stroke-width="2.1" stroke-linecap="round" opacity="0.75"/>
+  </g>
+</svg>

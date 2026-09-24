@@ -17,6 +17,11 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 - **The hover card shows one hint level at a time**, with a link to the next,
   like the lightbulb and the Coach Panel. It used to show all three at once.
 - **Analyze Current File is listed once** in the command contributions.
+- **The Code Guru logo.** The extension now uses the website's mark - in the
+  Extensions view, the activity bar and the editor toolbar - instead of its own
+  graduation cap. The light-theme toolbar icon was white, and so invisible.
+- **"Forgot password?"** after a wrong password in the sign-in prompts opens
+  the website's reset page.
 
 ## [0.1.0] - 2026-09-21
 

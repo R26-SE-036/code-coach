@@ -9,3 +9,5 @@ The dedicated rate-limit tests install their own strict limiter explicitly.
 import os
 
 os.environ.setdefault("AUTH_RATE_LIMIT_ATTEMPTS", "10000")
+os.environ.setdefault("AUTH_ACCOUNT_RATE_LIMIT_ATTEMPTS", "10000")
+os.environ.setdefault("RESET_EMAILS_PER_ADDRESS", "10000")

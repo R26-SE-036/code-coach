@@ -5,6 +5,7 @@
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
   "version": "0.1.0",
   "license": "MIT",
+  "icon": "media/logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/R26-SE-036/code-coach.git",

@@ -84,6 +84,26 @@ def enforce_auth_rate_limit(request: Request) -> None:
         )
 
 
+def enforce_account_rate_limit(request: Request, account_key: str) -> None:
+    """Cap attempts at one account, whichever address they come from.
+
+    The per-IP check above cannot tell a class sharing a network from one
+    machine guessing, so it is set for a room. This is the check that stops a
+    password being guessed: `account_key` names the endpoint and the account,
+    e.g. "login:ana@example.com".
+    """
+    limiter = getattr(request.app.state, "account_limiter", None)
+    if limiter is None:
+        return
+    retry_after = limiter.check(account_key)
+    if retry_after > 0:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts for this account. Please wait a minute and try again.",
+            headers={"Retry-After": str(max(1, int(retry_after + 0.5)))},
+        )
+
+
 def get_current_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     storage: Any = Depends(get_storage),
