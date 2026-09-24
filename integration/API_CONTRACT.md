@@ -325,6 +325,44 @@ Response `200`:
 
 ---
 
+## Research consent (Website)
+
+Whether the Java files Code Coach checks may be kept for research. Nothing is kept unless the student agreed to the current wording AND the deployment has collection switched on; declining deletes what was kept.
+
+### `GET /api/v1/research/consent`
+
+Get Consent
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/research/consent`
+
+Decide
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "decision": "string"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+---
+
 ## Learning sessions (every service)
 
 A learning session groups a student's activity. Create or reuse one before submitting analysis or events.

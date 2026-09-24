@@ -40,6 +40,13 @@ RAW_SNIPPETS_DIR = DATA_ROOT / "raw_snippets"
 GENERATED_SNIPPETS_DIR = DATA_ROOT / "raw_snippets_generated"
 METADATA_FILE = DATA_ROOT / "metadata" / "snippet_index.csv"
 
+# Real students' files, labelled by people. They do not fit the folder layout
+# above - one file can have several mistakes, and none is a planted pair - so
+# their labels come from a CSV beside them, written by
+# import_labelled_snippets.py. Git-ignored: students' work is never committed.
+REAL_SNIPPETS_DIR = DATA_ROOT / "raw_snippets_real"
+REAL_LABELS_FILE = REAL_SNIPPETS_DIR / "labels.csv"
+
 # The corpus can come from more than one root. Each root carries its own
 # source_type (provenance is a first-class column — split_dataset.py holds all
 # manual_curated units out as the test set once synthetic rows exist) and an
@@ -345,6 +352,39 @@ def build_rows() -> List[Dict[str, str]]:
             )
         rows.extend(_collect_clean_rows(root_dir, source_type, existing))
 
+    rows.extend(_collect_real_rows())
+    return rows
+
+
+def _collect_real_rows() -> List[Dict[str, str]]:
+    """Rows for real students' files, from raw_snippets_real/labels.csv.
+
+    pair_group is the participant code, so split_dataset.py keeps all of one
+    student's files in the same split.
+    """
+    if not REAL_LABELS_FILE.exists():
+        return []
+
+    labels_by_flag = {c.flag_column: c.label for c in CATEGORIES}
+    rows: List[Dict[str, str]] = []
+    with REAL_LABELS_FILE.open("r", encoding="utf-8", newline="") as handle:
+        for record in csv.DictReader(handle):
+            flags = {column: "1" if record.get(column, "").strip() == "1" else "0" for column in ALL_FLAG_COLUMNS}
+            positives = [labels_by_flag[column] for column in ALL_FLAG_COLUMNS if flags[column] == "1"]
+            rows.append(
+                {
+                    "snippet_id": record["snippet_id"],
+                    "file_path": record["file_path"],
+                    "language": "java",
+                    "primary_label": positives[0] if positives else "NO_ISSUE",
+                    "is_clean": "0" if positives else "1",
+                    **flags,
+                    "pair_group": record.get("participant", ""),
+                    "pair_role": "",
+                    "source_type": "real_student",
+                    "notes": record.get("notes", ""),
+                }
+            )
     return rows
 
 

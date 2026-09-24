@@ -15,6 +15,7 @@ from app.services.code_coach_service import (
 )
 from app.services.dispute_service import disputed_ids_for
 from app.services.evaluation_logger import log_analysis_event
+from app.services.research_collection import collect_code_snapshot
 from app.services.learning_signal_service import build_code_coach_learning_events
 from app.services.remediation_service import sync_code_coach_remediation_triggers
 
@@ -141,6 +142,20 @@ def analyze_for_authenticated_user(
         detected,
         user_id=auth.user_id,
         learning_session_id=learning_session_id,
+    )
+
+    # Kept for research only with the student's current consent, and only
+    # once the deployment turns collection on - see research_collection.py.
+    # Everything the detector found goes with it, disputed or not: a dispute
+    # is evidence about the detector, which is what the file is kept for.
+    background_tasks.add_task(
+        collect_code_snapshot,
+        storage,
+        user_id=auth.user_id,
+        language=payload.language,
+        code=payload.code,
+        findings=detected,
+        disputed_ids=disputed,
     )
 
     return build_analyze_response(

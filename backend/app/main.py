@@ -11,6 +11,7 @@ from app.core.rate_limit import SlidingWindowLimiter
 from app.analysis.error_catalog import validate_catalog
 from app.api.routes.auth import router as auth_router
 from app.api.routes.account import router as account_router
+from app.api.routes.research import router as research_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
 from app.api.routes.dashboard import router as dashboard_router
@@ -81,6 +82,7 @@ def create_app(*, storage=None) -> FastAPI:
     # registered routes
     app.include_router(auth_router)
     app.include_router(account_router)
+    app.include_router(research_router)
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)
     app.include_router(code_coach_router)
