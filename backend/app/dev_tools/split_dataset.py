@@ -125,7 +125,13 @@ def _allocate_unit_counts(total_units: int) -> Tuple[int, int, int]:
     return train_count, val_count, test_count
 
 
-HOLDOUT_SOURCE_TYPE = "manual_curated"
+# Test-only provenance. Hand-written snippets, and real students' files
+# (source_type real_student, see export_code_snapshots.py) until there are
+# enough of them to train on - `--train-on-real` then moves real files into the
+# 70/15/15 pool. Real files are grouped by student (pair_group = participant),
+# so one student's files never land on both sides of the split.
+HOLDOUT_SOURCE_TYPES = {"manual_curated", "real_student"}
+REAL_SOURCE_TYPE = "real_student"
 
 
 def _unit_source_type(unit: List[Dict[str, str]]) -> str:
@@ -134,23 +140,27 @@ def _unit_source_type(unit: List[Dict[str, str]]) -> str:
 
 def _split_units_stratified(
     units: List[List[Dict[str, str]]],
+    *,
+    train_on_real: bool = False,
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[Dict[str, str]]]:
     rng = random.Random(RANDOM_SEED)
+    holdout_types = HOLDOUT_SOURCE_TYPES - ({REAL_SOURCE_TYPE} if train_on_real else set())
 
     # Provenance-aware holdout: when a synthetic corpus exists, EVERY
     # manual_curated unit goes to the TEST split. Models then train and
     # calibrate purely on generated data, and the test metric answers the
     # honest question: "does this work on code a human actually wrote?"
     # With no synthetic rows (the original setup), behavior is unchanged.
-    manual_units = [u for u in units if _unit_source_type(u) == HOLDOUT_SOURCE_TYPE]
-    synthetic_units = [u for u in units if _unit_source_type(u) != HOLDOUT_SOURCE_TYPE]
+    manual_units = [u for u in units if _unit_source_type(u) in holdout_types]
+    synthetic_units = [u for u in units if _unit_source_type(u) not in holdout_types]
 
     if synthetic_units and manual_units:
         split_pool = synthetic_units
         holdout_units = manual_units
         print(
-            f"Holdout mode: {len(manual_units)} manual units -> TEST; "
-            f"{len(synthetic_units)} synthetic units -> stratified 70/15/15."
+            f"Holdout mode: {len(manual_units)} test-only units (hand-written"
+            f"{'' if train_on_real else ', real students'}) -> TEST; "
+            f"{len(synthetic_units)} units -> stratified 70/15/15."
         )
     else:
         split_pool = units
@@ -236,12 +246,22 @@ def _validate_split_coverage(
             raise ValueError(f"Test split has zero positives for {target_column}")
 
 
-def main() -> None:
+def main(argv: List[str] | None = None) -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Split features_v1.csv into train/val/test.")
+    parser.add_argument(
+        "--train-on-real",
+        action="store_true",
+        help="put real students' files in the 70/15/15 pool instead of test only",
+    )
+    args = parser.parse_args(argv)
+
     print("Reading master dataset ...")
     rows = _read_rows(MASTER_INPUT_FILE)
 
     units = _build_units(rows)
-    train_rows, val_rows, test_rows = _split_units_stratified(units)
+    train_rows, val_rows, test_rows = _split_units_stratified(units, train_on_real=args.train_on_real)
 
     if not train_rows or not val_rows or not test_rows:
         raise ValueError(
