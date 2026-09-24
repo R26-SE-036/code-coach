@@ -64,6 +64,21 @@ class Settings(BaseSettings):
     # flood someone's inbox.
     reset_emails_per_address: int = 3
 
+    # ── Research collection of analysed code ──
+    # Off until the ethics application is approved. While off, students can
+    # still record a decision, but no code is kept whatever they chose. On, it
+    # keeps the code of students whose latest decision is GRANTED under the
+    # current consent version (core/research_consent.py).
+    #
+    # The salt turns an account id into the participant code stored beside
+    # the file. It must be secret, long and never change: a new salt makes
+    # one student look like two. Collection stays off while it is unset.
+    research_collection_enabled: bool = False
+    research_id_salt: Optional[str] = None
+    # Files larger than this are not kept - a paste of something that is not a
+    # student's program, and not what the detector is trained on.
+    research_max_code_chars: int = 50_000
+
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600

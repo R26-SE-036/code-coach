@@ -31,3 +31,7 @@ backend/secrets/
 # docs/ is tracked on purpose. A "/docs" rule used to sit here, which meant a
 # single `git commit -a` would have silently recorded the deletion of every
 # file in it.
+
+# Real students' code kept for research (see backend/app/dev_tools/
+# export_code_snapshots.py). Students' work - never committed.
+data/ml/raw_snippets_real/

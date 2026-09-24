@@ -441,6 +441,80 @@
         }
       }
     },
+    "/api/v1/research/consent": {
+      "get": {
+        "tags": [
+          "research"
+        ],
+        "summary": "Get Consent",
+        "operationId": "get_consent_api_v1_research_consent_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Consent Api V1 Research Consent Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "research"
+        ],
+        "summary": "Decide",
+        "operationId": "decide_api_v1_research_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Decide Api V1 Research Consent Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/learning-sessions": {
       "post": {
         "tags": [
@@ -2907,6 +2981,23 @@
           "token"
         ],
         "title": "ConfirmTokenRequest"
+      },
+      "ConsentDecisionRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "GRANTED",
+              "DECLINED"
+            ],
+            "title": "Decision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "ConsentDecisionRequest"
       },
       "DashboardConceptTrendView": {
         "properties": {

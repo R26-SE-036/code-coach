@@ -38,6 +38,11 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "Links go to the website with the token in the URL fragment.",
      ["/api/v1/auth/password/forgot", "/api/v1/auth/password/reset",
       "/api/v1/auth/me/recovery-email", "/api/v1/auth/recovery-email/confirm"]),
+    ("Research consent (Website)",
+     "Whether the Java files Code Coach checks may be kept for research. Nothing is kept "
+     "unless the student agreed to the current wording AND the deployment has collection "
+     "switched on; declining deletes what was kept.",
+     ["/api/v1/research/consent"]),
     ("Learning sessions (every service)",
      "A learning session groups a student's activity. Create or reuse one before "
      "submitting analysis or events.",
