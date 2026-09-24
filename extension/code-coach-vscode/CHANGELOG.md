@@ -2,9 +2,21 @@
 
 All notable changes to the Code Coach extension are recorded here. Each version
 listed is published as a GitHub Release tagged `extension-v<version>`, with its
-`.vsix` attached.
+`.vsix` attached, and from 0.2.1 on the Visual Studio Marketplace and Open VSX.
 
 ## [Unreleased]
+
+## [0.2.1] - 2026-09-25
+
+- **On the Visual Studio Marketplace and Open VSX.** Search for *Code Guru* or
+  *Code Coach* in the Extensions view and choose **Install**; updates arrive
+  automatically. The `.vsix` on GitHub Releases still works.
+- **Listed as "Code Guru: Code Coach".** "Code Coach" alone is taken on the
+  Marketplace. Inside VS Code the sidebar and commands are still Code Coach.
+- **A new extension id, `codeguru-sliit.code-coach-vscode`**, because the
+  publisher is now `codeguru-sliit`. VS Code treats it as a different extension
+  from the 0.1.0/0.2.0 `.vsix` (`codeguru.code-coach-vscode`): uninstall that
+  one first, then sign in again once.
 
 ## [0.2.0] - 2026-09-24
 

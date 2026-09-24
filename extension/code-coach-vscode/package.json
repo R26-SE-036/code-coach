@@ -1,9 +1,9 @@
 {
   "name": "code-coach-vscode",
-  "publisher": "codeguru",
-  "displayName": "Code Coach",
+  "publisher": "codeguru-sliit",
+  "displayName": "Code Guru: Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "icon": "media/logo.png",
   "repository": {
@@ -17,6 +17,10 @@
   },
   "keywords": [
     "java",
+    "code guru",
+    "code coach",
+    "students",
+    "novice",
     "beginner",
     "learning",
     "education",

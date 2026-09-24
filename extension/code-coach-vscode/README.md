@@ -84,8 +84,14 @@ sign in, open a Java file, analyse it, explore the hints, and use the panel.
 
 ## Installing
 
-Code Coach is distributed as a `.vsix` file on the project's GitHub Releases
-page.
+**From the extension store (recommended).** Press `Ctrl+Shift+X`
+(`Cmd+Shift+X` on macOS) to open the Extensions view, search for
+**Code Guru**, and choose **Install** on *Code Guru: Code Coach*. VS Code
+installs it from the Visual Studio Marketplace; Cursor, VSCodium and Windsurf
+install the same extension from Open VSX. Updates then arrive by themselves.
+
+**From a `.vsix` file.** For an editor without store access, each version is
+also a `.vsix` file on the project's GitHub Releases page.
 
 1. Download the newest `code-coach-X.Y.Z.vsix`: on the Code Guru website choose
    **Get the VS Code extension** in the sidebar, or open
@@ -105,8 +111,8 @@ page.
 
 4. Reload VS Code if it asks you to.
 
-**Updating:** install the newer `.vsix` the same way, and it replaces the old
-version. **Uninstalling:** open the Extensions view, find *Code Coach*, and choose
+**Updating:** from the store, updates are automatic. From a `.vsix`, install
+the newer file the same way, and it replaces the old version. **Uninstalling:** open the Extensions view, find *Code Coach*, and choose
 **Uninstall**.
 
 ## Getting started
