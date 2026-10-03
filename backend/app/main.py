@@ -20,6 +20,7 @@ from app.api.routes.events import router as events_router
 from app.api.routes.gamification import router as gamification_router
 from app.api.routes.learning_sessions import router as learning_session_router
 from app.api.routes.remediation import router as remediation_router
+from app.api.routes.internal import router as internal_router
 from app.db.storage import build_storage
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,7 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(events_router)
     app.include_router(gamification_router)
     app.include_router(remediation_router)
+    app.include_router(internal_router)
 
     # The database being unreachable is not a bug in the request, and it should
     # not look like one. Unhandled, it surfaces as a 500 behind a long driver
