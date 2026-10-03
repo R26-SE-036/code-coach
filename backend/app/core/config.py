@@ -79,6 +79,14 @@ class Settings(BaseSettings):
     # student's program, and not what the detector is trained on.
     research_max_code_chars: int = 50_000
 
+    # ── Calls from other Code Guru services ──
+    # PairPath asks which concepts a free-coding pair's code touches, so its
+    # hints can find the right course notes. That call is server to server and
+    # carries no student token, so it proves itself with this key instead - the
+    # same value PairPath holds. Unset, the route refuses every call and
+    # PairPath falls back to general teamwork nudges.
+    internal_service_key: Optional[str] = None
+
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600
