@@ -10,9 +10,14 @@
                     failures, so a failed renewal is visible afterwards. No card
                     details are stored; PayHere's masked card number and the
                     card holder's name are dropped before anything is written.
-    lessonUnlocks   the Study Guider lessons a Free student has opened this
-                    month, one per (student, month, trigger). Opening the same
-                    lesson again in the same month does not use up another.
+    lessonUnlocks   the Study Guider lessons a student has opened this month,
+                    one per (student, month, trigger), with the plan they were
+                    on. Only those opened on Free count against Free's quota;
+                    the rest are usage, shown on the billing page. Opening the
+                    same lesson again in the same month adds nothing.
+    subscriptionEvents
+                    append-only: upgraded, renewed, cancelled, resumed,
+                    downgraded, reset - the timeline on the billing page.
 """
 
 from __future__ import annotations
@@ -44,6 +49,7 @@ class InMemoryBillingStorage:
                 "checkouts": {},
                 "payments": [],
                 "lessonUnlocks": {},
+                "events": [],
             }
         return self.billing_tables
 
@@ -83,7 +89,8 @@ class InMemoryBillingStorage:
         return True
 
     def list_payments(self, user_id: str, limit: int = 10) -> list[dict[str, Any]]:
-        mine = [p for p in self._billing()["payments"] if p["userId"] == user_id]
+        # Reversed first, so two written in the same clock tick still come back newest first.
+        mine = [p for p in self._billing()["payments"] if p["userId"] == user_id][::-1]
         mine.sort(key=lambda p: p["createdAt"], reverse=True)
         return [deepcopy(p) for p in mine[:limit]]
 
@@ -108,6 +115,14 @@ class InMemoryBillingStorage:
         for key in [k for k in unlocks if k[0] == user_id and k[1] == month]:
             del unlocks[key]
 
+    def record_subscription_event(self, document: dict[str, Any]) -> None:
+        self._billing()["events"].append(deepcopy(document))
+
+    def list_subscription_events(self, user_id: str, limit: int = 20) -> list[dict[str, Any]]:
+        mine = [e for e in self._billing()["events"] if e["userId"] == user_id][::-1]
+        mine.sort(key=lambda e: e["at"], reverse=True)
+        return [deepcopy(e) for e in mine[:limit]]
+
 
 class MongoBillingStorage:
     def create_billing_indexes(self) -> None:
@@ -119,6 +134,7 @@ class MongoBillingStorage:
         self.db.lessonUnlocks.create_index(
             [("userId", ASCENDING), ("month", ASCENDING), ("triggerId", ASCENDING)], unique=True
         )
+        self.db.subscriptionEvents.create_index([("userId", ASCENDING), ("at", DESCENDING)])
 
     def get_subscription(self, user_id: str) -> Optional[dict[str, Any]]:
         return _clean(self.db.subscriptions.find_one({"userId": user_id}))
@@ -149,7 +165,9 @@ class MongoBillingStorage:
         return True
 
     def list_payments(self, user_id: str, limit: int = 10) -> list[dict[str, Any]]:
-        cursor = self.db.payments.find({"userId": user_id}, {"_id": 0}).sort("createdAt", DESCENDING).limit(limit)
+        # _id breaks ties between two written in the same millisecond.
+        cursor = (self.db.payments.find({"userId": user_id}, {"_id": 0})
+                  .sort([("createdAt", DESCENDING), ("_id", DESCENDING)]).limit(limit))
         return list(cursor)
 
     def add_lesson_unlock(self, document: dict[str, Any]) -> bool:
@@ -164,3 +182,11 @@ class MongoBillingStorage:
 
     def delete_lesson_unlocks(self, user_id: str, month: str) -> None:
         self.db.lessonUnlocks.delete_many({"userId": user_id, "month": month})
+
+    def record_subscription_event(self, document: dict[str, Any]) -> None:
+        self.db.subscriptionEvents.insert_one(deepcopy(document))
+
+    def list_subscription_events(self, user_id: str, limit: int = 20) -> list[dict[str, Any]]:
+        cursor = (self.db.subscriptionEvents.find({"userId": user_id}, {"_id": 0})
+                  .sort([("at", DESCENDING), ("_id", DESCENDING)]).limit(limit))
+        return list(cursor)

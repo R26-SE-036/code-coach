@@ -1,4 +1,4 @@
-"""Free and Pro: who has Pro, how they get it, and what Free is allowed.
+"""Free and Pro: who has Pro, how they get it, how it ends, and what Free may open.
 
 ==================== WHERE THIS SITS ====================
 Code Coach is the platform's identity provider: Study Guider, the gamification
@@ -24,6 +24,15 @@ Only two ways, and neither is a browser saying so:
 there is no endpoint that simply sets a plan.
 ============================================================
 
+==================== HOW PRO ENDS ====================
+  Cancel     stop renewing. Pro lasts to the end of what was paid for. Undone
+             by Resume, unless the recurring charge was already stopped at
+             PayHere - then it cannot be restarted from here.
+  Downgrade  back to Free now. Renewal is stopped too. No refund: this is a
+             student's choice to stop early, and the sandbox moves no money.
+  Expiry     the paid period simply runs out; nothing is written.
+======================================================
+
 Pure functions first, so the signing, the plan rules and the quota can be
 tested without a database; the storage-touching functions follow.
 """
@@ -32,6 +41,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
 import logging
 import urllib.parse
@@ -44,7 +54,9 @@ from app.core.common import generate_prefixed_id
 logger = logging.getLogger(__name__)
 
 CURRENCY = "LKR"
-PERIOD = timedelta(days=30)
+INTERVALS = {"month": timedelta(days=30), "year": timedelta(days=365)}
+PERIOD = INTERVALS["month"]
+RECURRENCE = {"month": "1 Month", "year": "1 Year"}
 # Sri Lanka time, so "this month" turns over at local midnight on the 1st.
 LOCAL = timezone(timedelta(hours=5, minutes=30))
 
@@ -64,6 +76,14 @@ def _aware(value: Optional[datetime]) -> Optional[datetime]:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+def interval_of(value: Optional[str]) -> str:
+    return value if value in INTERVALS else "month"
+
+
+def price_for(settings: Any, interval: str) -> int:
+    return settings.pro_yearly_price_lkr if interval == "year" else settings.pro_price_lkr
+
+
 def is_pro(subscription: Optional[dict[str, Any]], now: datetime) -> bool:
     """Pro while the paid period lasts - including after Cancel, until it ends."""
     if not subscription:
@@ -73,25 +93,34 @@ def is_pro(subscription: Optional[dict[str, Any]], now: datetime) -> bool:
 
 
 def plan_view(subscription: Optional[dict[str, Any]], now: datetime) -> dict[str, Any]:
-    pro = is_pro(subscription, now)
-    if not pro:
-        return {"tier": "free", "status": "free", "provider": None, "renews_at": None,
-                "ends_at": None, "cancel_at_period_end": False, "started_at": None}
+    if not is_pro(subscription, now):
+        return {"tier": "free", "status": "free", "provider": None, "interval": None, "renews_at": None,
+                "ends_at": None, "cancel_at_period_end": False, "can_resume": False, "started_at": None}
     end = _aware(subscription["currentPeriodEnd"])
     cancelling = bool(subscription.get("cancelAtPeriodEnd"))
     return {
         "tier": "pro",
         "status": "cancelled" if cancelling else "active",
         "provider": subscription.get("provider"),
+        "interval": interval_of(subscription.get("interval")),
         "renews_at": None if cancelling else end,
         "ends_at": end,
         "cancel_at_period_end": cancelling,
+        # A renewal stopped at PayHere cannot be restarted from here.
+        "can_resume": cancelling and not subscription.get("providerCancelled"),
         "started_at": subscription.get("startedAt"),
     }
 
 
 def month_key(now: datetime) -> str:
     return now.astimezone(LOCAL).strftime("%Y-%m")
+
+
+def next_month_start(now: datetime) -> datetime:
+    """When this month's free lessons come back: midnight on the 1st, Colombo time."""
+    local = now.astimezone(LOCAL)
+    first = local.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    return (first + timedelta(days=32)).replace(day=1).astimezone(timezone.utc)
 
 
 def amount_text(amount_lkr: int) -> str:
@@ -117,8 +146,6 @@ def notify_signature(fields: dict[str, str], secret: str) -> str:
 
 
 def signature_valid(fields: dict[str, str], merchant_id: str, secret: str) -> bool:
-    import hmac
-
     given = (fields.get("md5sig") or "").upper()
     return (
         bool(given)
@@ -132,13 +159,23 @@ def split_name(full_name: str) -> tuple[str, str]:
     return parts[0], " ".join(parts[1:]) or parts[0]
 
 
+def describe(interval: str) -> str:
+    return f"Code Guru Pro ({'yearly' if interval == 'year' else 'monthly'})"
+
+
 # ── Storage-touching operations ──────────────────────────────────────────────
 
 
+def _event(storage: Any, user_id: str, kind: str, now: datetime, **detail: Any) -> None:
+    storage.record_subscription_event({"userId": user_id, "type": kind, "at": now, **detail})
+
+
 def extend_pro(storage: Any, user_id: str, provider: str, now: datetime,
-               provider_subscription_id: Optional[str] = None) -> dict[str, Any]:
+               provider_subscription_id: Optional[str] = None, interval: str = "month") -> dict[str, Any]:
     """Add one paid period: from the end of the current one, or from now."""
+    interval = interval_of(interval)
     existing = storage.get_subscription(user_id)
+    renewing = is_pro(existing, now)
     current_end = _aware(existing.get("currentPeriodEnd")) if existing else None
     start = current_end if current_end and current_end > now else now
     document = {
@@ -146,27 +183,32 @@ def extend_pro(storage: Any, user_id: str, provider: str, now: datetime,
         "plan": "pro",
         "status": "active",
         "provider": provider,
+        "interval": interval,
         "providerSubscriptionId": provider_subscription_id
-        or (existing or {}).get("providerSubscriptionId"),
-        "currentPeriodEnd": start + PERIOD,
+        or ((existing or {}).get("providerSubscriptionId") if renewing else None),
+        "providerCancelled": False,
+        "currentPeriodEnd": start + INTERVALS[interval],
         "cancelAtPeriodEnd": False,
-        "startedAt": (existing or {}).get("startedAt") if is_pro(existing, now) else now,
+        "startedAt": (existing or {}).get("startedAt") if renewing else now,
         "updatedAt": now,
     }
     storage.save_subscription(document)
+    _event(storage, user_id, "renewed" if renewing else "upgraded", now, provider=provider, interval=interval)
     return document
 
 
 def create_checkout(storage: Any, settings: Any, user: dict[str, Any], phone: str, city: str,
-                    now: datetime) -> dict[str, Any]:
+                    now: datetime, interval: str = "month") -> dict[str, Any]:
     """The order, and the signed fields the browser posts to PayHere's page."""
+    interval = interval_of(interval)
     order_id = generate_prefixed_id("ord")
-    amount = amount_text(settings.pro_price_lkr)
+    amount = amount_text(price_for(settings, interval))
     storage.create_checkout({
         "orderId": order_id,
         "userId": user["userId"],
         "amount": amount,
         "currency": CURRENCY,
+        "interval": interval,
         "status": "created",
         "createdAt": now,
     })
@@ -180,10 +222,10 @@ def create_checkout(storage: Any, settings: Any, user: dict[str, Any], phone: st
         # Caddy sends /api/v1/* to Code Coach, so this is reachable from PayHere.
         "notify_url": f"{base}/api/v1/billing/payhere/notify",
         "order_id": order_id,
-        "items": "Code Guru Pro (monthly)",
+        "items": describe(interval),
         "currency": CURRENCY,
         "amount": amount,
-        "recurrence": "1 Month",
+        "recurrence": RECURRENCE[interval],
         "duration": "Forever",
         "first_name": first,
         "last_name": last,
@@ -216,6 +258,7 @@ def apply_notification(storage: Any, settings: Any, fields: dict[str, str], now:
     if checkout is None:
         return "unknown_order"
     user_id = checkout["userId"]
+    interval = interval_of(checkout.get("interval"))
 
     try:
         status_code = int(fields.get("status_code", ""))
@@ -231,6 +274,8 @@ def apply_notification(storage: Any, settings: Any, fields: dict[str, str], now:
         "provider": "payhere",
         "providerPaymentId": fields.get("payment_id") or None,
         "providerSubscriptionId": subscription_id,
+        "description": describe(interval),
+        "interval": interval,
         "amount": fields.get("payhere_amount"),
         "currency": fields.get("payhere_currency"),
         "status": {PAID: "paid", PENDING: "pending", CANCELLED: "cancelled",
@@ -246,12 +291,14 @@ def apply_notification(storage: Any, settings: Any, fields: dict[str, str], now:
     if message_type == "RECURRING_STOPPED":
         subscription = storage.get_subscription(user_id)
         if subscription:
-            subscription.update({"cancelAtPeriodEnd": True, "status": "cancelled", "updatedAt": now})
+            subscription.update({"cancelAtPeriodEnd": True, "providerCancelled": True,
+                                 "status": "cancelled", "updatedAt": now})
             storage.save_subscription(subscription)
+            _event(storage, user_id, "cancelled", now, by="payhere")
         return "stopped"
 
     if status_code == PAID:
-        extend_pro(storage, user_id, "payhere", now, subscription_id)
+        extend_pro(storage, user_id, "payhere", now, subscription_id, interval)
         storage.update_checkout(checkout["orderId"], {"status": "paid", "paidAt": now})
         return "activated"
 
@@ -265,21 +312,26 @@ def apply_notification(storage: Any, settings: Any, fields: dict[str, str], now:
         if subscription:
             subscription.update({"currentPeriodEnd": now, "status": "expired", "updatedAt": now})
             storage.save_subscription(subscription)
+            _event(storage, user_id, "downgraded", now, by="chargeback")
         return "charged_back"
 
     return "pending"
 
 
-def activate_demo(storage: Any, user_id: str, now: datetime) -> dict[str, Any]:
-    order_id = generate_prefixed_id("ord")
+def activate_demo(storage: Any, user_id: str, now: datetime, settings: Any = None,
+                  interval: str = "month") -> dict[str, Any]:
+    interval = interval_of(interval)
     storage.record_payment({
         "paymentId": generate_prefixed_id("pay"),
         "userId": user_id,
-        "orderId": order_id,
+        "orderId": generate_prefixed_id("ord"),
         "provider": "demo",
         "providerPaymentId": None,
         "providerSubscriptionId": None,
-        "amount": None,
+        "description": f"{describe(interval)} - demo payment",
+        "interval": interval,
+        # The price it would have cost, so a receipt reads like one. No money moved.
+        "amount": amount_text(price_for(settings, interval)) if settings else None,
         "currency": CURRENCY,
         "status": "paid",
         "statusCode": PAID,
@@ -287,7 +339,7 @@ def activate_demo(storage: Any, user_id: str, now: datetime) -> dict[str, Any]:
         "method": "demo",
         "createdAt": now,
     })
-    return extend_pro(storage, user_id, "demo", now)
+    return extend_pro(storage, user_id, "demo", now, interval=interval)
 
 
 def _payhere_cancel(settings: Any, subscription_id: str) -> bool:
@@ -317,44 +369,97 @@ def _payhere_cancel(settings: Any, subscription_id: str) -> bool:
         return False
 
 
+def _stop_provider_renewal(settings: Any, subscription: dict[str, Any], provider_cancel) -> bool:
+    if subscription.get("providerCancelled"):
+        return True
+    if subscription.get("provider") == "payhere" and subscription.get("providerSubscriptionId"):
+        return bool((provider_cancel or _payhere_cancel)(settings, subscription["providerSubscriptionId"]))
+    return False
+
+
 def cancel(storage: Any, settings: Any, user_id: str, now: datetime, provider_cancel=None) -> dict[str, Any]:
     """Stop renewing. Pro lasts until the end of what was paid for."""
     subscription = storage.get_subscription(user_id)
     if not is_pro(subscription, now):
         return {"cancelled": False, "provider_cancelled": False}
-    provider_cancelled = False
-    if subscription.get("provider") == "payhere" and subscription.get("providerSubscriptionId"):
-        provider_cancelled = (provider_cancel or _payhere_cancel)(settings, subscription["providerSubscriptionId"])
-    subscription.update({"cancelAtPeriodEnd": True, "status": "cancelled", "updatedAt": now})
+    provider_cancelled = _stop_provider_renewal(settings, subscription, provider_cancel)
+    subscription.update({"cancelAtPeriodEnd": True, "status": "cancelled",
+                         "providerCancelled": provider_cancelled, "updatedAt": now})
     storage.save_subscription(subscription)
+    _event(storage, user_id, "cancelled", now, ends_at=subscription["currentPeriodEnd"])
     return {"cancelled": True, "provider_cancelled": provider_cancelled}
+
+
+def resume(storage: Any, user_id: str, now: datetime) -> bool:
+    """Undo Cancel before the period ends - if the charge was not stopped at PayHere."""
+    subscription = storage.get_subscription(user_id)
+    if not is_pro(subscription, now) or not subscription.get("cancelAtPeriodEnd"):
+        return False
+    if subscription.get("providerCancelled"):
+        return False
+    subscription.update({"cancelAtPeriodEnd": False, "status": "active", "updatedAt": now})
+    storage.save_subscription(subscription)
+    _event(storage, user_id, "resumed", now)
+    return True
+
+
+def downgrade(storage: Any, settings: Any, user_id: str, now: datetime, provider_cancel=None) -> dict[str, Any]:
+    """Back to Free now, and no more renewals."""
+    subscription = storage.get_subscription(user_id)
+    if not is_pro(subscription, now):
+        return {"downgraded": False, "provider_cancelled": False}
+    provider_cancelled = _stop_provider_renewal(settings, subscription, provider_cancel)
+    subscription.update({
+        "status": "downgraded",
+        "cancelAtPeriodEnd": True,
+        "providerCancelled": provider_cancelled,
+        "currentPeriodEnd": now,
+        "updatedAt": now,
+    })
+    storage.save_subscription(subscription)
+    _event(storage, user_id, "downgraded", now)
+    return {"downgraded": True, "provider_cancelled": provider_cancelled}
 
 
 def reset(storage: Any, user_id: str, now: datetime) -> None:
     """Back to Free, with this month's free lessons restored. Demo mode only."""
     storage.delete_subscription(user_id)
     storage.delete_lesson_unlocks(user_id, month_key(now))
+    _event(storage, user_id, "reset", now)
 
 
-def lesson_usage(storage: Any, user_id: str, now: datetime) -> list[dict[str, Any]]:
-    return storage.list_lesson_unlocks(user_id, month_key(now))
+def lesson_usage(storage: Any, settings: Any, user_id: str, now: datetime) -> dict[str, Any]:
+    """This month's lessons: every one opened, and those that count against Free."""
+    unlocks = storage.list_lesson_unlocks(user_id, month_key(now))
+    on_free = [u for u in unlocks if u.get("plan", "free") == "free"]
+    return {
+        "opened": len(unlocks),
+        "used": len(on_free),
+        "limit": settings.free_lessons_per_month,
+        "resets_at": next_month_start(now),
+        "unlocked": on_free,
+    }
 
 
 def unlock_lesson(storage: Any, settings: Any, user_id: str, trigger_id: str, error_type: Optional[str],
                   concept_tag: Optional[str], now: datetime) -> dict[str, Any]:
     """May this student open this lesson? Uses one of Free's monthly lessons if so."""
     limit = settings.free_lessons_per_month
+    month = month_key(now)
+    record = {"userId": user_id, "month": month, "triggerId": trigger_id,
+              "errorType": error_type, "conceptTag": concept_tag, "at": now}
+
     if is_pro(storage.get_subscription(user_id), now):
+        # Recorded for the usage page, never counted against Free.
+        storage.add_lesson_unlock({**record, "plan": "pro"})
         return {"allowed": True, "pro": True, "used": None, "limit": None}
 
-    month = month_key(now)
-    used = storage.list_lesson_unlocks(user_id, month)
-    if any(u["triggerId"] == trigger_id for u in used):
-        return {"allowed": True, "pro": False, "used": len(used), "limit": limit}
-    if len(used) >= limit:
-        return {"allowed": False, "pro": False, "used": len(used), "limit": limit}
-    storage.add_lesson_unlock({
-        "userId": user_id, "month": month, "triggerId": trigger_id,
-        "errorType": error_type, "conceptTag": concept_tag, "at": now,
-    })
-    return {"allowed": True, "pro": False, "used": len(used) + 1, "limit": limit}
+    unlocks = storage.list_lesson_unlocks(user_id, month)
+    if any(u["triggerId"] == trigger_id for u in unlocks):
+        used = sum(1 for u in unlocks if u.get("plan", "free") == "free")
+        return {"allowed": True, "pro": False, "used": used, "limit": limit}
+    used = sum(1 for u in unlocks if u.get("plan", "free") == "free")
+    if used >= limit:
+        return {"allowed": False, "pro": False, "used": used, "limit": limit}
+    storage.add_lesson_unlock({**record, "plan": "free"})
+    return {"allowed": True, "pro": False, "used": used + 1, "limit": limit}

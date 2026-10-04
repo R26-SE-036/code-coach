@@ -103,6 +103,8 @@ class Settings(BaseSettings):
     # The sandbox until there is a real merchant account. No real money moves.
     payhere_sandbox: bool = True
     pro_price_lkr: int = 490
+    # Yearly: ten months' price for twelve.
+    pro_yearly_price_lkr: int = 4900
     # Free students may open this many Study Guider lessons per month.
     free_lessons_per_month: int = 3
     # Turns on the no-card "demo payment" and the self-service reset back to

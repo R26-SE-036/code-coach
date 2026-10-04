@@ -31,6 +31,7 @@ def settings(monkeypatch):
     monkeypatch.setattr(s, "billing_demo_mode", False)
     monkeypatch.setattr(s, "public_web_url", "https://codeguru.example")
     monkeypatch.setattr(s, "pro_price_lkr", 490)
+    monkeypatch.setattr(s, "pro_yearly_price_lkr", 4900)
     monkeypatch.setattr(s, "free_lessons_per_month", 3)
     return s
 
@@ -262,3 +263,99 @@ def test_the_quota_resets_on_the_first_of_the_month_in_sri_lanka(storage, settin
     late = datetime(2026, 10, 31, 18, 45, tzinfo=timezone.utc)
     assert billing.month_key(late) == "2026-11"
     assert billing.month_key(datetime(2026, 10, 31, 18, 0, tzinfo=timezone.utc)) == "2026-10"
+
+
+# ── Yearly, downgrade, resume, usage ─────────────────────────────────────────
+
+
+def test_a_yearly_checkout_charges_the_yearly_price_and_recurs_yearly(client):
+    headers, _ = student(client)
+    response = client.post("/api/v1/billing/me/checkout",
+                           json={"interval": "year", "phone": "0771234567", "city": "Kandy"}, headers=headers)
+    fields = response.json()["fields"]
+    assert fields["amount"] == "4900.00" and fields["recurrence"] == "1 Year"
+    assert fields["hash"] == billing.checkout_hash(MERCHANT_ID, fields["order_id"], "4900.00", "LKR", SECRET)
+
+
+def test_a_yearly_payment_gives_a_year(client, storage):
+    headers, user_id = student(client)
+    order = client.post("/api/v1/billing/me/checkout",
+                        json={"interval": "year", "phone": "0771234567", "city": "Kandy"}, headers=headers).json()
+    notify(client, signed({"order_id": order["order_id"], "payment_id": "y1", "payhere_amount": "4900.00",
+                           "status_code": "2"}))
+    subscription = storage.get_subscription(user_id)
+    assert subscription["interval"] == "year"
+    plan = client.get("/api/v1/billing/me", headers=headers).json()["plan"]
+    assert plan["interval"] == "year"
+
+
+def test_downgrade_goes_back_to_free_at_once(client, settings, monkeypatch):
+    monkeypatch.setattr(settings, "billing_demo_mode", True)
+    headers, _ = student(client)
+    client.post("/api/v1/billing/me/demo-payment", json={"interval": "month"}, headers=headers)
+    assert tier(client, headers) == "pro"
+
+    assert client.post("/api/v1/billing/me/downgrade", headers=headers).status_code == 200
+    assert tier(client, headers) == "free"
+    # Nothing to downgrade from twice.
+    assert client.post("/api/v1/billing/me/downgrade", headers=headers).status_code == 409
+
+
+def test_downgrade_stops_the_payhere_renewal(storage, settings):
+    now = datetime(2026, 10, 4, tzinfo=timezone.utc)
+    billing.extend_pro(storage, "u1", "payhere", now, provider_subscription_id="420010")
+    asked = []
+    result = billing.downgrade(storage, settings, "u1", now, provider_cancel=lambda _s, sid: asked.append(sid) or True)
+    assert result == {"downgraded": True, "provider_cancelled": True} and asked == ["420010"]
+    assert billing.plan_view(storage.get_subscription("u1"), now)["tier"] == "free"
+
+
+def test_resume_undoes_a_cancel(storage, settings):
+    now = datetime(2026, 10, 4, tzinfo=timezone.utc)
+    billing.activate_demo(storage, "u1", now, settings)
+    billing.cancel(storage, settings, "u1", now)
+    assert billing.plan_view(storage.get_subscription("u1"), now)["can_resume"] is True
+
+    assert billing.resume(storage, "u1", now) is True
+    plan = billing.plan_view(storage.get_subscription("u1"), now)
+    assert plan["status"] == "active" and plan["renews_at"] is not None
+
+
+def test_a_renewal_stopped_at_payhere_cannot_be_resumed_here(storage, settings):
+    now = datetime(2026, 10, 4, tzinfo=timezone.utc)
+    billing.extend_pro(storage, "u1", "payhere", now, provider_subscription_id="420011")
+    billing.cancel(storage, settings, "u1", now, provider_cancel=lambda _s, _sid: True)
+    assert billing.plan_view(storage.get_subscription("u1"), now)["can_resume"] is False
+    assert billing.resume(storage, "u1", now) is False
+
+
+def test_lessons_opened_on_pro_are_usage_and_do_not_use_up_free(storage, settings):
+    now = datetime(2026, 10, 4, tzinfo=timezone.utc)
+    billing.activate_demo(storage, "u1", now, settings)
+    for n in range(5):
+        billing.unlock_lesson(storage, settings, "u1", f"p{n}", None, None, now)
+    billing.downgrade(storage, settings, "u1", now)
+
+    usage = billing.lesson_usage(storage, settings, "u1", now)
+    assert usage["opened"] == 5 and usage["used"] == 0
+    # Back on Free, all three free lessons are still there.
+    assert billing.unlock_lesson(storage, settings, "u1", "f1", None, None, now)["allowed"]
+
+
+def test_free_lessons_come_back_at_midnight_on_the_first_in_colombo():
+    resets = billing.next_month_start(datetime(2026, 10, 15, 12, tzinfo=timezone.utc))
+    assert resets == datetime(2026, 10, 31, 18, 30, tzinfo=timezone.utc)
+
+
+def test_the_timeline_records_each_change(client, settings, monkeypatch):
+    monkeypatch.setattr(settings, "billing_demo_mode", True)
+    headers, _ = student(client)
+    client.post("/api/v1/billing/me/demo-payment", headers=headers)
+    client.post("/api/v1/billing/me/cancel", headers=headers)
+    client.post("/api/v1/billing/me/resume", headers=headers)
+    client.post("/api/v1/billing/me/downgrade", headers=headers)
+
+    body = client.get("/api/v1/billing/me", headers=headers).json()
+    assert [e["type"] for e in body["events"]] == ["downgraded", "resumed", "cancelled", "upgraded"]
+    payment = body["payments"][0]
+    assert payment["description"].startswith("Code Guru Pro (monthly)") and payment["amount"] == "490.00"
