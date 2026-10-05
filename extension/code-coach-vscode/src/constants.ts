@@ -19,7 +19,7 @@ export const DEBOUNCE_DELAY_MS = 900;
  * the backend to 8000 - so sign-in opened one server and redeemed its code at
  * another. One address for both is the point. Must match package.json.
  */
-export const DEFAULT_PLATFORM_URL = "https://13-202-201-115.sslip.io";
+export const DEFAULT_PLATFORM_URL = "https://3-106-2-190.sslip.io";
 
 /** The compose stack's edge, for developers and for the test suite's default. */
 export const LOCAL_STACK_URL = "http://localhost:8090";

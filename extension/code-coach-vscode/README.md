@@ -95,7 +95,7 @@ also a `.vsix` file on the project's GitHub Releases page.
 
 1. Download the newest `code-coach-X.Y.Z.vsix`: on the Code Guru website choose
    **Get the VS Code extension** in the sidebar, or open
-   **<https://13-202-201-115.sslip.io/download/vscode-extension>**.
+   **<https://3-106-2-190.sslip.io/download/vscode-extension>**.
 2. Or take it from GitHub yourself: open
    **<https://github.com/R26-SE-036/code-coach/releases>**, find the newest release
    named **Code Coach extension vX.Y.Z**, and download the `.vsix` under **Assets**.
@@ -173,8 +173,8 @@ need to change anything.
 
 | Setting | Default | Purpose |
 |---|---|---|
-| `codeCoach.portalUrl` | `https://13-202-201-115.sslip.io` | The Code Guru web portal, where Sign In and Create Account open |
-| `codeCoach.backendUrl` | `https://13-202-201-115.sslip.io` | Where the extension sends code for analysis |
+| `codeCoach.portalUrl` | `https://3-106-2-190.sslip.io` | The Code Guru web portal, where Sign In and Create Account open |
+| `codeCoach.backendUrl` | `https://3-106-2-190.sslip.io` | Where the extension sends code for analysis |
 | `codeCoach.enableEvaluationLogging` | `false` | Also records anonymised diagnostic events for the research evaluation |
 
 `portalUrl` and `backendUrl` should point at the **same** platform. If they
@@ -279,7 +279,7 @@ This compiles, lints, and runs the suite inside a downloaded copy of VS Code.
 - **To run the live tests against the deployed platform:**
 
   ```bash
-  CODE_COACH_TEST_URL=https://13-202-201-115.sslip.io npm test
+  CODE_COACH_TEST_URL=https://3-106-2-190.sslip.io npm test
   ```
 
   These create clearly named `example.com` accounts on that server.

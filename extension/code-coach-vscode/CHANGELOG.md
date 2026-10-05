@@ -6,6 +6,13 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-05
+
+- **The platform has a new address, `https://3-106-2-190.sslip.io`.** It is now
+  the default for `codeCoach.portalUrl` and `codeCoach.backendUrl`. If you set
+  either to the old address by hand, change it or reset it to the default,
+  then sign in again.
+
 ## [0.2.1] - 2026-09-25
 
 - **On the Visual Studio Marketplace and Open VSX.** Search for *Code Guru* or
