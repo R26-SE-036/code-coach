@@ -3,7 +3,7 @@
   "publisher": "codeguru-sliit",
   "displayName": "Code Guru: Code Coach",
   "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "icon": "media/logo.png",
   "repository": {
@@ -73,7 +73,7 @@
       "properties": {
         "codeCoach.backendUrl": {
           "type": "string",
-          "default": "https://13-202-201-115.sslip.io",
+          "default": "https://3-106-2-190.sslip.io",
           "description": "Where the extension calls Code Coach's API. The default is the deployed Code Guru platform. Developers running the compose stack use http://localhost:8090; the backend on its own under uvicorn is http://127.0.0.1:8000. Keep it on the same host as Portal URL."
         },
         "codeCoach.enableEvaluationLogging": {
@@ -83,7 +83,7 @@
         },
         "codeCoach.portalUrl": {
           "type": "string",
-          "default": "https://13-202-201-115.sslip.io",
+          "default": "https://3-106-2-190.sslip.io",
           "description": "The Code Guru web app. Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. The default is the deployed platform; the compose stack serves it at http://localhost:8090, and `npm run dev` at http://localhost:4200."
         }
       }
