@@ -87,6 +87,32 @@ class Settings(BaseSettings):
     # PairPath falls back to general teamwork nudges.
     internal_service_key: Optional[str] = None
 
+    # ── Subscriptions (Free / Pro) ──
+    # Code Coach owns who has Pro, because every other part of the platform
+    # already asks it who the student is. See app/services/billing_service.py.
+    #
+    # PayHere is the gateway (Stripe does not take Sri Lankan merchants). The
+    # merchant secret is the one PayHere issues for the site's domain; it signs
+    # the checkout and verifies the payment notification. The app id/secret
+    # are the Merchant API key, used only to cancel a recurring subscription
+    # at PayHere - without them Cancel still works, on our side only.
+    payhere_merchant_id: Optional[str] = None
+    payhere_merchant_secret: Optional[str] = None
+    payhere_app_id: Optional[str] = None
+    payhere_app_secret: Optional[str] = None
+    # The sandbox until there is a real merchant account. No real money moves.
+    payhere_sandbox: bool = True
+    pro_price_lkr: int = 490
+    # Yearly: ten months' price for twelve.
+    pro_yearly_price_lkr: int = 4900
+    # Free students may open this many Study Guider lessons per month.
+    free_lessons_per_month: int = 3
+    # Turns on the no-card "demo payment" and the self-service reset back to
+    # Free. For the viva (a backup when the gateway or the network fails) and
+    # local development, where PayHere cannot reach the notify URL. Anyone
+    # signed in can give themselves Pro while it is on, so it is off by default.
+    billing_demo_mode: bool = False
+
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600

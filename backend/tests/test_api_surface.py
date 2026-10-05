@@ -51,6 +51,10 @@ PUBLIC = {
     ("POST", "/api/v1/auth/password/forgot"): "asks for a reset email; same answer for every address",
     ("POST", "/api/v1/auth/password/reset"): "presents a single-use emailed reset token",
     ("POST", "/api/v1/auth/recovery-email/confirm"): "presents a single-use emailed confirmation token",
+    # PayHere's server telling ours a payment happened. It has no token to
+    # send; it is believed only if its md5sig verifies against our merchant
+    # secret, for an order we created - see billing_service.apply_notification.
+    ("POST", "/api/v1/billing/payhere/notify"): "PayHere's signed payment notification",
 }
 
 REFUSALS = {401, 403}
