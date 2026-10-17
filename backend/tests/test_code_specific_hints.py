@@ -101,6 +101,53 @@ SAMPLES = {
         "class A { boolean m(int x) { return x > 10 && x < 5; } }",
         "x > 10 && x < 5",
     ),
+    # The candidate_ml types: `locator` here is the proposer with no model
+    # applied, so these check the hint wording, not the model's verdict.
+    "LOOP_SKIPS_LAST_ELEMENT": (
+        "class A { int m(int[] scores) { int t = 0; for (int i = 0; i < scores.length - 1; i++) { t += scores[i]; } return t; } }",
+        "i < scores.length - 1",
+    ),
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": (
+        "class A { int m(int[] a) { int c = 0; for (int i = 0; i < a.length; i++) { if (a[i + 1] > a[i]) c++; } return c; } }",
+        "a[i + 1]",
+    ),
+    "WRONG_LOOP_VARIABLE_IN_INDEX": (
+        "class A { int m(int[][] grid) { int t = 0; for (int r = 0; r < grid.length; r++) { for (int c = 0; c < grid[r].length; c++) { t += grid[r][r]; } } return t; } }",
+        "grid[r][r]",
+    ),
+    "NESTED_LOOP_WRONG_COUNTER": (
+        "class A { int m(int n) { int t = 0; for (int i = 0; i < n; i++) { for (int j = 0; j < n; i++) { t++; } } return t; } }",
+        "for (int j = 0; j < n; i++)",
+    ),
+    "LOOP_COUNTER_CHANGED_IN_BODY": (
+        "class A { int m(int[] a) { int t = 0; for (int i = 0; i < a.length; i++) { t += a[i]; i += 1; } return t; } }",
+        "i += 1",
+    ),
+    "ACCUMULATOR_RESET_INSIDE_LOOP": (
+        "class A { int m(int[] a) { int total = 0; for (int i = 0; i < a.length; i++) { total = 0; total += a[i]; } return total; } }",
+        "total = 0;",
+    ),
+    "WRONG_EXTREME_INITIAL_VALUE": (
+        "class A { int m(int[] temps) { int highest = 0; for (int t : temps) { if (t > highest) highest = t; } return highest; } }",
+        "highest starts at 0",
+    ),
+    "EARLY_RETURN_IN_LOOP": (
+        "class A { boolean m(int[] a, int x) { for (int i = 0; i < a.length; i++) { if (a[i] == x) return true; else return false; } return false; } }",
+        "if (a[i] == x) return true; else return false;",
+    ),
+    "UNREACHABLE_ELSE_IF_ORDER": (
+        "class A { char m(int score) { if (score >= 50) return 'C'; else if (score >= 75) return 'B'; else return 'F'; } }",
+        "score >= 75",
+    ),
+    "MISLEADING_INDENTATION_NO_BRACES": (
+        "class A { int m(int[] a) {\n    int max = a[0], at = 0;\n    for (int i = 1; i < a.length; i++) {\n"
+        "        if (a[i] > max)\n            max = a[i];\n            at = i;\n    }\n    return at;\n} }",
+        "at = i;",
+    ),
+    "NON_SHORT_CIRCUIT_OPERATOR": (
+        "class A { boolean m(String s) { return s != null & s.length() > 2; } }",
+        "s != null & s.length() > 2",
+    ),
 }
 
 
@@ -120,7 +167,7 @@ class TemplateCoverageTests(unittest.TestCase):
                 findings = findings_for(error_type)
                 self.assertTrue(findings, f"the {error_type} sample is not found by its locator")
                 supplied = {key for key, value in findings[0].details.items() if value}
-                self.assertLessEqual(template_fields(TARGETED_HINT_TEMPLATES[error_type]), supplied)
+                self.assertTrue(any(template_fields(t) <= supplied for t in TARGETED_HINT_TEMPLATES[error_type]))
 
     def test_the_targeted_hint_quotes_the_students_code(self) -> None:
         for error_type in ERROR_CATALOG:

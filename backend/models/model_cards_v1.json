@@ -1,0 +1,1932 @@
+{
+  "generated": "2026-10-18",
+  "cards": {
+    "ACCUMULATOR_RESET_INSIDE_LOOP": {
+      "error_type": "ACCUMULATOR_RESET_INSIDE_LOOP",
+      "title": "Running total reset inside the loop",
+      "concept_tag": "loop_initialization",
+      "version": "v1",
+      "detects": "A running total, count or piece of text that is set back to its starting value inside the loop that builds it, so only the last pass counts.",
+      "considers": "Every assignment of a literal (0, 1, \"\") inside a loop to a variable that the same loop also adds to with +=, ++ or similar.",
+      "example": {
+        "mistake": "int total = 0;\nfor (int i = 0; i < a.length; i++) {\n    total = 0;\n    total += a[i];\n}",
+        "lookalike": "for (int r = 0; r < grid.length; r++) {\n    int rowSum = 0;          // one total per row\n    for (int c = 0; c < grid[r].length; c++) rowSum += grid[r][c];\n    System.out.println(rowSum);\n}"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.3623,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 16,
+        "top_features": [
+          "reset_is_first_statement",
+          "declared_before_loop",
+          "update_in_same_loop",
+          "reset_conditional",
+          "is_declaration"
+        ],
+        "ms_per_site": 0.3405,
+        "file": "logic__accumulator_reset_inside_loop.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 1748,
+        "training_mistakes": 1421,
+        "test_sites": 268,
+        "test_mistakes": 219,
+        "test_lookalikes_from_correct_code": 23,
+        "test_lookalikes_from_planted_changes": 26,
+        "planted_mistakes": 1790,
+        "planted_mistakes_that_changed_behaviour": 1640
+      },
+      "performance": {
+        "test": {
+          "precision": 0.8939,
+          "recall": 1.0,
+          "f1": 0.944,
+          "average_precision": 0.9444
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.8939,
+          "recall": 1.0,
+          "f1": 0.944
+        },
+        "codebert": {
+          "precision": 0.9633,
+          "recall": 0.9589,
+          "f1": 0.9611,
+          "average_precision": 0.9963
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The reset is meant to happen once per row or group: the model has to infer that from where the value is read, and a per-group total that is only read after the loop looks like the mistake.",
+        "The running value is kept in a field or handed to another method, which the model cannot follow."
+      ],
+      "limitations": [
+        "Only resets to a literal are considered; total = start; is not checked.",
+        "26 of the 26 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "ARRAY_LENGTH_INDEX_MISUSE": {
+      "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
+      "title": "Index equal to the array length",
+      "concept_tag": "array_indexing",
+      "version": "v1",
+      "detects": "An array, String or list read at index length (or length(), size()), one past the last valid position.",
+      "considers": "Every index written as a length minus 0, 1 or 2, directly or through a variable that was set to one and not changed since.",
+      "example": {
+        "mistake": "int last = scores[scores.length];",
+        "lookalike": "int last = scores[scores.length - 1];\nint[] bigger = new int[a.length + 1];\nbigger[a.length] = extra;      // bigger has room for it"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.0423,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 11,
+        "top_features": [
+          "minus_k",
+          "at_or_past_length",
+          "via_alias",
+          "guarded_by_length",
+          "collection_made_longer"
+        ],
+        "ms_per_site": 1.5105,
+        "file": "logic__array_length_index_misuse.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 237,
+        "training_mistakes": 80,
+        "test_sites": 45,
+        "test_mistakes": 16,
+        "test_lookalikes_from_correct_code": 29,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 96,
+        "planted_mistakes_that_changed_behaviour": 96
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571
+        },
+        "codebert": {
+          "precision": 0.9412,
+          "recall": 1.0,
+          "f1": 0.9697,
+          "average_precision": 1.0
+        },
+        "human_code": {
+          "flags": 31,
+          "real": 31,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": {
+          "snippets": 330,
+          "mistakes": 30,
+          "precision": 1.0,
+          "recall": 1.0,
+          "false_alarms": 0,
+          "previous_recall": 0.9,
+          "previous_false_alarms": 0
+        }
+      },
+      "unreliable_when": [
+        "The index only equals the length because of something computed in another method or a loop the model does not trace.",
+        "A collection is replaced by a longer one in a way other than new T[n + 1] in the same method."
+      ],
+      "limitations": [
+        "Measured on only 16 real mistakes in the test split, so each one moves recall by 6 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "CONSTANT_FALSE_LOOP_CONDITION": {
+      "error_type": "CONSTANT_FALSE_LOOP_CONDITION",
+      "title": "Loop body never runs",
+      "concept_tag": "loop_initialization",
+      "version": "v1",
+      "detects": "A for loop whose condition is already false at the first check, so the body never runs.",
+      "considers": "For loops whose start and condition can be compared: two literals (only when the first check fails), counting up from 0 or 1 while i > n, counting below zero, or a condition that compares the counter with its own start.",
+      "example": {
+        "mistake": "for (int i = 0; i > values.length; i++) {\n    sum += values[i];\n}",
+        "lookalike": "for (int i = values.length - 1; i >= 0; i--) {\n    sum += values[i];\n}"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.159,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 15,
+        "top_features": [],
+        "ms_per_site": 0.0512,
+        "file": "logic__constant_false_loop_condition.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 2233,
+        "training_mistakes": 2135,
+        "test_sites": 347,
+        "test_mistakes": 330,
+        "test_lookalikes_from_correct_code": 0,
+        "test_lookalikes_from_planted_changes": 17,
+        "planted_mistakes": 2934,
+        "planted_mistakes_that_changed_behaviour": 2810
+      },
+      "performance": {
+        "test": {
+          "precision": 0.951,
+          "recall": 1.0,
+          "f1": 0.9749,
+          "average_precision": 0.9515
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "codebert": {
+          "precision": 0.951,
+          "recall": 1.0,
+          "f1": 0.9749,
+          "average_precision": 0.9936
+        },
+        "human_code": {
+          "flags": 1,
+          "real": 1,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The bound is a variable whose value is only known at run time (i > n with n negative is legitimately true).",
+        "Loops written as while loops are not considered at all."
+      ],
+      "limitations": [
+        "The old rule could only judge two literals, so its F1 on these test sites is 0: almost every test mistake has a length or variable as its bound.",
+        "17 of the 17 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one.",
+        "345 of 2810 planted mistakes that changed behaviour were in places this type does not consider, so they could never be flagged; recall is measured on the places it does consider."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "DECIMAL_EQUALITY_COMPARISON": {
+      "error_type": "DECIMAL_EQUALITY_COMPARISON",
+      "title": "Decimals compared with ==",
+      "concept_tag": "arithmetic_operations",
+      "version": "v1",
+      "detects": "Two double or float values compared with == or !=, which a calculated value often fails by a tiny rounding error.",
+      "considers": "Every == or != where at least one side is known to be a double or float.",
+      "example": {
+        "mistake": "double total = 0.1 + 0.2;\nif (total == 0.3) { ... }",
+        "lookalike": "if (divisor == 0.0) return 0;        // deliberate exact check\nif (x == Math.floor(x)) { ... }   // is it whole?"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.2673,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [
+          "zero_literal",
+          "fractional_literal",
+          "rounding_side",
+          "both_computed",
+          "in_condition"
+        ],
+        "ms_per_site": 1.3033,
+        "file": "logic__decimal_equality_comparison.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. A planted change of this kind is a mistake by definition, because running the code rarely shows it (the inputs would have to hit the exact case); every candidate site in the correct programs is a look-alike.",
+        "labels": "construction",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 250,
+        "training_mistakes": 142,
+        "test_sites": 47,
+        "test_mistakes": 28,
+        "test_lookalikes_from_correct_code": 19,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 170,
+        "planted_mistakes_that_changed_behaviour": 170
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9333,
+          "recall": 1.0,
+          "f1": 0.9655,
+          "average_precision": 0.9952
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9259,
+          "recall": 0.8929,
+          "f1": 0.9091
+        },
+        "codebert": {
+          "precision": 0.9333,
+          "recall": 1.0,
+          "f1": 0.9655,
+          "average_precision": 0.9892
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The value was never calculated (read straight from input and compared with the same literal), where == happens to be safe.",
+        "The type of one side cannot be worked out from the file, e.g. a method declared in another class."
+      ],
+      "limitations": [
+        "Labelled by construction (a planted == on decimals is a mistake by definition), because test inputs rarely hit the exact rounding case.",
+        "Two of the 19 correct-code sites in the test split were flagged (precision 0.93).",
+        "Measured on only 28 real mistakes in the test split, so each one moves recall by 4 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "DIVISION_BY_ZERO_LITERAL": {
+      "error_type": "DIVISION_BY_ZERO_LITERAL",
+      "title": "Division by zero",
+      "concept_tag": "arithmetic_operations",
+      "version": "v1",
+      "detects": "A whole-number division or remainder whose divisor can be zero when the line runs, which crashes with an ArithmeticException.",
+      "considers": "Integer divisions by the literal 0, by a length or size, by a parameter, by a variable that starts at 0, or by an alias of a length. Other divisors are not proposed.",
+      "example": {
+        "mistake": "static int average(int[] values) {\n    int sum = 0;\n    for (int v : values) sum += v;\n    return sum / values.length;   // empty array crashes\n}",
+        "lookalike": "if (values.length == 0) return 0;\nreturn sum / values.length;"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.7233,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 14,
+        "top_features": [
+          "guarded_nonzero",
+          "any_guard",
+          "divisor_identifier",
+          "in_loop",
+          "divisor_is_parameter"
+        ],
+        "ms_per_site": 2.4344,
+        "file": "logic__division_by_zero_literal.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 124,
+        "training_mistakes": 52,
+        "test_sites": 28,
+        "test_mistakes": 10,
+        "test_lookalikes_from_correct_code": 18,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 283,
+        "planted_mistakes_that_changed_behaviour": 232
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "codebert": {
+          "precision": 0.9,
+          "recall": 0.9,
+          "f1": 0.9,
+          "average_precision": 0.9063
+        },
+        "human_code": {
+          "flags": 7,
+          "real": 5,
+          "plausible": 2,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The divisor is guarded in a way the model does not recognise, such as a check in the caller or an early return in another method.",
+        "The divisor is computed (gcd(a, b), n - k): these are not proposed, so such crashes are not found."
+      ],
+      "limitations": [
+        "The detector it replaced only knew the literal 0, which none of the test mistakes use, so that detector scores 0 here.",
+        "Measured on only 10 real mistakes in the test split, so each one moves recall by 10 points.",
+        "170 of 232 planted mistakes that changed behaviour were in places this type does not consider, so they could never be flagged; recall is measured on the places it does consider."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "EARLY_RETURN_IN_LOOP": {
+      "error_type": "EARLY_RETURN_IN_LOOP",
+      "title": "Loop returns on its first pass",
+      "concept_tag": "control_flow",
+      "version": "v1",
+      "detects": "A loop that returns on its first pass whatever happens, usually an else return false; inside a search, so only the first element is ever checked.",
+      "considers": "Loops whose body ends in a return, or contains an if/else where both branches return, break or throw.",
+      "example": {
+        "mistake": "for (int x : values) {\n    if (x == target) return true;\n    else return false;\n}",
+        "lookalike": "for (int x : values) {\n    if (x == target) return true;\n}\nreturn false;"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.0223,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [],
+        "ms_per_site": 0.1061,
+        "file": "logic__early_return_in_loop.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 920,
+        "training_mistakes": 900,
+        "test_sites": 144,
+        "test_mistakes": 141,
+        "test_lookalikes_from_correct_code": 0,
+        "test_lookalikes_from_planted_changes": 3,
+        "planted_mistakes": 1079,
+        "planted_mistakes_that_changed_behaviour": 1044
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9792,
+          "recall": 1.0,
+          "f1": 0.9895,
+          "average_precision": 0.9973
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.9792,
+          "recall": 1.0,
+          "f1": 0.9895
+        },
+        "codebert": {
+          "precision": 0.9792,
+          "recall": 1.0,
+          "f1": 0.9895,
+          "average_precision": 0.9983
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The loop is deliberately one pass, e.g. returning the first element of a non-empty list.",
+        "Almost every proposed site in the test split is a real mistake (141 of 144), so the score says little about telling look-alikes apart."
+      ],
+      "limitations": [
+        "Mutants that make the return unconditional are labelled by construction.",
+        "3 of the 3 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "EMPTY_CONDITIONAL_BODY": {
+      "error_type": "EMPTY_CONDITIONAL_BODY",
+      "title": "Stray semicolon empties the body",
+      "concept_tag": "statement_structure",
+      "version": "v1",
+      "detects": "A semicolon right after an if, while or for header, which makes the body empty so the condition controls nothing.",
+      "considers": "Every if, while or for whose body is a lone ; or an empty { }.",
+      "example": {
+        "mistake": "if (score > 50);\n{\n    System.out.println(\"Pass\");\n}",
+        "lookalike": "int i = 0;\nfor (; i < n && a[i] != key; i++);   // the header does the work"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.1454,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 12,
+        "top_features": [
+          "kind_while",
+          "kind_if",
+          "condition_has_call",
+          "condition_has_logical_and",
+          "next_is_block"
+        ],
+        "ms_per_site": 0.3677,
+        "file": "logic__empty_conditional_body.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 1207,
+        "training_mistakes": 1073,
+        "test_sites": 205,
+        "test_mistakes": 182,
+        "test_lookalikes_from_correct_code": 3,
+        "test_lookalikes_from_planted_changes": 20,
+        "planted_mistakes": 1389,
+        "planted_mistakes_that_changed_behaviour": 1255
+      },
+      "performance": {
+        "test": {
+          "precision": 0.901,
+          "recall": 1.0,
+          "f1": 0.9479,
+          "average_precision": 0.9456
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.8878,
+          "recall": 1.0,
+          "f1": 0.9406
+        },
+        "codebert": {
+          "precision": 0.9785,
+          "recall": 1.0,
+          "f1": 0.9891,
+          "average_precision": 0.9931
+        },
+        "human_code": {
+          "flags": 1,
+          "real": 1,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "An empty-bodied loop is used on purpose and written on one line, which the model has seen less of than the mistake."
+      ],
+      "limitations": [
+        "20 of the 20 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "IGNORED_STRING_METHOD_RESULT": {
+      "error_type": "IGNORED_STRING_METHOD_RESULT",
+      "title": "String method result thrown away",
+      "concept_tag": "immutable_strings",
+      "version": "v1",
+      "detects": "A String method such as trim() or toUpperCase() called as a statement, whose new value is thrown away because Strings never change in place.",
+      "considers": "Every statement that is only a call to a String or StringBuilder method on some value.",
+      "example": {
+        "mistake": "name.trim();\nif (name.isEmpty()) { ... }",
+        "lookalike": "StringBuilder sb = new StringBuilder(word);\nsb.reverse();          // changes sb itself"
+      },
+      "model": {
+        "family": "logistic_regression",
+        "family_name": "Logistic regression",
+        "threshold": 0.0137,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 11,
+        "top_features": [
+          "method_transforms",
+          "receiver_string",
+          "receiver_builder",
+          "method_builds",
+          "receiver_is_parameter"
+        ],
+        "ms_per_site": 0.0593,
+        "file": "logic__ignored_string_method_result.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. A planted change of this kind is a mistake by definition, because running the code rarely shows it (the inputs would have to hit the exact case); every candidate site in the correct programs is a look-alike.",
+        "labels": "construction",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 178,
+        "training_mistakes": 77,
+        "test_sites": 30,
+        "test_mistakes": 7,
+        "test_lookalikes_from_correct_code": 23,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 84,
+        "planted_mistakes_that_changed_behaviour": 84
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "codebert": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "human_code": {
+          "flags": 1,
+          "real": 1,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The receiver's type is declared in another file, so the model cannot tell a String from a builder."
+      ],
+      "limitations": [
+        "Labelled by construction (a dropped String result is a mistake by definition).",
+        "Measured on only 7 real mistakes in the test split, so each one moves recall by 14 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "INCORRECT_CONDITIONAL_OPERATOR": {
+      "error_type": "INCORRECT_CONDITIONAL_OPERATOR",
+      "title": "Assignment used as a comparison",
+      "concept_tag": "conditional_logic",
+      "version": "v1",
+      "detects": "An assignment (=) written where a comparison (==) was meant, inside a condition.",
+      "considers": "Every assignment inside the condition of an if, while, do, for or ?:.",
+      "example": {
+        "mistake": "if (done = true) { ... }",
+        "lookalike": "while ((line = reader.readLine()) != null) { ... }"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.018,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 11,
+        "top_features": [
+          "inside_comparison",
+          "left_is_boolean",
+          "whole_condition",
+          "right_is_boolean_literal",
+          "right_has_call"
+        ],
+        "ms_per_site": 1.7052,
+        "file": "logic__incorrect_conditional_operator.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 177,
+        "training_mistakes": 129,
+        "test_sites": 38,
+        "test_mistakes": 33,
+        "test_lookalikes_from_correct_code": 4,
+        "test_lookalikes_from_planted_changes": 1,
+        "planted_mistakes": 177,
+        "planted_mistakes_that_changed_behaviour": 162
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9706,
+          "recall": 1.0,
+          "f1": 0.9851,
+          "average_precision": 0.9715
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9429,
+          "recall": 1.0,
+          "f1": 0.9706
+        },
+        "codebert": {
+          "precision": 1.0,
+          "recall": 0.8182,
+          "f1": 0.9,
+          "average_precision": 0.9973
+        },
+        "human_code": {
+          "flags": 31,
+          "real": 31,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": {
+          "snippets": 330,
+          "mistakes": 30,
+          "precision": 1.0,
+          "recall": 1.0,
+          "false_alarms": 0,
+          "previous_recall": 0.9333,
+          "previous_false_alarms": 0
+        }
+      },
+      "unreliable_when": [
+        "The assignment is to a boolean and is meant (rare, but legal)."
+      ],
+      "limitations": [
+        "Only 5 of the 38 test sites are look-alikes, so precision rests on few cases.",
+        "1 of the 1 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+      "error_type": "INDEX_PLUS_ONE_OUT_OF_BOUNDS",
+      "title": "Neighbour index runs past the end",
+      "concept_tag": "array_indexing",
+      "version": "v1",
+      "detects": "A[i + 1] (or a[i - 1]) inside a loop that lets i reach the last (or first) index, so the neighbour is out of bounds.",
+      "considers": "Every index of the form counter + k or counter - k inside a counted for loop.",
+      "example": {
+        "mistake": "for (int i = 0; i < a.length; i++) {\n    if (a[i] > a[i + 1]) count++;\n}",
+        "lookalike": "for (int i = 0; i < a.length - 1; i++) {\n    if (a[i] > a[i + 1]) count++;\n}"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.9021,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 19,
+        "top_features": [],
+        "ms_per_site": 0.0493,
+        "file": "logic__index_plus_one_out_of_bounds.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 704,
+        "training_mistakes": 282,
+        "test_sites": 128,
+        "test_mistakes": 49,
+        "test_lookalikes_from_correct_code": 79,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 250,
+        "planted_mistakes_that_changed_behaviour": 248
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 0.898,
+          "f1": 0.9462,
+          "average_precision": 0.994
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 1.0,
+          "recall": 0.5306,
+          "f1": 0.6933
+        },
+        "codebert": {
+          "precision": 0.8889,
+          "recall": 0.4898,
+          "f1": 0.6316,
+          "average_precision": 0.7718
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The access is guarded by an if or a break the model does not recognise.",
+        "While loops and for-each loops are not considered."
+      ],
+      "limitations": [
+        "Recall is 0.90: the threshold was set for precision, so about 1 in 10 of these mistakes in the test split is not flagged."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+      "error_type": "INTEGER_DIVISION_IN_DECIMAL_CONTEXT",
+      "title": "Integer division loses the decimals",
+      "concept_tag": "arithmetic_operations",
+      "version": "v1",
+      "detects": "Two whole numbers divided where a decimal result was wanted, e.g. an average stored in a double, so the remainder is lost first.",
+      "considers": "Every division where both sides are int or char; where the value goes decides it.",
+      "example": {
+        "mistake": "double average = sum / count;",
+        "lookalike": "int middle = (low + high) / 2;\nint tens = n / 10 % 10;"
+      },
+      "model": {
+        "family": "logistic_regression",
+        "family_name": "Logistic regression",
+        "threshold": 0.0817,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 14,
+        "top_features": [
+          "returned_from_decimal_method",
+          "stored_in_decimal",
+          "stored_in_int",
+          "name_suggests_fraction",
+          "divisor_is_two"
+        ],
+        "ms_per_site": 0.0486,
+        "file": "logic__integer_division_in_decimal_context.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 289,
+        "training_mistakes": 94,
+        "test_sites": 47,
+        "test_mistakes": 20,
+        "test_lookalikes_from_correct_code": 27,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 122,
+        "planted_mistakes_that_changed_behaviour": 114
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 1.0,
+          "recall": 0.05,
+          "f1": 0.0952
+        },
+        "codebert": {
+          "precision": 1.0,
+          "recall": 0.95,
+          "f1": 0.9744,
+          "average_precision": 0.9976
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The value goes somewhere the model cannot see the type of (a method in another class, a collection).",
+        "Dropping the remainder is intended but the result is still stored in a double."
+      ],
+      "limitations": [
+        "Measured on only 20 real mistakes in the test split, so each one moves recall by 5 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "LOOP_COUNTER_CHANGED_IN_BODY": {
+      "error_type": "LOOP_COUNTER_CHANGED_IN_BODY",
+      "title": "Loop counter changed inside the body",
+      "concept_tag": "loop_control",
+      "version": "v1",
+      "detects": "A for loop's counter changed inside the body as well as in the header, so elements are skipped or repeated.",
+      "considers": "Every write to a for loop's counter inside its body (not counting a nested loop's own header).",
+      "example": {
+        "mistake": "for (int i = 0; i < a.length; i++) {\n    sum += a[i];\n    i++;\n}",
+        "lookalike": "for (int i = 0; i < s.length(); i++) {\n    if (s.charAt(i) == '\\\\') i++;   // skip the escaped character\n}"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.3043,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 14,
+        "top_features": [
+          "body_statement_count",
+          "if_condition_looks_ahead",
+          "write_conditional",
+          "write_is_last_statement",
+          "same_direction"
+        ],
+        "ms_per_site": 0.2993,
+        "file": "logic__loop_counter_changed_in_body.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 2407,
+        "training_mistakes": 2054,
+        "test_sites": 367,
+        "test_mistakes": 296,
+        "test_lookalikes_from_correct_code": 15,
+        "test_lookalikes_from_planted_changes": 56,
+        "planted_mistakes": 2679,
+        "planted_mistakes_that_changed_behaviour": 2350
+      },
+      "performance": {
+        "test": {
+          "precision": 0.853,
+          "recall": 1.0,
+          "f1": 0.9207,
+          "average_precision": 0.8794
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.8588,
+          "recall": 0.7399,
+          "f1": 0.7949
+        },
+        "codebert": {
+          "precision": 0.9013,
+          "recall": 0.9257,
+          "f1": 0.9133,
+          "average_precision": 0.9561
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "Skipping ahead is deliberate (parsing, run-length counting) and the reason is not visible in a nearby if.",
+        "While loops are not considered: there the counter is meant to change in the body."
+      ],
+      "limitations": [
+        "Precision is 0.85, the lowest of the 24.",
+        "51 of the 56 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "LOOP_SKIPS_LAST_ELEMENT": {
+      "error_type": "LOOP_SKIPS_LAST_ELEMENT",
+      "title": "Loop stops one element early",
+      "concept_tag": "loop_boundaries",
+      "version": "v1",
+      "detects": "A loop that stops one element early (i < a.length - 1) while the body only uses a[i], so the last element is never processed.",
+      "considers": "Every counted for loop whose bound is a length minus one (or that starts at length - 1 and counts down to 0).",
+      "example": {
+        "mistake": "for (int i = 0; i < a.length - 1; i++) {\n    sum += a[i];\n}",
+        "lookalike": "for (int i = 0; i < a.length - 1; i++) {\n    if (a[i] > a[i + 1]) sorted = false;\n}"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.5371,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 21,
+        "top_features": [
+          "body_uses_next",
+          "inner_loop_starts_after_var",
+          "var_uses_in_body",
+          "method_name_neighbour",
+          "body_statement_count"
+        ],
+        "ms_per_site": 0.1875,
+        "file": "logic__loop_skips_last_element.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 1495,
+        "training_mistakes": 1192,
+        "test_sites": 235,
+        "test_mistakes": 179,
+        "test_lookalikes_from_correct_code": 24,
+        "test_lookalikes_from_planted_changes": 32,
+        "planted_mistakes": 1553,
+        "planted_mistakes_that_changed_behaviour": 1376
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9344,
+          "recall": 0.9553,
+          "f1": 0.9448,
+          "average_precision": 0.9888
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.8091,
+          "recall": 0.9944,
+          "f1": 0.8922
+        },
+        "codebert": {
+          "precision": 0.9804,
+          "recall": 0.838,
+          "f1": 0.9036,
+          "average_precision": 0.9762
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The last element is handled after the loop, which the model only partly sees.",
+        "Nested loops such as bubble sort, where the inner bound depends on the outer counter."
+      ],
+      "limitations": [
+        "12 of the 32 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "LOOP_UPDATE_WRONG_DIRECTION": {
+      "error_type": "LOOP_UPDATE_WRONG_DIRECTION",
+      "title": "Loop counter moves the wrong way",
+      "concept_tag": "loop_control",
+      "version": "v1",
+      "detects": "A for loop whose update moves the counter away from its bound (i < n with i--), so the loop never finishes or ends with an error.",
+      "considers": "Every counted for loop that compares its counter with a bound using <, <=, > or >=.",
+      "example": {
+        "mistake": "for (int i = 0; i < n; i--) { ... }",
+        "lookalike": "for (int i = n - 1; i >= 0; i--) { ... }"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.3788,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 13,
+        "top_features": [
+          "direction_agrees",
+          "update_up",
+          "condition_upward",
+          "bound_is_zero",
+          "bound_literal"
+        ],
+        "ms_per_site": 0.1669,
+        "file": "logic__loop_update_wrong_direction.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 3396,
+        "training_mistakes": 1685,
+        "test_sites": 534,
+        "test_mistakes": 265,
+        "test_lookalikes_from_correct_code": 267,
+        "test_lookalikes_from_planted_changes": 2,
+        "planted_mistakes": 2065,
+        "planted_mistakes_that_changed_behaviour": 2048
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9925,
+          "recall": 1.0,
+          "f1": 0.9962,
+          "average_precision": 0.9986
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9925,
+          "recall": 1.0,
+          "f1": 0.9962
+        },
+        "codebert": {
+          "precision": 0.9599,
+          "recall": 0.9925,
+          "f1": 0.9759,
+          "average_precision": 0.9965
+        },
+        "human_code": {
+          "flags": 1,
+          "real": 1,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The body also changes the counter or leaves the loop in a way that makes the header's direction irrelevant."
+      ],
+      "limitations": [
+        "2 of the 2 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one.",
+        "98 of 2048 planted mistakes that changed behaviour were in places this type does not consider, so they could never be flagged; recall is measured on the places it does consider."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "MISLEADING_INDENTATION_NO_BRACES": {
+      "error_type": "MISLEADING_INDENTATION_NO_BRACES",
+      "title": "Indented line is outside the if or loop",
+      "concept_tag": "statement_structure",
+      "version": "v1",
+      "detects": "A second line indented under an if, else or loop that has no braces, which looks like part of the body but always runs.",
+      "considers": "Every if, else or loop without braces, together with the statement that follows it.",
+      "example": {
+        "mistake": "if (score > 90)\n    grade = 'A';\n    bonus = 10;      // runs every time",
+        "lookalike": "if (score > 90)\n    grade = 'A';\nbonus = 10;"
+      },
+      "model": {
+        "family": "logistic_regression",
+        "family_name": "Logistic regression",
+        "threshold": 0.5995,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [
+          "next_indent_deeper",
+          "blank_line_before_next",
+          "body_on_own_line",
+          "next_on_body_line",
+          "next_is_exit"
+        ],
+        "ms_per_site": 0.0029,
+        "file": "logic__misleading_indentation_no_braces.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. A planted change of this kind is a mistake by definition, because running the code rarely shows it (the inputs would have to hit the exact case); every candidate site in the correct programs is a look-alike.",
+        "labels": "construction",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 3606,
+        "training_mistakes": 645,
+        "test_sites": 645,
+        "test_mistakes": 96,
+        "test_lookalikes_from_correct_code": 549,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 650,
+        "planted_mistakes_that_changed_behaviour": 650
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 0.9479,
+          "f1": 0.9733,
+          "average_precision": 0.9705
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 1.0,
+          "recall": 0.8958,
+          "f1": 0.9451
+        },
+        "codebert": {
+          "precision": 0.932,
+          "recall": 1.0,
+          "f1": 0.9648,
+          "average_precision": 0.9999
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The file mixes tabs and spaces, so the indentation the model reads differs from what the editor shows.",
+        "The code was auto-formatted, which removes the evidence."
+      ],
+      "limitations": [
+        "Labelled by construction (a planted indented line after a braceless body is a mistake by definition)."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "MISSING_BREAK_IN_SWITCH": {
+      "error_type": "MISSING_BREAK_IN_SWITCH",
+      "title": "Missing break in a switch",
+      "concept_tag": "switch_statements",
+      "version": "v1",
+      "detects": "A switch case without break that runs on into the next case when that changes the result.",
+      "considers": "Every case group that does not end in break, return, throw or continue and is followed by another case.",
+      "example": {
+        "mistake": "switch (day) {\n    case 1: name = \"Mon\";\n    case 2: name = \"Tue\"; break;\n}",
+        "lookalike": "switch (level) {\n    case 3: bonus += 30;   // falls through on purpose\n    case 2: bonus += 20;\n    case 1: bonus += 10;\n}"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.3649,
+        "threshold_rule": "the threshold with the best F0.5 (precision counts twice as much as recall), because precision 0.95 was not reachable with recall at 0.75 or more",
+        "feature_count": 13,
+        "top_features": [],
+        "ms_per_site": 19.9955,
+        "file": "logic__missing_break_in_switch.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 401,
+        "training_mistakes": 284,
+        "test_sites": 79,
+        "test_mistakes": 61,
+        "test_lookalikes_from_correct_code": 10,
+        "test_lookalikes_from_planted_changes": 8,
+        "planted_mistakes": 440,
+        "planted_mistakes_that_changed_behaviour": 345
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9355,
+          "recall": 0.9508,
+          "f1": 0.9431,
+          "average_precision": 0.9651
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.791,
+          "recall": 0.8689,
+          "f1": 0.8281
+        },
+        "codebert": {
+          "precision": 0.9608,
+          "recall": 0.8033,
+          "f1": 0.875,
+          "average_precision": 0.9671
+        },
+        "human_code": {
+          "flags": 28,
+          "real": 28,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": {
+          "snippets": 330,
+          "mistakes": 30,
+          "precision": 1.0,
+          "recall": 0.8667,
+          "false_alarms": 0,
+          "previous_recall": 0.9333,
+          "previous_false_alarms": 1
+        }
+      },
+      "unreliable_when": [
+        "The fall-through is intended but has no comment saying so and does not follow the build-up pattern above.",
+        "Switch expressions and arrow cases (case 1 -> ...) cannot fall through and are not considered."
+      ],
+      "limitations": [
+        "4 of the 8 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "NESTED_LOOP_WRONG_COUNTER": {
+      "error_type": "NESTED_LOOP_WRONG_COUNTER",
+      "title": "Loop header uses the wrong counter",
+      "concept_tag": "loop_control",
+      "version": "v1",
+      "detects": "A for loop header that tests or updates the wrong counter, usually the outer loop's i instead of j.",
+      "considers": "Every for loop whose condition or update does not mention the variable it declares.",
+      "example": {
+        "mistake": "for (int i = 0; i < rows; i++)\n    for (int j = 0; j < cols; i++)\n        print(grid[i][j]);",
+        "lookalike": "for (int i = 0, j = n - 1; i < j; i++, j--)\n    swap(a, i, j);"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.4271,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [],
+        "ms_per_site": 0.0544,
+        "file": "logic__nested_loop_wrong_counter.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 647,
+        "training_mistakes": 619,
+        "test_sites": 97,
+        "test_mistakes": 92,
+        "test_lookalikes_from_correct_code": 3,
+        "test_lookalikes_from_planted_changes": 2,
+        "planted_mistakes": 725,
+        "planted_mistakes_that_changed_behaviour": 717
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9787,
+          "recall": 1.0,
+          "f1": 0.9892,
+          "average_precision": 0.9981
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.9787,
+          "recall": 1.0,
+          "f1": 0.9892
+        },
+        "codebert": {
+          "precision": 0.9787,
+          "recall": 1.0,
+          "f1": 0.9892,
+          "average_precision": 0.9955
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The loop is deliberately driven by another variable (two-pointer loops written unusually)."
+      ],
+      "limitations": [
+        "Almost every proposed site in the test split is a real mistake (92 of 97), so the score says little about telling look-alikes apart.",
+        "2 of the 2 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "NON_SHORT_CIRCUIT_OPERATOR": {
+      "error_type": "NON_SHORT_CIRCUIT_OPERATOR",
+      "title": "& or | used instead of && or ||",
+      "concept_tag": "boolean_logic",
+      "version": "v1",
+      "detects": "& or | between two conditions where && or || was needed, so the right side runs even when the left already decided, e.g. s.length() after s != null.",
+      "considers": "Every & or | between two boolean expressions.",
+      "example": {
+        "mistake": "if (s != null & s.length() > 0) { ... }",
+        "lookalike": "if (a > 0 & b > 0) { ... }   // no side effects, same result"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.7388,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 14,
+        "top_features": [
+          "right_derefs_checked_var",
+          "left_null_check",
+          "shared_identifiers",
+          "op_and",
+          "right_has_call"
+        ],
+        "ms_per_site": 0.2245,
+        "file": "logic__non_short_circuit_operator.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 2174,
+        "training_mistakes": 1159,
+        "test_sites": 379,
+        "test_mistakes": 190,
+        "test_lookalikes_from_correct_code": 0,
+        "test_lookalikes_from_planted_changes": 189,
+        "planted_mistakes": 2553,
+        "planted_mistakes_that_changed_behaviour": 1349
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9832,
+          "recall": 0.9263,
+          "f1": 0.9539,
+          "average_precision": 0.9864
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.5013,
+          "recall": 1.0,
+          "f1": 0.6678
+        },
+        "codebert": {
+          "precision": 0.9779,
+          "recall": 0.9316,
+          "f1": 0.9542,
+          "average_precision": 0.9513
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The right side is guarded somewhere the model does not look, e.g. a field checked in the constructor."
+      ],
+      "limitations": [
+        "There are no correct-code sites in the test split: every look-alike is a planted & or | that behaved the same. The model was trained to treat those as fine, which is right for students but not a style check.",
+        "3 of the 189 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "OFF_BY_ONE_LOOP_BOUNDARY": {
+      "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
+      "title": "Loop runs one step too far",
+      "concept_tag": "loop_boundaries",
+      "version": "v1",
+      "detects": "A loop that runs one step too far, e.g. i <= a.length, so the last pass indexes past the end.",
+      "considers": "Every counted for loop that compares its counter with <= (or >= when counting down from the length), or with < against a bound past the length, unless the bound already subtracts from the length.",
+      "example": {
+        "mistake": "for (int i = 0; i <= a.length; i++) {\n    sum += a[i];\n}",
+        "lookalike": "for (int i = 1; i <= n; i++) {\n    total += i;          // counts 1..n, no array\n}"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.2039,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 20,
+        "top_features": [
+          "body_indexes_collection_at_var",
+          "var_uses_in_body",
+          "body_indexes_anything_at_var",
+          "bound_is_length",
+          "init_is_zero"
+        ],
+        "ms_per_site": 0.3548,
+        "file": "logic__off_by_one_loop_boundary.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 1480,
+        "training_mistakes": 1344,
+        "test_sites": 229,
+        "test_mistakes": 212,
+        "test_lookalikes_from_correct_code": 7,
+        "test_lookalikes_from_planted_changes": 10,
+        "planted_mistakes": 1645,
+        "planted_mistakes_that_changed_behaviour": 1566
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9507,
+          "recall": 1.0,
+          "f1": 0.9747,
+          "average_precision": 0.9878
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9315,
+          "recall": 0.6415,
+          "f1": 0.7598
+        },
+        "codebert": {
+          "precision": 0.9593,
+          "recall": 1.0,
+          "f1": 0.9792,
+          "average_precision": 0.9851
+        },
+        "human_code": {
+          "flags": 28,
+          "real": 28,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": {
+          "snippets": 330,
+          "mistakes": 30,
+          "precision": 1.0,
+          "recall": 0.9,
+          "false_alarms": 0,
+          "previous_recall": 0.9,
+          "previous_false_alarms": 0
+        }
+      },
+      "unreliable_when": [
+        "The bound is a variable whose relation to an array's length is set elsewhere.",
+        "While loops are not considered."
+      ],
+      "limitations": [
+        "One of the 7 correct-code sites in the test split was flagged.",
+        "10 of the 10 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "STRING_EQUALITY_WITH_OPERATOR": {
+      "error_type": "STRING_EQUALITY_WITH_OPERATOR",
+      "title": "Strings compared with ==",
+      "concept_tag": "string_comparison",
+      "version": "v1",
+      "detects": "Two Strings compared with == or !=, which compares which object they are, not their text.",
+      "considers": "Every == or != where one side is, or might be, a String or other object and neither side is null.",
+      "example": {
+        "mistake": "if (answer == \"yes\") { ... }",
+        "lookalike": "if (answer.equals(\"yes\")) { ... }\nif (c == 'y') { ... }        // a char, not a String"
+      },
+      "model": {
+        "family": "logistic_regression",
+        "family_name": "Logistic regression",
+        "threshold": 0.1837,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [
+          "string_literal_side",
+          "element_side",
+          "in_condition",
+          "call_side",
+          "operator_not_equal"
+        ],
+        "ms_per_site": 0.0656,
+        "file": "logic__string_equality_with_operator.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. A planted change of this kind is a mistake by definition, because running the code rarely shows it (the inputs would have to hit the exact case); every candidate site in the correct programs is a look-alike.",
+        "labels": "construction",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 161,
+        "training_mistakes": 149,
+        "test_sites": 28,
+        "test_mistakes": 27,
+        "test_lookalikes_from_correct_code": 1,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 176,
+        "planted_mistakes_that_changed_behaviour": 176
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 0.8148,
+          "f1": 0.898,
+          "average_precision": 0.9934
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9412,
+          "recall": 0.5926,
+          "f1": 0.7273
+        },
+        "codebert": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "human_code": {
+          "flags": 1,
+          "real": 1,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "One side's type cannot be worked out (a method from another class); the model then relies on how the comparison is written."
+      ],
+      "limitations": [
+        "Labelled by construction (== between two Strings is a mistake by definition).",
+        "Recall is 0.81: it misses comparisons whose String type it cannot see.",
+        "Measured on only 27 real mistakes in the test split, so each one moves recall by 4 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "UNREACHABLE_ELSE_IF_ORDER": {
+      "error_type": "UNREACHABLE_ELSE_IF_ORDER",
+      "title": "An else-if branch can never run",
+      "concept_tag": "conditional_logic",
+      "version": "v1",
+      "detects": "An else-if chain whose earlier test already covers a later one (>= 50 before >= 75), so the later branch can never run.",
+      "considers": "If/else-if chains of two or more branches that compare the same variable with numbers.",
+      "example": {
+        "mistake": "if (mark >= 50) grade = 'C';\nelse if (mark >= 75) grade = 'A';   // never reached",
+        "lookalike": "if (mark >= 75) grade = 'A';\nelse if (mark >= 50) grade = 'C';"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.6324,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 14,
+        "top_features": [],
+        "ms_per_site": 0.2007,
+        "file": "logic__unreachable_else_if_order.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 555,
+        "training_mistakes": 286,
+        "test_sites": 54,
+        "test_mistakes": 26,
+        "test_lookalikes_from_correct_code": 17,
+        "test_lookalikes_from_planted_changes": 11,
+        "planted_mistakes": 451,
+        "planted_mistakes_that_changed_behaviour": 312
+      },
+      "performance": {
+        "test": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "average_precision": 1.0
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.963,
+          "recall": 1.0,
+          "f1": 0.9811
+        },
+        "codebert": {
+          "precision": 0.6765,
+          "recall": 0.8846,
+          "f1": 0.7667,
+          "average_precision": 0.6472
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "The conditions compare against variables or method results, whose values the model cannot order."
+      ],
+      "limitations": [
+        "Measured on only 26 real mistakes in the test split, so each one moves recall by 4 points."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "WHILE_VARIABLE_NOT_UPDATED": {
+      "error_type": "WHILE_VARIABLE_NOT_UPDATED",
+      "title": "While loop may never end",
+      "concept_tag": "loop_termination",
+      "version": "v1",
+      "detects": "A while loop whose condition never changes inside the loop, so it may never end.",
+      "considers": "Every while and do-while loop whose condition uses at least one variable, unless that variable is changed through a method call such as remove() or next().",
+      "example": {
+        "mistake": "int i = 0;\nwhile (i < n) {\n    sum += a[i];\n}",
+        "lookalike": "while (!done) {\n    String line = sc.nextLine();\n    if (line.equals(\"quit\")) done = true;\n}"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.6507,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 15,
+        "top_features": [
+          "write_count",
+          "cond_vars_written",
+          "written_unconditionally",
+          "cond_vars_unwritten",
+          "cond_var_count"
+        ],
+        "ms_per_site": 0.5974,
+        "file": "logic__while_variable_not_updated.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 1063,
+        "training_mistakes": 508,
+        "test_sites": 164,
+        "test_mistakes": 80,
+        "test_lookalikes_from_correct_code": 84,
+        "test_lookalikes_from_planted_changes": 0,
+        "planted_mistakes": 557,
+        "planted_mistakes_that_changed_behaviour": 544
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9467,
+          "recall": 0.8875,
+          "f1": 0.9161,
+          "average_precision": 0.9612
+        },
+        "previous": {
+          "name": "the detector this type had before",
+          "precision": 0.9048,
+          "recall": 0.2375,
+          "f1": 0.3762
+        },
+        "codebert": {
+          "precision": 0.9859,
+          "recall": 0.875,
+          "f1": 0.9272,
+          "average_precision": 0.9942
+        },
+        "human_code": {
+          "flags": 30,
+          "real": 30,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": {
+          "snippets": 330,
+          "mistakes": 30,
+          "precision": 1.0,
+          "recall": 0.9667,
+          "false_alarms": 0,
+          "previous_recall": 0.8667,
+          "previous_false_alarms": 0
+        }
+      },
+      "unreliable_when": [
+        "The condition changes through a field, another method or another object.",
+        "The loop is left by break or return, which the model weighs but cannot always confirm happens."
+      ],
+      "limitations": [
+        "Recall is 0.89: about 1 in 9 of these mistakes in the test split is not flagged."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "error_type": "WRONG_EXTREME_INITIAL_VALUE",
+      "title": "Max/min search starts from the wrong value",
+      "concept_tag": "loop_initialization",
+      "version": "v1",
+      "detects": "A maximum or minimum search that starts from a value that can beat every element, e.g. int min = 0 when all values are positive.",
+      "considers": "Every variable that a loop keeps as the largest or smallest value seen, together with its starting value.",
+      "example": {
+        "mistake": "int min = 0;\nfor (int x : values) if (x < min) min = x;",
+        "lookalike": "int min = values[0];\nfor (int x : values) if (x < min) min = x;\n\nint best = 0;          // scores are never negative\nfor (int s : scores) if (s > best) best = s;"
+      },
+      "model": {
+        "family": "random_forest",
+        "family_name": "Random forest (300 trees)",
+        "threshold": 0.362,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 16,
+        "top_features": [
+          "init_zero",
+          "compared_is_element",
+          "init_element",
+          "constant_mismatch",
+          "compared_is_counter"
+        ],
+        "ms_per_site": 0.7956,
+        "file": "logic__wrong_extreme_initial_value.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 483,
+        "training_mistakes": 208,
+        "test_sites": 83,
+        "test_mistakes": 39,
+        "test_lookalikes_from_correct_code": 43,
+        "test_lookalikes_from_planted_changes": 1,
+        "planted_mistakes": 248,
+        "planted_mistakes_that_changed_behaviour": 247
+      },
+      "performance": {
+        "test": {
+          "precision": 0.9512,
+          "recall": 1.0,
+          "f1": 0.975,
+          "average_precision": 0.9393
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.8298,
+          "recall": 1.0,
+          "f1": 0.907
+        },
+        "codebert": {
+          "precision": 0.8571,
+          "recall": 0.9231,
+          "f1": 0.8889,
+          "average_precision": 0.972
+        },
+        "human_code": {
+          "flags": 2,
+          "real": 2,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "Whether 0 is a safe start depends on the data, which the model only sees through names and how the values are produced."
+      ],
+      "limitations": [
+        "One of the 43 correct-code sites in the test split was flagged.",
+        "1 of the 1 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    },
+    "WRONG_LOOP_VARIABLE_IN_INDEX": {
+      "error_type": "WRONG_LOOP_VARIABLE_IN_INDEX",
+      "title": "Wrong counter used as an index",
+      "concept_tag": "array_indexing",
+      "version": "v1",
+      "detects": "An inner loop that indexes with the outer loop's counter (a[i] where a[j] was meant).",
+      "considers": "Every index inside an inner for loop that uses an outer loop's counter.",
+      "example": {
+        "mistake": "for (int i = 0; i < rows; i++)\n    for (int j = 0; j < cols; j++)\n        sum += grid[i][i];      // grid[i][j] was meant",
+        "lookalike": "for (int i = 0; i < n; i++)\n    for (int j = i + 1; j < n; j++)\n        if (a[i] == a[j]) count++;   // a[i] is meant"
+      },
+      "model": {
+        "family": "gradient_boosting",
+        "family_name": "Gradient-boosted trees (300 rounds)",
+        "threshold": 0.3894,
+        "threshold_rule": "the highest threshold that keeps precision at 0.95 or more with recall at 0.75 or more, chosen on the training data by cross-validation",
+        "feature_count": 12,
+        "top_features": [],
+        "ms_per_site": 0.06,
+        "file": "logic__wrong_loop_variable_in_index.joblib"
+      },
+      "training_data": {
+        "description": "Correct beginner Java methods - 2,285 of them across 32 topics, from templates and written by OpenAI - with this mistake planted at known places. Each changed program was run against the original on 60 generated inputs: a change that crashed, never finished or printed something different is a real mistake; one that behaved the same is a look-alike. Each candidate site in the correct programs is a look-alike too.",
+        "labels": "execution",
+        "split": "Split by base method, so no method - or its other version - is in both training and test. The model and its threshold were chosen on the training part; the test part was scored once.",
+        "training_sites": 575,
+        "training_mistakes": 418,
+        "test_sites": 97,
+        "test_mistakes": 59,
+        "test_lookalikes_from_correct_code": 26,
+        "test_lookalikes_from_planted_changes": 12,
+        "planted_mistakes": 504,
+        "planted_mistakes_that_changed_behaviour": 485
+      },
+      "performance": {
+        "test": {
+          "precision": 0.8667,
+          "recall": 0.8814,
+          "f1": 0.8739,
+          "average_precision": 0.9262
+        },
+        "previous": {
+          "name": "a hand-written rule (a new type, with no detector before)",
+          "precision": 0.9444,
+          "recall": 0.5763,
+          "f1": 0.7158
+        },
+        "codebert": {
+          "precision": 0.8615,
+          "recall": 0.9492,
+          "f1": 0.9032,
+          "average_precision": 0.9441
+        },
+        "human_code": {
+          "flags": 0,
+          "real": 0,
+          "plausible": 0,
+          "wrong": 0
+        },
+        "curated": null
+      },
+      "unreliable_when": [
+        "Using the outer counter is intended and the inner counter is used elsewhere in the same statement."
+      ],
+      "limitations": [
+        "The weakest model of the 24: F1 0.87, precision 0.87, recall 0.88. CodeBERT scored higher here (0.90).",
+        "8 of the 12 planted changes in the test split that behaved like the original were flagged. Some of those are real mistakes the test inputs did not reach, so the measured precision is probably a little lower than the true one."
+      ],
+      "general_limitations": [
+        "Trained and tested on generated code, not on student submissions; the checks on human-written code are the only evidence from code people wrote.",
+        "Reads one file without running it, and follows values only within a method: anything decided in another class, another method or at run time is invisible to it.",
+        "Java only, and only code that parses."
+      ]
+    }
+  }
+}

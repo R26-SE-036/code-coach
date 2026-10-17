@@ -76,8 +76,12 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "component; read them back for analytics.",
      ["/api/v1/events", "/api/v1/events/me"]),
     ("Code analysis (Code Coach internal)",
-     "Used by the VS Code extension. Included for completeness.",
-     ["/api/v1/code-coach/analyze"]),
+     "Used by the VS Code extension. Included for completeness. The catalogue lists "
+     "all 30 error types with their plain-words title and concept tag, for any service "
+     "that wants to name a mistake the way the editor does. Diagnostics gained three "
+     "optional fields (title, end_line, end_column); nothing was removed or renamed.",
+     ["/api/v1/code-coach/analyze", "/api/v1/code-coach/catalog", "/api/v1/code-coach/explain",
+      "/api/v1/code-coach/explain-compiler-error", "/api/v1/code-coach/similar-example"]),
     ("Service health",
      "No authentication required.",
      ["/health"]),

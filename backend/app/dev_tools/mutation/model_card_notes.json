@@ -1,0 +1,292 @@
+{
+  "ACCUMULATOR_RESET_INSIDE_LOOP": {
+    "detects": "A running total, count or piece of text that is set back to its starting value inside the loop that builds it, so only the last pass counts.",
+    "considers": "Every assignment of a literal (0, 1, \"\") inside a loop to a variable that the same loop also adds to with +=, ++ or similar.",
+    "mistake": "int total = 0;\nfor (int i = 0; i < a.length; i++) {\n    total = 0;\n    total += a[i];\n}",
+    "lookalike": "for (int r = 0; r < grid.length; r++) {\n    int rowSum = 0;          // one total per row\n    for (int c = 0; c < grid[r].length; c++) rowSum += grid[r][c];\n    System.out.println(rowSum);\n}",
+    "unreliable_when": [
+      "The reset is meant to happen once per row or group: the model has to infer that from where the value is read, and a per-group total that is only read after the loop looks like the mistake.",
+      "The running value is kept in a field or handed to another method, which the model cannot follow."
+    ],
+    "limitations": [
+      "Only resets to a literal are considered; total = start; is not checked."
+    ]
+  },
+  "ARRAY_LENGTH_INDEX_MISUSE": {
+    "detects": "An array, String or list read at index length (or length(), size()), one past the last valid position.",
+    "considers": "Every index written as a length minus 0, 1 or 2, directly or through a variable that was set to one and not changed since.",
+    "mistake": "int last = scores[scores.length];",
+    "lookalike": "int last = scores[scores.length - 1];\nint[] bigger = new int[a.length + 1];\nbigger[a.length] = extra;      // bigger has room for it",
+    "unreliable_when": [
+      "The index only equals the length because of something computed in another method or a loop the model does not trace.",
+      "A collection is replaced by a longer one in a way other than new T[n + 1] in the same method."
+    ],
+    "limitations": []
+  },
+  "CONSTANT_FALSE_LOOP_CONDITION": {
+    "detects": "A for loop whose condition is already false at the first check, so the body never runs.",
+    "considers": "For loops whose start and condition can be compared: two literals (only when the first check fails), counting up from 0 or 1 while i > n, counting below zero, or a condition that compares the counter with its own start.",
+    "mistake": "for (int i = 0; i > values.length; i++) {\n    sum += values[i];\n}",
+    "lookalike": "for (int i = values.length - 1; i >= 0; i--) {\n    sum += values[i];\n}",
+    "unreliable_when": [
+      "The bound is a variable whose value is only known at run time (i > n with n negative is legitimately true).",
+      "Loops written as while loops are not considered at all."
+    ],
+    "limitations": [
+      "The old rule could only judge two literals, so its F1 on these test sites is 0: almost every test mistake has a length or variable as its bound."
+    ]
+  },
+  "DECIMAL_EQUALITY_COMPARISON": {
+    "detects": "Two double or float values compared with == or !=, which a calculated value often fails by a tiny rounding error.",
+    "considers": "Every == or != where at least one side is known to be a double or float.",
+    "mistake": "double total = 0.1 + 0.2;\nif (total == 0.3) { ... }",
+    "lookalike": "if (divisor == 0.0) return 0;        // deliberate exact check\nif (x == Math.floor(x)) { ... }   // is it whole?",
+    "unreliable_when": [
+      "The value was never calculated (read straight from input and compared with the same literal), where == happens to be safe.",
+      "The type of one side cannot be worked out from the file, e.g. a method declared in another class."
+    ],
+    "limitations": [
+      "Labelled by construction (a planted == on decimals is a mistake by definition), because test inputs rarely hit the exact rounding case.",
+      "Two of the 19 correct-code sites in the test split were flagged (precision 0.93)."
+    ]
+  },
+  "DIVISION_BY_ZERO_LITERAL": {
+    "detects": "A whole-number division or remainder whose divisor can be zero when the line runs, which crashes with an ArithmeticException.",
+    "considers": "Integer divisions by the literal 0, by a length or size, by a parameter, by a variable that starts at 0, or by an alias of a length. Other divisors are not proposed.",
+    "mistake": "static int average(int[] values) {\n    int sum = 0;\n    for (int v : values) sum += v;\n    return sum / values.length;   // empty array crashes\n}",
+    "lookalike": "if (values.length == 0) return 0;\nreturn sum / values.length;",
+    "unreliable_when": [
+      "The divisor is guarded in a way the model does not recognise, such as a check in the caller or an early return in another method.",
+      "The divisor is computed (gcd(a, b), n - k): these are not proposed, so such crashes are not found."
+    ],
+    "limitations": [
+      "The detector it replaced only knew the literal 0, which none of the test mistakes use, so that detector scores 0 here."
+    ]
+  },
+  "EARLY_RETURN_IN_LOOP": {
+    "detects": "A loop that returns on its first pass whatever happens, usually an else return false; inside a search, so only the first element is ever checked.",
+    "considers": "Loops whose body ends in a return, or contains an if/else where both branches return, break or throw.",
+    "mistake": "for (int x : values) {\n    if (x == target) return true;\n    else return false;\n}",
+    "lookalike": "for (int x : values) {\n    if (x == target) return true;\n}\nreturn false;",
+    "unreliable_when": [
+      "The loop is deliberately one pass, e.g. returning the first element of a non-empty list.",
+      "Almost every proposed site in the test split is a real mistake (141 of 144), so the score says little about telling look-alikes apart."
+    ],
+    "limitations": [
+      "Mutants that make the return unconditional are labelled by construction."
+    ]
+  },
+  "EMPTY_CONDITIONAL_BODY": {
+    "detects": "A semicolon right after an if, while or for header, which makes the body empty so the condition controls nothing.",
+    "considers": "Every if, while or for whose body is a lone ; or an empty { }.",
+    "mistake": "if (score > 50);\n{\n    System.out.println(\"Pass\");\n}",
+    "lookalike": "int i = 0;\nfor (; i < n && a[i] != key; i++);   // the header does the work",
+    "unreliable_when": [
+      "An empty-bodied loop is used on purpose and written on one line, which the model has seen less of than the mistake."
+    ],
+    "limitations": []
+  },
+  "IGNORED_STRING_METHOD_RESULT": {
+    "detects": "A String method such as trim() or toUpperCase() called as a statement, whose new value is thrown away because Strings never change in place.",
+    "considers": "Every statement that is only a call to a String or StringBuilder method on some value.",
+    "mistake": "name.trim();\nif (name.isEmpty()) { ... }",
+    "lookalike": "StringBuilder sb = new StringBuilder(word);\nsb.reverse();          // changes sb itself",
+    "unreliable_when": [
+      "The receiver's type is declared in another file, so the model cannot tell a String from a builder."
+    ],
+    "limitations": [
+      "Labelled by construction (a dropped String result is a mistake by definition)."
+    ]
+  },
+  "INCORRECT_CONDITIONAL_OPERATOR": {
+    "detects": "An assignment (=) written where a comparison (==) was meant, inside a condition.",
+    "considers": "Every assignment inside the condition of an if, while, do, for or ?:.",
+    "mistake": "if (done = true) { ... }",
+    "lookalike": "while ((line = reader.readLine()) != null) { ... }",
+    "unreliable_when": [
+      "The assignment is to a boolean and is meant (rare, but legal)."
+    ],
+    "limitations": [
+      "Only 5 of the 38 test sites are look-alikes, so precision rests on few cases."
+    ]
+  },
+  "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+    "detects": "A[i + 1] (or a[i - 1]) inside a loop that lets i reach the last (or first) index, so the neighbour is out of bounds.",
+    "considers": "Every index of the form counter + k or counter - k inside a counted for loop.",
+    "mistake": "for (int i = 0; i < a.length; i++) {\n    if (a[i] > a[i + 1]) count++;\n}",
+    "lookalike": "for (int i = 0; i < a.length - 1; i++) {\n    if (a[i] > a[i + 1]) count++;\n}",
+    "unreliable_when": [
+      "The access is guarded by an if or a break the model does not recognise.",
+      "While loops and for-each loops are not considered."
+    ],
+    "limitations": [
+      "Recall is 0.90: the threshold was set for precision, so about 1 in 10 of these mistakes in the test split is not flagged."
+    ]
+  },
+  "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+    "detects": "Two whole numbers divided where a decimal result was wanted, e.g. an average stored in a double, so the remainder is lost first.",
+    "considers": "Every division where both sides are int or char; where the value goes decides it.",
+    "mistake": "double average = sum / count;",
+    "lookalike": "int middle = (low + high) / 2;\nint tens = n / 10 % 10;",
+    "unreliable_when": [
+      "The value goes somewhere the model cannot see the type of (a method in another class, a collection).",
+      "Dropping the remainder is intended but the result is still stored in a double."
+    ],
+    "limitations": []
+  },
+  "LOOP_COUNTER_CHANGED_IN_BODY": {
+    "detects": "A for loop's counter changed inside the body as well as in the header, so elements are skipped or repeated.",
+    "considers": "Every write to a for loop's counter inside its body (not counting a nested loop's own header).",
+    "mistake": "for (int i = 0; i < a.length; i++) {\n    sum += a[i];\n    i++;\n}",
+    "lookalike": "for (int i = 0; i < s.length(); i++) {\n    if (s.charAt(i) == '\\\\') i++;   // skip the escaped character\n}",
+    "unreliable_when": [
+      "Skipping ahead is deliberate (parsing, run-length counting) and the reason is not visible in a nearby if.",
+      "While loops are not considered: there the counter is meant to change in the body."
+    ],
+    "limitations": [
+      "Precision is 0.85, the lowest of the 24."
+    ]
+  },
+  "LOOP_SKIPS_LAST_ELEMENT": {
+    "detects": "A loop that stops one element early (i < a.length - 1) while the body only uses a[i], so the last element is never processed.",
+    "considers": "Every counted for loop whose bound is a length minus one (or that starts at length - 1 and counts down to 0).",
+    "mistake": "for (int i = 0; i < a.length - 1; i++) {\n    sum += a[i];\n}",
+    "lookalike": "for (int i = 0; i < a.length - 1; i++) {\n    if (a[i] > a[i + 1]) sorted = false;\n}",
+    "unreliable_when": [
+      "The last element is handled after the loop, which the model only partly sees.",
+      "Nested loops such as bubble sort, where the inner bound depends on the outer counter."
+    ],
+    "limitations": []
+  },
+  "LOOP_UPDATE_WRONG_DIRECTION": {
+    "detects": "A for loop whose update moves the counter away from its bound (i < n with i--), so the loop never finishes or ends with an error.",
+    "considers": "Every counted for loop that compares its counter with a bound using <, <=, > or >=.",
+    "mistake": "for (int i = 0; i < n; i--) { ... }",
+    "lookalike": "for (int i = n - 1; i >= 0; i--) { ... }",
+    "unreliable_when": [
+      "The body also changes the counter or leaves the loop in a way that makes the header's direction irrelevant."
+    ],
+    "limitations": []
+  },
+  "MISLEADING_INDENTATION_NO_BRACES": {
+    "detects": "A second line indented under an if, else or loop that has no braces, which looks like part of the body but always runs.",
+    "considers": "Every if, else or loop without braces, together with the statement that follows it.",
+    "mistake": "if (score > 90)\n    grade = 'A';\n    bonus = 10;      // runs every time",
+    "lookalike": "if (score > 90)\n    grade = 'A';\nbonus = 10;",
+    "unreliable_when": [
+      "The file mixes tabs and spaces, so the indentation the model reads differs from what the editor shows.",
+      "The code was auto-formatted, which removes the evidence."
+    ],
+    "limitations": [
+      "Labelled by construction (a planted indented line after a braceless body is a mistake by definition)."
+    ]
+  },
+  "MISSING_BREAK_IN_SWITCH": {
+    "detects": "A switch case without break that runs on into the next case when that changes the result.",
+    "considers": "Every case group that does not end in break, return, throw or continue and is followed by another case.",
+    "mistake": "switch (day) {\n    case 1: name = \"Mon\";\n    case 2: name = \"Tue\"; break;\n}",
+    "lookalike": "switch (level) {\n    case 3: bonus += 30;   // falls through on purpose\n    case 2: bonus += 20;\n    case 1: bonus += 10;\n}",
+    "unreliable_when": [
+      "The fall-through is intended but has no comment saying so and does not follow the build-up pattern above.",
+      "Switch expressions and arrow cases (case 1 -> ...) cannot fall through and are not considered."
+    ],
+    "limitations": []
+  },
+  "NESTED_LOOP_WRONG_COUNTER": {
+    "detects": "A for loop header that tests or updates the wrong counter, usually the outer loop's i instead of j.",
+    "considers": "Every for loop whose condition or update does not mention the variable it declares.",
+    "mistake": "for (int i = 0; i < rows; i++)\n    for (int j = 0; j < cols; i++)\n        print(grid[i][j]);",
+    "lookalike": "for (int i = 0, j = n - 1; i < j; i++, j--)\n    swap(a, i, j);",
+    "unreliable_when": [
+      "The loop is deliberately driven by another variable (two-pointer loops written unusually)."
+    ],
+    "limitations": [
+      "Almost every proposed site in the test split is a real mistake (92 of 97), so the score says little about telling look-alikes apart."
+    ]
+  },
+  "NON_SHORT_CIRCUIT_OPERATOR": {
+    "detects": "& or | between two conditions where && or || was needed, so the right side runs even when the left already decided, e.g. s.length() after s != null.",
+    "considers": "Every & or | between two boolean expressions.",
+    "mistake": "if (s != null & s.length() > 0) { ... }",
+    "lookalike": "if (a > 0 & b > 0) { ... }   // no side effects, same result",
+    "unreliable_when": [
+      "The right side is guarded somewhere the model does not look, e.g. a field checked in the constructor."
+    ],
+    "limitations": [
+      "There are no correct-code sites in the test split: every look-alike is a planted & or | that behaved the same. The model was trained to treat those as fine, which is right for students but not a style check."
+    ]
+  },
+  "OFF_BY_ONE_LOOP_BOUNDARY": {
+    "detects": "A loop that runs one step too far, e.g. i <= a.length, so the last pass indexes past the end.",
+    "considers": "Every counted for loop that compares its counter with <= (or >= when counting down from the length), or with < against a bound past the length, unless the bound already subtracts from the length.",
+    "mistake": "for (int i = 0; i <= a.length; i++) {\n    sum += a[i];\n}",
+    "lookalike": "for (int i = 1; i <= n; i++) {\n    total += i;          // counts 1..n, no array\n}",
+    "unreliable_when": [
+      "The bound is a variable whose relation to an array's length is set elsewhere.",
+      "While loops are not considered."
+    ],
+    "limitations": [
+      "One of the 7 correct-code sites in the test split was flagged."
+    ]
+  },
+  "STRING_EQUALITY_WITH_OPERATOR": {
+    "detects": "Two Strings compared with == or !=, which compares which object they are, not their text.",
+    "considers": "Every == or != where one side is, or might be, a String or other object and neither side is null.",
+    "mistake": "if (answer == \"yes\") { ... }",
+    "lookalike": "if (answer.equals(\"yes\")) { ... }\nif (c == 'y') { ... }        // a char, not a String",
+    "unreliable_when": [
+      "One side's type cannot be worked out (a method from another class); the model then relies on how the comparison is written."
+    ],
+    "limitations": [
+      "Labelled by construction (== between two Strings is a mistake by definition).",
+      "Recall is 0.81: it misses comparisons whose String type it cannot see."
+    ]
+  },
+  "UNREACHABLE_ELSE_IF_ORDER": {
+    "detects": "An else-if chain whose earlier test already covers a later one (>= 50 before >= 75), so the later branch can never run.",
+    "considers": "If/else-if chains of two or more branches that compare the same variable with numbers.",
+    "mistake": "if (mark >= 50) grade = 'C';\nelse if (mark >= 75) grade = 'A';   // never reached",
+    "lookalike": "if (mark >= 75) grade = 'A';\nelse if (mark >= 50) grade = 'C';",
+    "unreliable_when": [
+      "The conditions compare against variables or method results, whose values the model cannot order."
+    ],
+    "limitations": []
+  },
+  "WHILE_VARIABLE_NOT_UPDATED": {
+    "detects": "A while loop whose condition never changes inside the loop, so it may never end.",
+    "considers": "Every while and do-while loop whose condition uses at least one variable, unless that variable is changed through a method call such as remove() or next().",
+    "mistake": "int i = 0;\nwhile (i < n) {\n    sum += a[i];\n}",
+    "lookalike": "while (!done) {\n    String line = sc.nextLine();\n    if (line.equals(\"quit\")) done = true;\n}",
+    "unreliable_when": [
+      "The condition changes through a field, another method or another object.",
+      "The loop is left by break or return, which the model weighs but cannot always confirm happens."
+    ],
+    "limitations": [
+      "Recall is 0.89: about 1 in 9 of these mistakes in the test split is not flagged."
+    ]
+  },
+  "WRONG_EXTREME_INITIAL_VALUE": {
+    "detects": "A maximum or minimum search that starts from a value that can beat every element, e.g. int min = 0 when all values are positive.",
+    "considers": "Every variable that a loop keeps as the largest or smallest value seen, together with its starting value.",
+    "mistake": "int min = 0;\nfor (int x : values) if (x < min) min = x;",
+    "lookalike": "int min = values[0];\nfor (int x : values) if (x < min) min = x;\n\nint best = 0;          // scores are never negative\nfor (int s : scores) if (s > best) best = s;",
+    "unreliable_when": [
+      "Whether 0 is a safe start depends on the data, which the model only sees through names and how the values are produced."
+    ],
+    "limitations": [
+      "One of the 43 correct-code sites in the test split was flagged."
+    ]
+  },
+  "WRONG_LOOP_VARIABLE_IN_INDEX": {
+    "detects": "An inner loop that indexes with the outer loop's counter (a[i] where a[j] was meant).",
+    "considers": "Every index inside an inner for loop that uses an outer loop's counter.",
+    "mistake": "for (int i = 0; i < rows; i++)\n    for (int j = 0; j < cols; j++)\n        sum += grid[i][i];      // grid[i][j] was meant",
+    "lookalike": "for (int i = 0; i < n; i++)\n    for (int j = i + 1; j < n; j++)\n        if (a[i] == a[j]) count++;   // a[i] is meant",
+    "unreliable_when": [
+      "Using the outer counter is intended and the inner counter is used elsewhere in the same statement."
+    ],
+    "limitations": [
+      "The weakest model of the 24: F1 0.87, precision 0.87, recall 0.88. CodeBERT scored higher here (0.90)."
+    ]
+  }
+}

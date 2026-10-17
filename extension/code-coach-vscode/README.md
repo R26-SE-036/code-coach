@@ -1,8 +1,8 @@
 # Code Coach for VS Code
 
 Code Coach helps you learn Java by explaining the mistakes in your code, not only
-pointing at them. As you type, it looks for the errors beginners make most often
-and walks you towards a fix with **three levels of hints**. It starts with the
+pointing at them. As you type, it looks for **30 kinds of logic mistake** beginners
+make most often and walks you towards a fix with **three levels of hints**. It starts with the
 idea behind the mistake and ends with a specific suggestion, so you can stop as
 soon as you understand.
 
@@ -36,9 +36,18 @@ pause typing for about a second. It also re-checks when you switch files. To
 check straight away, run **Code Coach: Analyze Current File**, or click Code
 Coach's item in the status bar.
 
-**Findings where you are working.** Each finding is underlined in the editor and
-listed in the **Problems** panel with the source *Code Coach*. A **CodeLens**
-link sits above each line that has a finding.
+**30 kinds of mistake, mostly judged by models.** Off-by-one loops, a loop that
+stops one element early, `a[i + 1]` past the end, the wrong counter in a nested
+loop, a total reset inside its loop, a max search that starts at 0, a search that
+returns on its first pass, else-if tests in the wrong order, `&` where `&&` was
+meant, a missing `break`, `==` on Strings and more. The logic errors are decided
+spot by spot by machine-learning models trained on programs that were actually
+compiled and run, so code that only looks like a mistake is left alone.
+
+**Findings where you are working.** Each finding is underlined - under the exact
+condition or expression - and listed in the **Problems** panel with the source
+*Code Coach*, and in the **Issues** view in the Code Coach sidebar, grouped by
+concept. A **CodeLens** link sits above each line that has a finding.
 
 **Progressive hints.** Every finding comes with three hints, revealed one at a
 time:
@@ -58,9 +67,21 @@ Coach icon in the title bar of any Java editor. The panel lets you:
 - see each finding's hints side by side;
 - follow the current session.
 
-**Report a false positive.** If a finding is wrong, report it from the lightbulb
-menu or the Coach Panel. These reports are used to measure and improve the
-detector.
+**Help when the hints are not enough.**
+- **✨ Explain in my code** - an explanation of the flagged lines that uses your
+  own variable names and traces a small example. It never gives the answer.
+  Every student has 20 a day; after that the hints are shown instead.
+- **📘 Similar example** - the same mistake, and its fix, from the free course.
+- **🎓 Learn this** - opens the free course unit on the mistake in the portal.
+- **Compiler errors explained** - when the Java extension says the file does not
+  compile, the 💡 menu and the panel offer the message in plain words.
+
+**"Fixed it!"** When a finding disappears after an edit, Code Coach says so, and
+counts your fixes for the session.
+
+**Report a false positive, or mute a kind.** If a finding is wrong, report it from
+the lightbulb menu or the Coach Panel - reports are used to measure and improve
+the detector. **Mute this kind** stops showing one kind of finding.
 
 **Browser sign-in.** Signing in opens the Code Guru portal in your browser. After
 you sign in there, VS Code is signed in automatically. You never type a password
@@ -164,6 +185,10 @@ Open the Command Palette (`Ctrl+Shift+P`, or `Cmd+Shift+P` on macOS) and type
 | Code Coach: Open Coach Panel | Opens the panel for the active file |
 | Code Coach: Next Hint / Previous Hint | Moves between hint levels for the current finding |
 | Code Coach: Report False Positive | Tells the team a finding was wrong |
+| Code Coach: Explain in My Code | Explains the current finding using your own code (from the panel, hover or 💡 menu) |
+| Code Coach: Show a Similar Example | Shows the same mistake fixed, from the free course |
+| Code Coach: Learn This (Free Course) | Opens the course unit for the current finding |
+| Code Coach: Explain This Compiler Error | Explains a compile error in plain words (from the 💡 menu or the Issues view) |
 | Code Coach: Welcome Guide | Opens the five-step walkthrough |
 
 ## Settings
@@ -176,6 +201,9 @@ need to change anything.
 | `codeCoach.portalUrl` | `https://3-106-2-190.sslip.io` | The Code Guru web portal, where Sign In and Create Account open |
 | `codeCoach.backendUrl` | `https://3-106-2-190.sslip.io` | Where the extension sends code for analysis |
 | `codeCoach.enableEvaluationLogging` | `false` | Also records anonymised diagnostic events for the research evaluation |
+| `codeCoach.autoAnalyze` | `true` | Check the file automatically when you pause typing |
+| `codeCoach.analysisDelayMs` | `900` | How long to wait after you stop typing |
+| `codeCoach.mutedErrorTypes` | `[]` | Kinds of finding not to show (added by **Mute this kind**) |
 
 `portalUrl` and `backendUrl` should point at the **same** platform. If they
 don't, you sign in to one server and send your code to another.
@@ -193,6 +221,11 @@ HTTPS.
   reporting a false positive. The platform uses these events to judge which
   concepts you are struggling with, and they shape your study plan in the
   portal.
+- **Explanations.** Only when you press **Explain in my code** or **Explain this
+  error**: the lines around the finding (up to 17) are sent to Code Guru, which
+  asks OpenAI's model to write the explanation. Answers are cached, so the same
+  lines are not sent twice. **Similar example** compares those lines with the
+  course's examples the same way.
 - **Evaluation logging.** This is off unless you turn on
   `codeCoach.enableEvaluationLogging`. It adds anonymised diagnostic records
   used to evaluate the detector for the research project.

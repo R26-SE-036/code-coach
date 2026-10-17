@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { titleFor } from "../labels";
 import { DiagnosticItem, ExtensionState } from "../types";
 
 /**
@@ -45,7 +46,7 @@ export class CoachCodeLensProvider implements vscode.CodeLensProvider {
       // 💡 Concept hint lens — single lens per issue
       lenses.push(
         new vscode.CodeLens(range, {
-          title: `💡 ${diag.error_type}: ${truncate(diag.hints.concept, 80)}`,
+          title: `💡 ${titleFor(diag)}: ${truncate(diag.hints.concept, 80)}`,
           command: "code-coach-vscode.showCodeLensHint",
           arguments: [i, "concept", diag],
           tooltip: "Click to see the full concept hint for this issue",

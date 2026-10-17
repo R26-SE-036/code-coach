@@ -33,7 +33,10 @@
     "targeted": "`{call}` builds a new String, but nothing keeps it, so {target} is exactly the same afterwards. Where should the new String go?"
   },
   "DIVISION_BY_ZERO_LITERAL": {
-    "targeted": "`{expression}` divides by the literal 0, which stops the program every time this line runs. What should the divisor really be?"
+    "targeted": [
+      "`{expression}` divides by `{divisor}`, and nothing before this line rules out `{divisor}` being 0 - for an empty array, say, or when nothing was counted. What should happen in that case?",
+      "`{expression}` divides by the literal 0, which stops the program every time this line runs. What should the divisor really be?"
+    ]
   },
   "CONSTANT_FALSE_LOOP_CONDITION": {
     "targeted": "{variable} starts at {start}, and `{condition}` is already false for that value, so the loop body never runs at all. Which of the two numbers is not the one you meant?"
@@ -55,5 +58,38 @@
   },
   "ALWAYS_FALSE_AND_CONDITION": {
     "targeted": "Try `{condition}` with a few values of {variable}. Is there any value that makes both sides true at once?"
+  },
+  "LOOP_SKIPS_LAST_ELEMENT": {
+    "targeted": "This loop keeps going while `{condition}`. On its final pass, which position of {collection} does it reach - and is that the last one?"
+  },
+  "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+    "targeted": "The loop runs while `{condition}`, and the body reads `{access}`. On the last pass, is that position still inside {collection}?"
+  },
+  "WRONG_LOOP_VARIABLE_IN_INDEX": {
+    "targeted": "`{access}` uses {outer}, which does not change while the inner loop counts with {inner}. Which of the two counters should pick this element?"
+  },
+  "NESTED_LOOP_WRONG_COUNTER": {
+    "targeted": "`{header}` declares {counter} but also works with {other}. Which variable should this loop test and change?"
+  },
+  "LOOP_COUNTER_CHANGED_IN_BODY": {
+    "targeted": "The header already moves {counter} on every pass, and `{change}` moves it again. Which elements does the loop end up skipping?"
+  },
+  "ACCUMULATOR_RESET_INSIDE_LOOP": {
+    "targeted": "`{reset}` runs on every pass of the loop that adds to {variable}. What is left in {variable} after the last pass?"
+  },
+  "WRONG_EXTREME_INITIAL_VALUE": {
+    "targeted": "{variable} starts at {value}. If every value in the data were on the wrong side of {value}, what would the method return?"
+  },
+  "EARLY_RETURN_IN_LOOP": {
+    "targeted": "`{statement}` leaves the method whichever way the test goes. When would the loop ever get to look at a second element?"
+  },
+  "UNREACHABLE_ELSE_IF_ORDER": {
+    "targeted": "Every value for which `{later}` is true has already passed `{earlier}` higher up. When can this branch ever run?"
+  },
+  "MISLEADING_INDENTATION_NO_BRACES": {
+    "targeted": "`{header}` has no braces, so it controls only the next statement. `{statement}` runs every time - is that what the indentation means?"
+  },
+  "NON_SHORT_CIRCUIT_OPERATOR": {
+    "targeted": "`{expression}` evaluates both sides even when the first already decides the answer. Is the right side safe to run then, or did you mean {intended}?"
   }
 }

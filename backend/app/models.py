@@ -52,6 +52,10 @@ class DetectionResult(BaseModel):
     # inside the analyzer: Diagnostic, which leaves the service, has no such
     # field, so this adds nothing to the API.
     details: dict[str, str] = Field(default_factory=dict)
+    # Where the flagged code ends, so the editor can underline exactly the
+    # condition or expression rather than guess from the line.
+    end_line: Optional[int] = None
+    end_column: Optional[int] = None
 
 
 class Diagnostic(BaseModel):
@@ -70,6 +74,11 @@ class Diagnostic(BaseModel):
     ml_probability: Optional[float] = None
     locator_confidence: Optional[float] = None
     hints: HintSet
+    # Added with the 30-type catalogue; optional, so older clients that do
+    # not know them are unaffected.
+    title: Optional[str] = None
+    end_line: Optional[int] = None
+    end_column: Optional[int] = None
 
 
 class AnalyzeResponse(BaseModel):

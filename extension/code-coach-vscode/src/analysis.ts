@@ -28,6 +28,16 @@ import {
   ExtensionState,
 } from "./types";
 import { DEBOUNCE_DELAY_MS } from "./constants";
+import { compilerProblemsFor, mutedErrorTypes } from "./assistState";
+import {
+  explainCompilerError,
+  explainInMyCode,
+  muteErrorType,
+  openCourseUnit,
+  showModelCard,
+  showSimilarExample,
+} from "./assist";
+import { titleFor } from "./labels";
 import { authorizedRequestJson, clearLearningSession, isEvaluationLoggingEnabled } from "./api";
 import { ensureAuthenticated, ensureLearningSession, trackLearningEvent } from "./auth";
 import { isSupportedDocument, updateAnalysisStatusBar, formatDuration } from "./ui/statusBar";
@@ -54,6 +64,12 @@ export function createRangeFromDiagnostic(
     return new vscode.Range(lineIndex, 0, lineIndex, 0);
   }
   const startChar = Math.max(0, Math.min(diagnostic.column - 1, line.text.length - 1));
+  // Backends from 0.3 say where the flagged code ends, so the underline sits
+  // under the condition or expression itself rather than the rest of the line.
+  // Kept to the first line: a multi-line underline reads as a block of noise.
+  if (diagnostic.end_line === diagnostic.line && diagnostic.end_column && diagnostic.end_column - 1 > startChar) {
+    return new vscode.Range(lineIndex, startChar, lineIndex, Math.min(diagnostic.end_column - 1, line.text.length));
+  }
   return new vscode.Range(lineIndex, startChar, lineIndex, line.text.length);
 }
 
@@ -128,7 +144,7 @@ function applyEditorFeedback(
     const range = createRangeFromDiagnostic(editor.document, item);
     const diagnostic = new vscode.Diagnostic(
       range,
-      `${item.message} Hint: ${item.hints.concept}`,
+      `${titleFor(item)}: ${item.message} Hint: ${item.hints.concept}`,
       severityFromDiagnostic(item),
     );
     diagnostic.source = "Code Coach";
@@ -152,6 +168,37 @@ function applyEditorFeedback(
 
   // Refresh CodeLens so inline hint actions appear above problem lines
   if (state.codeLensProvider) { state.codeLensProvider.refresh(); }
+  state.issuesTreeProvider?.refresh();
+}
+
+/**
+ * "Fixed it!": findings that were on screen before this analysis and are
+ * gone after it. Counted for the session summary and shown for a moment in
+ * the panel and the status bar - the moment the student gets it right is
+ * worth marking, and until now it passed without a word.
+ */
+function noteFixes(state: ExtensionState, uriKey: string, next: DiagnosticItem[]): void {
+  const before = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (before.length === 0) { return; }
+  const still = new Set(next.map((item) => item.diagnostic_id));
+  const fixed = before.filter((item) => !still.has(item.diagnostic_id) && !state.disputedDiagnosticIds.has(item.diagnostic_id));
+  if (fixed.length === 0) { return; }
+  state.fixedThisSession += fixed.length;
+  state.lastFix = { title: titleFor(fixed[0]), at: Date.now() };
+  for (const item of fixed) {
+    state.assistByKey.delete(`explain:${item.diagnostic_id}`);
+    state.assistByKey.delete(`example:${item.diagnostic_id}`);
+  }
+  vscode.window.setStatusBarMessage(
+    fixed.length === 1 ? `$(pass-filled) Fixed: ${titleFor(fixed[0])}` : `$(pass-filled) Fixed ${fixed.length} issues`,
+    5000,
+  );
+}
+
+/** The findings the student has not muted. */
+function visibleDiagnostics(diagnostics: DiagnosticItem[]): DiagnosticItem[] {
+  const muted = new Set(mutedErrorTypes());
+  return muted.size ? diagnostics.filter((item) => !muted.has(item.error_type)) : diagnostics;
 }
 
 // ── Focus & hint helpers ──
@@ -327,7 +374,7 @@ function writeAnalysisOutput(state: ExtensionState, result: AnalyzeResponse): vo
   }
 
   result.diagnostics.forEach((diagnostic, index) => {
-    state.outputChannel.appendLine(`Issue ${index + 1}: ${diagnostic.error_type} (Line ${diagnostic.line}, Column ${diagnostic.column})`);
+    state.outputChannel.appendLine(`Issue ${index + 1}: ${titleFor(diagnostic)} [${diagnostic.error_type}] (Line ${diagnostic.line}, Column ${diagnostic.column})`);
     state.outputChannel.appendLine(`  Message   : ${diagnostic.message}`);
     state.outputChannel.appendLine(`  Concept   : ${diagnostic.hints.concept}`);
     state.outputChannel.appendLine(`  Guidance  : ${diagnostic.hints.guidance}`);
@@ -423,6 +470,9 @@ export async function runAnalysisForEditor(
       }
 
       progress?.report({ message: "Processing results…", increment: 40 });
+      state.backendOffline = false;
+      result = { ...result, diagnostics: visibleDiagnostics(result.diagnostics) };
+      noteFixes(state, document.uri.toString(), result.diagnostics);
 
       state.lastAnalysisSnapshotByUri.set(document.uri.toString(), {
         diagnosticsCount: result.diagnostics.length,
@@ -438,6 +488,7 @@ export async function runAnalysisForEditor(
 
       if (result.diagnostics.length === 0) {
         clearFeedbackForDocument(state, document, { preserveAnalysisSnapshot: true });
+        state.issuesTreeProvider?.refresh();
         progress?.report({ message: "No issues found ✓", increment: 20 });
         if (options.showPopup) {
           void vscode.window.showInformationMessage(
@@ -481,6 +532,9 @@ export async function runAnalysisForEditor(
     } catch (error) {
       clearFeedbackForDocument(state, document);
       const message = error instanceof Error ? error.message : "Unknown error occurred.";
+      // A network failure is a state worth showing, not only a popup: the
+      // status bar says Code Coach is offline until the next analysis works.
+      state.backendOffline = !(error instanceof ApiError);
       if (options.showPopup) { vscode.window.showErrorMessage(`Code Coach error: ${message}`); }
       console.error("Code Coach analyze error:", error);
     } finally {
@@ -510,6 +564,15 @@ export async function runAnalysisForEditor(
 // document (DEBOUNCE_DELAY_MS, from constants.ts); only when typing pauses does
 // the timer fire runAnalysisForEditor() in silent mode. Clearing the previous
 // timer on each call is what collapses a burst of keystrokes into one request.
+function autoAnalysisSettings(): { enabled: boolean; delay: number } {
+  const config = vscode.workspace.getConfiguration("codeCoach");
+  const delay = config.get<number>("analysisDelayMs", DEBOUNCE_DELAY_MS) ?? DEBOUNCE_DELAY_MS;
+  return {
+    enabled: config.get<boolean>("autoAnalyze", true) ?? true,
+    delay: Math.max(300, Math.min(10_000, delay)),
+  };
+}
+
 export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextEditor | undefined): void {
   if (!editor) { return; }
   const document = editor.document;
@@ -535,11 +598,14 @@ export function scheduleAutoAnalysis(state: ExtensionState, editor: vscode.TextE
     return;
   }
 
+  const settings = autoAnalysisSettings();
+  if (!settings.enabled) { updateAnalysisStatusBar(state, editor); return; }
+
   clearTimerForUri(state, document.uri);
   const timer = setTimeout(() => {
     void runAnalysisForEditor(state, editor, { showPopup: false, showOutput: false });
     state.debounceTimers.delete(document.uri.toString());
-  }, DEBOUNCE_DELAY_MS);
+  }, settings.delay);
   state.debounceTimers.set(document.uri.toString(), timer);
 }
 
@@ -705,6 +771,36 @@ function revealActiveHint(state: ExtensionState): void {
   revealNextHint(state, diagnostics[index], "coach_panel");
 }
 
+export function activeDiagnostic(state: ExtensionState): DiagnosticItem | undefined {
+  const uriKey = resolvePanelUriKey(state);
+  if (!uriKey) { return undefined; }
+  const diagnostics = state.lastDiagnosticsByUri.get(uriKey) ?? [];
+  if (diagnostics.length === 0) { return undefined; }
+  return diagnostics[Math.min(state.activeHintIndexByUri.get(uriKey) ?? 0, diagnostics.length - 1)];
+}
+
+/** Move to one finding by id - the Issues view and the hover use this. */
+export function revealDiagnosticById(state: ExtensionState, diagnosticId: string): void {
+  for (const [uriKey, diagnostics] of state.lastDiagnosticsByUri) {
+    const index = diagnostics.findIndex((item) => item.diagnostic_id === diagnosticId);
+    if (index < 0) { continue; }
+    state.activeHintIndexByUri.set(uriKey, index);
+    const editor = findVisibleEditorForUri(uriKey);
+    if (editor) {
+      focusDiagnostic(editor, diagnostics[index]);
+    } else {
+      void vscode.window.showTextDocument(vscode.Uri.parse(uriKey), { preview: false })
+        .then((opened) => { focusDiagnostic(opened, diagnostics[index]); });
+    }
+    updateCoachPanel(state);
+    return;
+  }
+}
+
+export function findDiagnosticById(state: ExtensionState, diagnosticId: string): DiagnosticItem | undefined {
+  return [...state.lastDiagnosticsByUri.values()].flat().find((item) => item.diagnostic_id === diagnosticId);
+}
+
 function disputeActiveDiagnostic(state: ExtensionState): void {
   const uriKey = resolvePanelUriKey(state);
   if (!uriKey) { return; }
@@ -799,6 +895,38 @@ export function handleCoachPanelMessage(
     case "openOutput":
       state.outputChannel.show(true);
       break;
+    case "panelExplain": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { void explainInMyCode(state, diagnostic); }
+      break;
+    }
+    case "panelExample": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { void showSimilarExample(state, diagnostic); }
+      break;
+    }
+    case "panelLearn": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { openCourseUnit(state, diagnostic); }
+      break;
+    }
+    case "panelModelCard": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { void showModelCard(state, diagnostic); }
+      break;
+    }
+    case "panelMute": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { void muteErrorType(state, diagnostic); }
+      break;
+    }
+    case "panelExplainCompiler": {
+      const uriKey = resolvePanelUriKey(state);
+      const problems = compilerProblemsFor(uriKey ? vscode.Uri.parse(uriKey) : undefined);
+      const problem = typeof message.index === "number" ? problems[message.index] : undefined;
+      if (problem) { void explainCompilerError(state, problem); }
+      break;
+    }
     default:
       break;
   }

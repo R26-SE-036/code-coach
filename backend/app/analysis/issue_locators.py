@@ -97,6 +97,8 @@ def _result(
         code_context=_node_context(context_node or node, source_bytes),
         locator_confidence=locator_confidence,
         details={key: _snippet(value) for key, value in (details or {}).items() if value},
+        end_line=node.end_point[0] + 1,
+        end_column=node.end_point[1] + 1,
     )
 
 

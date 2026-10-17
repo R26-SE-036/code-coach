@@ -22,6 +22,93 @@ export type DiagnosticItem = {
   ml_probability?: number;
   locator_confidence?: number;
   hints: HintSet;
+  /** Plain-words name of the mistake (backends from 0.3 on). */
+  title?: string;
+  /** Where the flagged code ends, 1-based, when the backend knows it. */
+  end_line?: number;
+  end_column?: number;
+};
+
+/** The answer to "Explain in my code" or "Explain this error". */
+export type ExplanationResponse = {
+  status: string;
+  explanation: string;
+  /** "llm" (written for this code), "cache" (written earlier) or "template". */
+  source: string;
+  remaining_today: number;
+  daily_limit: number;
+  limit_reached: boolean;
+};
+
+export type WorkedExample = {
+  title: string;
+  buggy?: string;
+  fixed?: string;
+  code?: string;
+  note?: string;
+};
+
+export type SimilarExampleResponse = {
+  error_type: string;
+  title: string;
+  examples: WorkedExample[];
+  course_path: string;
+  source: string;
+};
+
+type CardMetrics = { precision: number; recall: number; f1: number; average_precision?: number };
+
+/** How one error type's model was trained and tested (GET /model-cards/{type}). */
+export type ModelCard = {
+  error_type: string;
+  title: string;
+  detects: string;
+  considers: string;
+  example: { mistake: string; lookalike: string };
+  model: { family_name: string; threshold: number; threshold_rule: string; feature_count: number; top_features: string[] };
+  training_data: {
+    description: string;
+    split: string;
+    training_sites: number;
+    training_mistakes: number;
+    test_sites: number;
+    test_mistakes: number;
+  };
+  performance: {
+    test: CardMetrics;
+    previous: Partial<CardMetrics> & { name: string };
+    codebert: CardMetrics | null;
+    human_code: { flags: number; real: number; plausible: number; wrong: number };
+    curated: { snippets: number; mistakes: number; precision: number; recall: number; false_alarms: number } | null;
+  };
+  unreliable_when: string[];
+  limitations: string[];
+  general_limitations: string[];
+  in_use: boolean;
+};
+
+/** What the panel shows under a finding after the student asks for it. */
+export type AssistEntry = {
+  kind: "explanation" | "example" | "compiler" | "card";
+  loading?: boolean;
+  text?: string;
+  source?: string;
+  remaining?: number;
+  limit?: number;
+  limitReached?: boolean;
+  example?: SimilarExampleResponse;
+  card?: ModelCard;
+  /** For a compiler error: its message and line. */
+  message?: string;
+  line?: number;
+  error?: string;
+};
+
+/** A compiler error VS Code's Java extension reported for the open file. */
+export type CompilerProblem = {
+  message: string;
+  line: number;
+  source?: string;
 };
 
 export type AnalyzeResponse = {
@@ -122,6 +209,8 @@ export type CoachPanelState = {
   activeDiagnostic?: DiagnosticItem;
   snapshot?: AnalysisSnapshot;
   learningSessionId?: string;
+  /** The file the panel is about, for its compiler errors. */
+  fileUriKey?: string;
 };
 
 export class ApiError extends Error {
@@ -169,6 +258,19 @@ export type ExtensionState = {
    * to flip the report button to "Reported ✓" and avoid duplicate events.
    */
   disputedDiagnosticIds: Set<string>;
+  /**
+   * Explanations and worked examples the student asked for, keyed by
+   * "explain:<diagnostic_id>", "example:<diagnostic_id>" or
+   * "compiler:<line>:<message>", so re-analysis while the student reads does
+   * not throw them away.
+   */
+  assistByKey: Map<string, AssistEntry>;
+  /** Findings that went away after an edit, this session - "Fixed it!". */
+  fixedThisSession: number;
+  lastFix?: { title: string; at: number };
+  /** Set when the backend could not be reached, cleared on the next success. */
+  backendOffline: boolean;
+  issuesTreeProvider: { refresh(): void } | undefined;
   coachPanel: vscode.WebviewPanel | undefined;
   sidebarProvider: CoachSidebarProvider | undefined;
   codeLensProvider: CoachCodeLensProvider | undefined;

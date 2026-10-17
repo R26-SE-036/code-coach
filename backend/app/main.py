@@ -14,6 +14,7 @@ from app.api.routes.account import router as account_router
 from app.api.routes.research import router as research_router
 from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_coach import router as code_coach_router
+from app.api.routes.coach_assist import router as coach_assist_router
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.students import router as students_router
 from app.api.routes.events import router as events_router
@@ -88,6 +89,7 @@ def create_app(*, storage=None) -> FastAPI:
     app.include_router(learning_session_router)
     app.include_router(collaboration_router)
     app.include_router(code_coach_router)
+    app.include_router(coach_assist_router)
     app.include_router(dashboard_router)
     app.include_router(students_router)
     app.include_router(events_router)

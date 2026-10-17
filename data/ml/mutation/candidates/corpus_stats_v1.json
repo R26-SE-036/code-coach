@@ -1,0 +1,509 @@
+{
+  "base_programs": 3430,
+  "base_methods": 2285,
+  "seed": 7,
+  "inputs_per_method": 60,
+  "label_by_construction": [
+    "DECIMAL_EQUALITY_COMPARISON",
+    "IGNORED_STRING_METHOD_RESULT",
+    "MISLEADING_INDENTATION_NO_BRACES",
+    "STRING_EQUALITY_WITH_OPERATOR"
+  ],
+  "types": {
+    "LOOP_SKIPS_LAST_ELEMENT": {
+      "mutants": 1553,
+      "behaviour_changed": 1376,
+      "original_candidates": 183,
+      "equivalent": 177,
+      "proposer_missed_bug": 5,
+      "proposer_missed_equivalent": 1,
+      "splits": {
+        "train": {
+          "rows": 1193,
+          "positives": 947
+        },
+        "val": {
+          "rows": 302,
+          "positives": 245
+        },
+        "test": {
+          "rows": 235,
+          "positives": 179
+        }
+      }
+    },
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+      "original_candidates": 498,
+      "mutants": 250,
+      "behaviour_changed": 248,
+      "equivalent": 2,
+      "splits": {
+        "train": {
+          "rows": 553,
+          "positives": 216
+        },
+        "val": {
+          "rows": 151,
+          "positives": 66
+        },
+        "test": {
+          "rows": 128,
+          "positives": 49
+        }
+      }
+    },
+    "WRONG_LOOP_VARIABLE_IN_INDEX": {
+      "mutants": 504,
+      "behaviour_changed": 485,
+      "original_candidates": 176,
+      "proposer_missed_bug": 8,
+      "equivalent": 19,
+      "splits": {
+        "train": {
+          "rows": 446,
+          "positives": 335
+        },
+        "val": {
+          "rows": 129,
+          "positives": 83
+        },
+        "test": {
+          "rows": 97,
+          "positives": 59
+        }
+      }
+    },
+    "NESTED_LOOP_WRONG_COUNTER": {
+      "mutants": 725,
+      "behaviour_changed": 717,
+      "proposer_missed_bug": 6,
+      "equivalent": 8,
+      "original_candidates": 25,
+      "splits": {
+        "train": {
+          "rows": 504,
+          "positives": 480
+        },
+        "val": {
+          "rows": 143,
+          "positives": 139
+        },
+        "test": {
+          "rows": 97,
+          "positives": 92
+        }
+      }
+    },
+    "LOOP_COUNTER_CHANGED_IN_BODY": {
+      "mutants": 2679,
+      "behaviour_changed": 2350,
+      "equivalent": 329,
+      "original_candidates": 95,
+      "mutant_compile_errors": 297,
+      "splits": {
+        "train": {
+          "rows": 1927,
+          "positives": 1629
+        },
+        "val": {
+          "rows": 480,
+          "positives": 425
+        },
+        "test": {
+          "rows": 367,
+          "positives": 296
+        }
+      }
+    },
+    "ACCUMULATOR_RESET_INSIDE_LOOP": {
+      "mutants": 1790,
+      "behaviour_changed": 1640,
+      "original_candidates": 226,
+      "equivalent": 150,
+      "splits": {
+        "train": {
+          "rows": 1452,
+          "positives": 1177
+        },
+        "val": {
+          "rows": 296,
+          "positives": 244
+        },
+        "test": {
+          "rows": 268,
+          "positives": 219
+        }
+      }
+    },
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "original_candidates": 318,
+      "mutants": 248,
+      "behaviour_changed": 247,
+      "equivalent": 1,
+      "splits": {
+        "train": {
+          "rows": 396,
+          "positives": 176
+        },
+        "val": {
+          "rows": 87,
+          "positives": 32
+        },
+        "test": {
+          "rows": 83,
+          "positives": 39
+        }
+      }
+    },
+    "EARLY_RETURN_IN_LOOP": {
+      "mutants": 1079,
+      "behaviour_changed": 1044,
+      "equivalent": 35,
+      "proposer_missed_equivalent": 12,
+      "proposer_missed_bug": 3,
+      "mutant_compile_errors": 99,
+      "splits": {
+        "train": {
+          "rows": 750,
+          "positives": 731
+        },
+        "val": {
+          "rows": 170,
+          "positives": 169
+        },
+        "test": {
+          "rows": 144,
+          "positives": 141
+        }
+      }
+    },
+    "UNREACHABLE_ELSE_IF_ORDER": {
+      "original_candidates": 161,
+      "mutants": 451,
+      "equivalent": 139,
+      "behaviour_changed": 312,
+      "proposer_missed_equivalent": 3,
+      "splits": {
+        "train": {
+          "rows": 430,
+          "positives": 214
+        },
+        "val": {
+          "rows": 125,
+          "positives": 72
+        },
+        "test": {
+          "rows": 54,
+          "positives": 26
+        }
+      }
+    },
+    "MISLEADING_INDENTATION_NO_BRACES": {
+      "original_candidates": 3510,
+      "mutants": 650,
+      "behaviour_changed": 650,
+      "proposer_missed_bug": 5,
+      "mutant_compile_errors": 240,
+      "splits": {
+        "train": {
+          "rows": 2901,
+          "positives": 527
+        },
+        "val": {
+          "rows": 705,
+          "positives": 118
+        },
+        "test": {
+          "rows": 645,
+          "positives": 96
+        }
+      }
+    },
+    "NON_SHORT_CIRCUIT_OPERATOR": {
+      "mutants": 2553,
+      "behaviour_changed": 1349,
+      "equivalent": 1204,
+      "splits": {
+        "train": {
+          "rows": 1757,
+          "positives": 931
+        },
+        "val": {
+          "rows": 417,
+          "positives": 228
+        },
+        "test": {
+          "rows": 379,
+          "positives": 190
+        }
+      }
+    },
+    "OFF_BY_ONE_LOOP_BOUNDARY": {
+      "mutants": 1645,
+      "behaviour_changed": 1566,
+      "original_candidates": 74,
+      "equivalent": 79,
+      "proposer_missed_bug": 10,
+      "splits": {
+        "train": {
+          "rows": 1183,
+          "positives": 1079
+        },
+        "val": {
+          "rows": 297,
+          "positives": 265
+        },
+        "test": {
+          "rows": 229,
+          "positives": 212
+        }
+      }
+    },
+    "INCORRECT_CONDITIONAL_OPERATOR": {
+      "mutants": 177,
+      "behaviour_changed": 162,
+      "equivalent": 15,
+      "original_candidates": 38,
+      "mutant_compile_errors": 3,
+      "splits": {
+        "train": {
+          "rows": 147,
+          "positives": 104
+        },
+        "val": {
+          "rows": 30,
+          "positives": 25
+        },
+        "test": {
+          "rows": 38,
+          "positives": 33
+        }
+      }
+    },
+    "ARRAY_LENGTH_INDEX_MISUSE": {
+      "original_candidates": 186,
+      "mutants": 96,
+      "behaviour_changed": 96,
+      "splits": {
+        "train": {
+          "rows": 189,
+          "positives": 63
+        },
+        "val": {
+          "rows": 48,
+          "positives": 17
+        },
+        "test": {
+          "rows": 45,
+          "positives": 16
+        }
+      }
+    },
+    "MISSING_BREAK_IN_SWITCH": {
+      "mutants": 440,
+      "equivalent": 95,
+      "behaviour_changed": 345,
+      "original_candidates": 40,
+      "mutant_compile_errors": 1,
+      "splits": {
+        "train": {
+          "rows": 336,
+          "positives": 238
+        },
+        "val": {
+          "rows": 65,
+          "positives": 46
+        },
+        "test": {
+          "rows": 79,
+          "positives": 61
+        }
+      }
+    },
+    "WHILE_VARIABLE_NOT_UPDATED": {
+      "original_candidates": 625,
+      "mutants": 557,
+      "behaviour_changed": 544,
+      "equivalent": 13,
+      "splits": {
+        "train": {
+          "rows": 895,
+          "positives": 429
+        },
+        "val": {
+          "rows": 168,
+          "positives": 79
+        },
+        "test": {
+          "rows": 164,
+          "positives": 80
+        }
+      }
+    },
+    "STRING_EQUALITY_WITH_OPERATOR": {
+      "mutants": 176,
+      "behaviour_changed": 176,
+      "original_candidates": 13,
+      "splits": {
+        "train": {
+          "rows": 134,
+          "positives": 123
+        },
+        "val": {
+          "rows": 27,
+          "positives": 26
+        },
+        "test": {
+          "rows": 28,
+          "positives": 27
+        }
+      }
+    },
+    "LOOP_UPDATE_WRONG_DIRECTION": {
+      "original_candidates": 1965,
+      "mutants": 2065,
+      "behaviour_changed": 2048,
+      "proposer_missed_bug": 98,
+      "equivalent": 17,
+      "proposer_missed_equivalent": 2,
+      "splits": {
+        "train": {
+          "rows": 2724,
+          "positives": 1349
+        },
+        "val": {
+          "rows": 672,
+          "positives": 336
+        },
+        "test": {
+          "rows": 534,
+          "positives": 265
+        }
+      }
+    },
+    "CONSTANT_FALSE_LOOP_CONDITION": {
+      "mutants": 2934,
+      "behaviour_changed": 2810,
+      "proposer_missed_bug": 345,
+      "equivalent": 124,
+      "proposer_missed_equivalent": 9,
+      "mutant_compile_errors": 1,
+      "splits": {
+        "train": {
+          "rows": 1800,
+          "positives": 1714
+        },
+        "val": {
+          "rows": 433,
+          "positives": 421
+        },
+        "test": {
+          "rows": 347,
+          "positives": 330
+        }
+      }
+    },
+    "IGNORED_STRING_METHOD_RESULT": {
+      "original_candidates": 124,
+      "mutants": 84,
+      "behaviour_changed": 84,
+      "splits": {
+        "train": {
+          "rows": 146,
+          "positives": 61
+        },
+        "val": {
+          "rows": 32,
+          "positives": 16
+        },
+        "test": {
+          "rows": 30,
+          "positives": 7
+        }
+      }
+    },
+    "DIVISION_BY_ZERO_LITERAL": {
+      "mutants": 283,
+      "behaviour_changed": 232,
+      "proposer_missed_bug": 170,
+      "equivalent": 51,
+      "proposer_missed_equivalent": 51,
+      "original_candidates": 90,
+      "mutant_compile_errors": 3,
+      "splits": {
+        "train": {
+          "rows": 103,
+          "positives": 44
+        },
+        "val": {
+          "rows": 21,
+          "positives": 8
+        },
+        "test": {
+          "rows": 28,
+          "positives": 10
+        }
+      }
+    },
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+      "mutants": 122,
+      "behaviour_changed": 114,
+      "equivalent": 8,
+      "original_candidates": 214,
+      "splits": {
+        "train": {
+          "rows": 246,
+          "positives": 84
+        },
+        "val": {
+          "rows": 43,
+          "positives": 10
+        },
+        "test": {
+          "rows": 47,
+          "positives": 20
+        }
+      }
+    },
+    "DECIMAL_EQUALITY_COMPARISON": {
+      "original_candidates": 127,
+      "mutants": 170,
+      "behaviour_changed": 170,
+      "splits": {
+        "train": {
+          "rows": 200,
+          "positives": 120
+        },
+        "val": {
+          "rows": 50,
+          "positives": 22
+        },
+        "test": {
+          "rows": 47,
+          "positives": 28
+        }
+      }
+    },
+    "EMPTY_CONDITIONAL_BODY": {
+      "mutants": 1389,
+      "behaviour_changed": 1255,
+      "equivalent": 134,
+      "original_candidates": 23,
+      "mutant_compile_errors": 2281,
+      "splits": {
+        "train": {
+          "rows": 973,
+          "positives": 871
+        },
+        "val": {
+          "rows": 234,
+          "positives": 202
+        },
+        "test": {
+          "rows": 205,
+          "positives": 182
+        }
+      }
+    }
+  }
+}

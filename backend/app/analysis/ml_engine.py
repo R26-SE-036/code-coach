@@ -29,8 +29,15 @@ from typing import Dict, List
 
 import joblib
 import pandas as pd
+from threadpoolctl import threadpool_limits
 
 from app.analysis.candidate_extractor import CANDIDATE_EXTRACTORS, CandidateSite
+
+# One OpenMP thread for prediction. The gradient-boosting models walk 300
+# trees per call and start a thread team for each - for the few sites in one
+# file that made a single prediction take a third of a second. Held for the
+# life of the process, which here only serves predictions.
+_OPENMP_LIMIT = threadpool_limits(limits=1, user_api="openmp")
 from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
 from app.models import ParseResult
 
@@ -140,6 +147,43 @@ def predict_candidates(spec: ErrorTypeSpec, parse_result: ParseResult) -> List[C
         )
         for site, probability in zip(sites, probabilities)
     ]
+
+
+def _get_logic_model(spec: ErrorTypeSpec):
+    cache_key = f"logic:{spec.error_type}"
+    if cache_key in _LOADED_MODELS:
+        return _LOADED_MODELS[cache_key]
+    model_path = MODELS_DIR / (spec.candidate_model_file or "")
+    if not model_path.exists():
+        raise FileNotFoundError(f"Candidate model file not found: {model_path}")
+    model = joblib.load(model_path)
+    # A random forest trained with n_jobs=-1 would start a pool of worker
+    # threads for every prediction - for the handful of sites in one file
+    # that costs far more than the prediction, and on the server's two
+    # cores it queued requests behind each other.
+    if hasattr(model, "n_jobs"):
+        model.n_jobs = 1
+    _LOADED_MODELS[cache_key] = model
+    return model
+
+
+def score_candidates(spec: ErrorTypeSpec, candidates) -> List[float]:
+    """Probability that each proposed site is a real mistake (candidate_ml).
+
+    One batched predict_proba per error type per analysis. The columns are
+    lined up with the model's own feature_names_in_, so a feature added to a
+    proposer later is ignored by models trained before it existed.
+    """
+    if not candidates:
+        return []
+    model = _get_logic_model(spec)
+    expected = list(getattr(model, "feature_names_in_", candidates[0].features.keys()))
+    frame = pd.DataFrame(
+        [[float(c.features.get(col, 0.0)) for col in expected] for c in candidates],
+        columns=expected,
+    )
+    probabilities = model.predict_proba(frame)[:, _positive_class_index(model)]
+    return [round(float(p), 4) for p in probabilities]
 
 
 # Index of the "issue present" class in the model's probability output.

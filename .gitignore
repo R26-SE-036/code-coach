@@ -35,3 +35,6 @@ backend/secrets/
 # Real students' code kept for research (see backend/app/dev_tools/
 # export_code_snapshots.py). Students' work - never committed.
 data/ml/raw_snippets_real/
+
+# Mutation corpus build output (compiled classes, transcripts) - rebuilt on demand
+data/ml/mutation/_work/

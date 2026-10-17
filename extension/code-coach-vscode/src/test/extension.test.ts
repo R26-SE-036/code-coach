@@ -29,8 +29,9 @@ import * as vscode from "vscode";
 import { getBackendUrl } from "../api";
 import { LOOPBACK_PORT, getPortalUrl } from "../browserAuth";
 import { DEFAULT_PLATFORM_URL, LOCAL_STACK_URL } from "../constants";
-import { DiagnosticItem } from "../types";
+import { DiagnosticItem, ModelCard } from "../types";
 import { buildHoverMarkdown } from "../ui/decorations";
+import { modelCardHtml } from "../ui/panelHtml";
 
 type TestAccount = {
   fullName: string;
@@ -447,7 +448,29 @@ suite("Hover card", () => {
 
     const all = buildHoverMarkdown(finding, "targeted").value;
     assert.ok(all.includes("TARGETED-TEXT"));
-    assert.ok(!all.includes("command:"), "nothing left to reveal");
+    assert.ok(!all.includes("command:code-coach-vscode.revealNextHint"), "nothing left to reveal");
+    // The help that is not a hint is always on offer.
+    assert.ok(all.includes("command:code-coach-vscode.explainInMyCode"));
+  });
+});
+
+suite("Model card", () => {
+  // The cards the backend serves, as training wrote them.
+  const cardsPath = path.resolve(__dirname, "..", "..", "..", "..", "backend", "models", "model_cards_v1.json");
+
+  test("shows what the model looks for, how it was tested and where it fails, with code escaped", async () => {
+    const cards = JSON.parse(await fs.readFile(cardsPath, "utf8")).cards as Record<string, ModelCard>;
+    const card = { ...cards.STRING_EQUALITY_WITH_OPERATOR, in_use: true };
+    const html = modelCardHtml(card);
+    for (const heading of ["Trained on", "How well it does", "When not to trust it", "Known limitations"]) {
+      assert.ok(html.includes(heading), heading);
+    }
+    assert.ok(html.includes("Looks similar, but correct"));
+    assert.ok(html.includes("&quot;yes&quot;") || html.includes("&#39;y&#39;"), "example code is escaped");
+    assert.ok(!html.includes("<script"), "nothing from the card is executed");
+    assert.ok(html.includes(`${Math.round(card.performance.test.precision * 100)}%`));
+    assert.ok(!html.includes("switched off"));
+    assert.ok(modelCardHtml({ ...card, in_use: false }).includes("switched off"));
   });
 });
 

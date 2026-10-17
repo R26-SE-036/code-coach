@@ -6,6 +6,37 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
+- **30 kinds of mistake, up from 19.** Eleven new logic errors: a loop that
+  stops one element early, `a[i + 1]` past the end, the wrong counter in a
+  nested loop, a loop header that steps the wrong counter, a counter changed
+  inside a `for` body, a running total reset inside its loop, a max/min search
+  that starts from the wrong value, a loop that returns on its first pass,
+  else-if tests in the wrong order, an indented line outside a braceless `if`,
+  and `&`/`|` where `&&`/`||` was meant.
+- **Judged by models trained on running code.** Each new kind is decided per
+  spot by a model trained on thousands of programs that were compiled and run,
+  so a pattern that is only sometimes a mistake (`i < a.length - 1` beside
+  `a[i + 1]`) is told apart from the one that is.
+- **✨ Explain in my code.** An explanation of the flagged lines, using your own
+  variable names and a small example - never the answer. 20 a day, free.
+- **📘 Similar example** and **🎓 Learn this.** The same mistake fixed, from the
+  free course, and a link to its course unit on the portal.
+- **Compiler errors explained.** When the Java extension says your file does
+  not compile, Code Coach reads the message out in plain words.
+- **An Issues view** in the Code Coach sidebar, grouped by concept.
+- **Plain words.** Findings have names instead of ids (`Loop stops one element
+  early`, not `LOOP_SKIPS_LAST_ELEMENT`), confidence is "Very likely" rather
+  than a percentage, and the underline sits under the exact condition or
+  expression. The technical details are under *How Code Coach decided*.
+- **"Fixed it!"** Code Coach notices when a finding disappears after an edit,
+  and counts the fixes in the session.
+- **Mute a kind of finding**, and turn automatic checking or its delay off or
+  up in the settings (`codeCoach.autoAnalyze`, `codeCoach.analysisDelayMs`,
+  `codeCoach.mutedErrorTypes`).
+- **Offline is shown** in the status bar when the server cannot be reached.
+
 ## [0.2.2] - 2026-10-05
 
 - **The platform has a new address, `https://3-106-2-190.sslip.io`.** It is now

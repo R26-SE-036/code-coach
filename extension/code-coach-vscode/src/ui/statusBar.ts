@@ -56,6 +56,15 @@ export function updateAnalysisStatusBar(
   const uriKey = editor.document.uri.toString();
   const snapshot = state.lastAnalysisSnapshotByUri.get(uriKey);
 
+  if (state.backendOffline && state.activeAnalysisUriKey !== uriKey) {
+    state.analysisStatusBar.text = "$(cloud-offline) Code Coach offline";
+    state.analysisStatusBar.tooltip = "Code Coach could not reach its server. Click to try again.";
+    state.analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
+    state.analysisStatusBar.show();
+    updateCoachPanel(state);
+    return;
+  }
+
   state.analysisStatusBar.command = "code-coach-vscode.analyzeCurrentFile";
 
   if (state.activeAnalysisUriKey === uriKey) {
@@ -77,8 +86,10 @@ export function updateAnalysisStatusBar(
   }
 
   if (snapshot.diagnosticsCount === 0) {
-    state.analysisStatusBar.text = "$(check) Code Coach Clean";
-    state.analysisStatusBar.tooltip = `No target issues detected. Last analysis took ${formatDuration(snapshot.analysisDurationMs)}.`;
+    state.analysisStatusBar.text = state.fixedThisSession
+      ? `$(check) Code Coach Clean · ${state.fixedThisSession} fixed`
+      : "$(check) Code Coach Clean";
+    state.analysisStatusBar.tooltip = `None of the 30 logic mistakes found. Last check took ${formatDuration(snapshot.analysisDurationMs)}.`;
     state.analysisStatusBar.show();
     updateCoachPanel(state);
     return;

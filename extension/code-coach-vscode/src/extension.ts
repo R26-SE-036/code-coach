@@ -19,7 +19,7 @@
  * and api.ts. This file is where user/editor events ENTER the system.
  */
 import * as vscode from "vscode";
-import { AuthUser, DiagnosticItem, ExtensionState } from "./types";
+import { AuthUser, CompilerProblem, DiagnosticItem, ExtensionState } from "./types";
 import { USER_STATE_KEY, LEARNING_SESSION_KEY } from "./constants";
 import { signIn, signOut, createAccount, restoreAuthSession } from "./auth";
 import {
@@ -31,7 +31,17 @@ import {
   handleCoachPanelMessage,
   reportFalsePositive,
   revealNextHint,
+  findDiagnosticById,
+  revealDiagnosticById,
 } from "./analysis";
+import {
+  explainCompilerError,
+  explainInMyCode,
+  muteErrorType,
+  openCourseUnit,
+  showSimilarExample,
+} from "./assist";
+import { IssuesTreeProvider } from "./ui/issuesTree";
 import { updateAuthStatusBar, updateAnalysisStatusBar, isSupportedDocument } from "./ui/statusBar";
 import { updateCoachPanel, buildCoachPanelHtml } from "./ui/panelHtml";
 import { createWarningDecorationType } from "./ui/decorations";
@@ -62,6 +72,11 @@ export function activate(context: vscode.ExtensionContext) {
     lastSupportedUriKey: undefined,
     lastPanelHtml: undefined,
     disputedDiagnosticIds: new Set(),
+    assistByKey: new Map(),
+    fixedThisSession: 0,
+    lastFix: undefined,
+    backendOffline: false,
+    issuesTreeProvider: undefined,
     coachPanel: undefined,
     sidebarProvider: undefined,
     codeLensProvider: undefined,
@@ -85,6 +100,11 @@ export function activate(context: vscode.ExtensionContext) {
     sidebarProvider,
     { webviewOptions: { retainContextWhenHidden: true } },
   );
+
+  // ── Issues tree (native view beside the panel) ──
+  const issuesTree = new IssuesTreeProvider(state);
+  state.issuesTreeProvider = issuesTree;
+  const issuesTreeRegistration = vscode.window.registerTreeDataProvider(IssuesTreeProvider.viewType, issuesTree);
 
   // ── CodeLens provider ──
   const codeLensProvider = new CoachCodeLensProvider(state);
@@ -210,7 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
         : diag.hints.concept;
       const label = level.charAt(0).toUpperCase() + level.slice(1);
       void vscode.window.showInformationMessage(
-        `Code Coach ${label} Hint (${diag.error_type}, line ${diag.line}): ${hintText}`,
+        `Code Coach ${label} Hint (${diag.title ?? diag.error_type}, line ${diag.line}): ${hintText}`,
       );
     },
   );
@@ -227,10 +247,54 @@ export function activate(context: vscode.ExtensionContext) {
   const revealNextHintCommand = vscode.commands.registerCommand(
     "code-coach-vscode.revealNextHint",
     (target: DiagnosticItem | string, surface?: "hover") => {
-      const diag = typeof target === "string"
-        ? [...state.lastDiagnosticsByUri.values()].flat().find((d) => d.diagnostic_id === target)
-        : target;
+      const diag = typeof target === "string" ? findDiagnosticById(state, target) : target;
       if (diag) { revealNextHint(state, diag, surface ?? "code_action"); }
+    },
+  );
+
+  // The help a student asks for. Each takes the finding or its id - the hover
+  // links and the Issues view can only pass an id.
+  const resolve = (target: DiagnosticItem | string | undefined): DiagnosticItem | undefined => (
+    typeof target === "string" ? findDiagnosticById(state, target) : target
+  );
+  // Answers appear in the panel; open it unless the sidebar copy is showing.
+  const showAnswers = () => { if (!state.sidebarProvider?.isActive) { openCoachPanel(); } };
+  const explainCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.explainInMyCode", (target?: DiagnosticItem | string) => {
+      const diag = resolve(target);
+      if (!diag) { return; }
+      showAnswers();
+      void explainInMyCode(state, diag);
+    },
+  );
+  const exampleCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.showSimilarExample", (target?: DiagnosticItem | string) => {
+      const diag = resolve(target);
+      if (!diag) { return; }
+      showAnswers();
+      void showSimilarExample(state, diag);
+    },
+  );
+  const courseCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.openCourseUnit", (target?: DiagnosticItem | string) => {
+      const diag = resolve(target);
+      if (diag) { openCourseUnit(state, diag); }
+    },
+  );
+  const muteCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.muteErrorType", (target?: DiagnosticItem | string) => {
+      const diag = resolve(target);
+      if (diag) { void muteErrorType(state, diag); }
+    },
+  );
+  const revealCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.revealDiagnostic", (diagnosticId: string) => { revealDiagnosticById(state, diagnosticId); },
+  );
+  const compilerCommand = vscode.commands.registerCommand(
+    "code-coach-vscode.explainCompilerError", (problem?: CompilerProblem) => {
+      if (!problem) { return; }
+      showAnswers();
+      void explainCompilerError(state, problem);
     },
   );
 
@@ -266,6 +330,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   const onDidCloseTextDocument = vscode.workspace.onDidCloseTextDocument((document) => {
     clearFeedbackForDocument(state, document);
+  });
+
+  // Compiler errors come from the Java extension on its own schedule; the
+  // panel's "Does not compile yet" card and the Issues view follow them.
+  let diagnosticsTimer: ReturnType<typeof setTimeout> | undefined;
+  const onDidChangeDiagnostics = vscode.languages.onDidChangeDiagnostics((event) => {
+    const key = state.lastSupportedUriKey;
+    if (!key || !event.uris.some((uri) => uri.toString() === key)) { return; }
+    if (diagnosticsTimer) { clearTimeout(diagnosticsTimer); }
+    diagnosticsTimer = setTimeout(() => { updateCoachPanel(state); issuesTree.refresh(); }, 400);
+  });
+
+  const onDidChangeConfiguration = vscode.workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration("codeCoach.mutedErrorTypes")) {
+      issuesTree.refresh();
+      updateCoachPanel(state);
+    }
   });
 
   // ── Initialize ──
@@ -304,6 +385,8 @@ export function activate(context: vscode.ExtensionContext) {
     startCommand, signInCommand, createAccountCommand, signOutCommand,
     analyzeCommand, openCoachPanelCommand, previousHintCommand, nextHintCommand,
     showCodeLensHintCommand, reportFalsePositiveCommand, revealNextHintCommand, openWalkthroughCommand,
+    explainCommand, exampleCommand, courseCommand, muteCommand, revealCommand, compilerCommand,
+    issuesTreeRegistration, issuesTree, onDidChangeDiagnostics, onDidChangeConfiguration,
     state.outputChannel, state.diagnosticCollection, state.warningDecorationType,
     state.authStatusBar, state.analysisStatusBar,
     sidebarRegistration, codeLensRegistration, codeLensProvider, codeActionRegistration,

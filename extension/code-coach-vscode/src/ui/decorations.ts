@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { conceptName, confidenceWords, titleFor } from "../labels";
 import { DiagnosticItem, ExtensionState } from "../types";
 
 /**
@@ -24,74 +25,67 @@ export function createWarningDecorationType(): vscode.TextEditorDecorationType {
 
 type HintLevel = "concept" | "guidance" | "targeted";
 
+/** The commands a hover link may run. Everything else in the hover is text. */
+const HOVER_COMMANDS = [
+  "code-coach-vscode.revealNextHint",
+  "code-coach-vscode.explainInMyCode",
+  "code-coach-vscode.showSimilarExample",
+  "code-coach-vscode.openCourseUnit",
+];
+
+function commandLink(label: string, command: string, args: unknown[]): string {
+  return `[${label}](command:${command}?${encodeURIComponent(JSON.stringify(args))})`;
+}
+
 /**
- * Builds a rich, structured hover MarkdownString for a diagnostic item.
- * Features: severity emoji, organized sections, code block, visual confidence bars.
+ * The hover card on a flagged line: what the mistake is called, how sure Code
+ * Coach is in words, the hints opened so far, and the next steps as links.
  *
  * Hints are shown up to `revealed` only. The hover used to print all three
  * levels at once, so the targeted hint - the one that points at the fix - was
  * on screen before the student had asked for anything, which undid the
  * progressive hints everywhere else. The next level is a link that goes
  * through revealNextHint, so it is recorded like every other request.
+ *
+ * The technical table that used to lead the card (engine, ML and locator
+ * percentages, the error id) is in the panel's "How Code Coach decided".
  */
 export function buildHoverMarkdown(
   item: DiagnosticItem,
   revealed: HintLevel = "concept",
 ): vscode.MarkdownString {
-  const severityEmoji =
-    item.severity === "error"
-      ? "❌"
-      : item.severity === "information"
-        ? "ℹ️"
-        : "⚠️";
-
-  const pctLabel = (value: number | undefined): string => {
-    if (value === undefined) { return "n/a"; }
-    return `\`${Math.round(value * 100)}%\``;
-  };
-
   const md = new vscode.MarkdownString(undefined, true);
-  // Trusted for the one command its link runs, not for every command: the
-  // hint and message text come from the backend and are rendered in here.
-  md.isTrusted = { enabledCommands: ["code-coach-vscode.revealNextHint"] };
+  // Trusted for the commands its links run, not for every command: the hint
+  // and message text come from the backend and are rendered in here.
+  md.isTrusted = { enabledCommands: HOVER_COMMANDS };
   md.supportHtml = true;
 
+  const confidence = confidenceWords(item.confidence);
   md.appendMarkdown(
-    `## ${severityEmoji} ${item.error_type}\n\n` +
-    `${item.message}\n\n` +
-    `---\n\n` +
-    `### 📋 Issue Details\n\n` +
-    `| | |\n` +
-    `|:--|:--|\n` +
-    `| **Severity** | \`${item.severity}\` |\n` +
-    `| **Line : Column** | \`${item.line} : ${item.column}\` |\n` +
-    `| **Concept** | \`${item.concept_tag}\` |\n` +
-    `| **Engine** | \`${item.detection_engine}\` |\n` +
-    `| **Confidence** | \`${item.confidence}\` — ML ${pctLabel(item.ml_probability)} · Locator ${pctLabel(item.locator_confidence)} |\n\n` +
-    `---\n\n` +
-    `### 📝 Code Context\n\n` +
-    `\`\`\`java\n${item.code_context}\n\`\`\`\n\n` +
-    `---\n\n` +
-    `### 💡 Hints\n\n` +
-    `**💡 Concept:**\n` +
-    `> ${item.hints.concept}\n\n`,
+    `### $(lightbulb) ${titleFor(item)}\n\n` +
+    `*${conceptName(item.concept_tag)} · ${confidence.label}*\n\n` +
+    `${item.message}\n\n---\n\n` +
+    `**💡 Concept** — ${item.hints.concept}\n\n`,
   );
 
   if (revealed !== "concept") {
-    md.appendMarkdown(`**🧭 Guidance:**\n> ${item.hints.guidance}\n\n`);
+    md.appendMarkdown(`**🧭 Guidance** — ${item.hints.guidance}\n\n`);
   }
   if (revealed === "targeted") {
-    md.appendMarkdown(`**🎯 Targeted:**\n> ${item.hints.targeted}\n`);
-  } else {
-    const next = revealed === "concept" ? "guidance" : "targeted";
-    // The id only: the whole finding would put the unopened hints' text into
-    // the link, and so into the hover's markdown.
-    const args = encodeURIComponent(JSON.stringify([item.diagnostic_id, "hover"]));
-    md.appendMarkdown(
-      `[Show the ${next} hint](command:code-coach-vscode.revealNextHint?${args})\n`,
-    );
+    md.appendMarkdown(`**🎯 Targeted** — ${item.hints.targeted}\n\n`);
   }
 
+  const links: string[] = [];
+  if (revealed !== "targeted") {
+    // The id only: the whole finding would put the unopened hints' text into
+    // the link, and so into the hover's markdown.
+    const next = revealed === "concept" ? "guidance" : "targeted";
+    links.push(commandLink(`Show the ${next} hint`, "code-coach-vscode.revealNextHint", [item.diagnostic_id, "hover"]));
+  }
+  links.push(commandLink("✨ Explain in my code", "code-coach-vscode.explainInMyCode", [item.diagnostic_id]));
+  links.push(commandLink("📘 Similar example", "code-coach-vscode.showSimilarExample", [item.diagnostic_id]));
+  links.push(commandLink("🎓 Learn this", "code-coach-vscode.openCourseUnit", [item.diagnostic_id]));
+  md.appendMarkdown(`---\n\n${links.join(" · ")}\n`);
   return md;
 }
 
@@ -106,13 +100,17 @@ export function buildDecorationOptions(
   revealedHintLevels?: ExtensionState["revealedHintLevels"],
 ): vscode.DecorationOptions[] {
   return diagnostics.map((item) => {
-    const range = createRange(editor.document, item);
+    // The squiggle (a vscode.Diagnostic) sits under exactly the flagged code;
+    // this highlight runs on to the end of the line, so the note after it
+    // hangs off the line's end rather than in the middle of the code.
+    const precise = createRange(editor.document, item);
+    const lineEnd = editor.document.lineAt(precise.start.line).range.end;
     return {
-      range,
+      range: new vscode.Range(precise.start, lineEnd),
       hoverMessage: buildHoverMarkdown(item, revealedHintLevels?.get(item.diagnostic_id)),
       renderOptions: {
         after: {
-          contentText: `  ◆ ${item.concept_tag}`,
+          contentText: `  ◆ ${titleFor(item)}`,
         },
       },
     };
