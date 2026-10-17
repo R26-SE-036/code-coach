@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ExtensionState } from "../types";
 import { createRangeFromDiagnostic } from "../analysis";
+import { titleFor } from "../labels";
 
 /**
  * Code Action provider that shows a lightbulb (💡) on warning squiggles
@@ -16,17 +17,31 @@ export class CoachCodeActionProvider implements vscode.CodeActionProvider {
   public provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
-    _context: vscode.CodeActionContext,
+    context: vscode.CodeActionContext,
     _token: vscode.CancellationToken,
   ): vscode.CodeAction[] {
     const uriKey = document.uri.toString();
-    const diagnostics = this.state.lastDiagnosticsByUri.get(uriKey);
+    const diagnostics = this.state.lastDiagnosticsByUri.get(uriKey) ?? [];
+    const actions: vscode.CodeAction[] = [];
 
-    if (!diagnostics || diagnostics.length === 0) {
-      return [];
+    // Compiler errors from the Java extension: a beginner gets the message
+    // in plain words, for the line it points at.
+    for (const problem of context.diagnostics) {
+      if (problem.source === "Code Coach" || problem.severity !== vscode.DiagnosticSeverity.Error) { continue; }
+      const explain = new vscode.CodeAction("💬 Code Coach: explain this error", vscode.CodeActionKind.QuickFix);
+      explain.diagnostics = [problem];
+      explain.command = {
+        title: "Explain this error",
+        command: "code-coach-vscode.explainCompilerError",
+        arguments: [{ message: problem.message, line: problem.range.start.line + 1, source: problem.source }],
+      };
+      actions.push(explain);
+      break;
     }
 
-    const actions: vscode.CodeAction[] = [];
+    if (diagnostics.length === 0) {
+      return actions;
+    }
 
     for (const diag of diagnostics) {
       const diagRange = createRangeFromDiagnostic(document, diag);
@@ -38,7 +53,7 @@ export class CoachCodeActionProvider implements vscode.CodeActionProvider {
 
       // Concept hint action
       const conceptAction = new vscode.CodeAction(
-        `💡 Code Coach: ${diag.hints.concept}`,
+        `💡 ${titleFor(diag)}: ${truncate(diag.hints.concept, 80)}`,
         vscode.CodeActionKind.QuickFix,
       );
       conceptAction.command = {
@@ -79,6 +94,18 @@ export class CoachCodeActionProvider implements vscode.CodeActionProvider {
         };
         actions.push(targetedAction);
       }
+
+      const explainAction = new vscode.CodeAction("✨ Code Coach: explain this in my code", vscode.CodeActionKind.QuickFix);
+      explainAction.command = { title: "Explain in my code", command: "code-coach-vscode.explainInMyCode", arguments: [diag.diagnostic_id] };
+      actions.push(explainAction);
+
+      const exampleAction = new vscode.CodeAction("📘 Code Coach: show a similar example", vscode.CodeActionKind.QuickFix);
+      exampleAction.command = { title: "Similar example", command: "code-coach-vscode.showSimilarExample", arguments: [diag.diagnostic_id] };
+      actions.push(exampleAction);
+
+      const learnAction = new vscode.CodeAction("🎓 Code Coach: learn this (free course)", vscode.CodeActionKind.QuickFix);
+      learnAction.command = { title: "Learn this", command: "code-coach-vscode.openCourseUnit", arguments: [diag.diagnostic_id] };
+      actions.push(learnAction);
 
       // Open Coach Panel action
       const panelAction = new vscode.CodeAction(

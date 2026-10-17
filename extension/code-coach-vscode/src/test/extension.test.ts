@@ -447,7 +447,9 @@ suite("Hover card", () => {
 
     const all = buildHoverMarkdown(finding, "targeted").value;
     assert.ok(all.includes("TARGETED-TEXT"));
-    assert.ok(!all.includes("command:"), "nothing left to reveal");
+    assert.ok(!all.includes("command:code-coach-vscode.revealNextHint"), "nothing left to reveal");
+    // The help that is not a hint is always on offer.
+    assert.ok(all.includes("command:code-coach-vscode.explainInMyCode"));
   });
 });
 

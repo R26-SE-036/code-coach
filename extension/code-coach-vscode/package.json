@@ -2,8 +2,8 @@
   "name": "code-coach-vscode",
   "publisher": "codeguru-sliit",
   "displayName": "Code Guru: Code Coach",
-  "description": "Beginner-friendly Java analysis, hints, and progress-aware feedback",
-  "version": "0.2.2",
+  "description": "Finds 30 kinds of beginner Java logic mistakes as you type, and coaches you to fix them yourself",
+  "version": "0.3.0",
   "license": "MIT",
   "icon": "media/logo.png",
   "repository": {
@@ -65,6 +65,11 @@
           "type": "webview",
           "id": "codeCoachSidebar",
           "name": "Coach Panel"
+        },
+        {
+          "id": "codeCoachIssues",
+          "name": "Issues",
+          "icon": "media/icon.svg"
         }
       ]
     },
@@ -85,6 +90,26 @@
           "type": "string",
           "default": "https://3-106-2-190.sslip.io",
           "description": "The Code Guru web app. Sign In and Create Account open its /login and /register pages in your browser, and the session comes back to VS Code automatically. The default is the deployed platform; the compose stack serves it at http://localhost:8090, and `npm run dev` at http://localhost:4200."
+        },
+        "codeCoach.autoAnalyze": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check the Java file automatically when you pause typing. Off: only when you run Code Coach: Analyze Current File."
+        },
+        "codeCoach.analysisDelayMs": {
+          "type": "number",
+          "default": 900,
+          "minimum": 300,
+          "maximum": 10000,
+          "description": "How long Code Coach waits after you stop typing before checking the file, in milliseconds."
+        },
+        "codeCoach.mutedErrorTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Kinds of finding not to show in the editor, by id (for example NON_SHORT_CIRCUIT_OPERATOR). Use 'Mute this kind' in the Coach Panel to add one."
         }
       }
     },
@@ -133,6 +158,35 @@
       {
         "command": "code-coach-vscode.openWalkthrough",
         "title": "Code Coach: Welcome Guide"
+      },
+      {
+        "command": "code-coach-vscode.explainInMyCode",
+        "title": "Code Coach: Explain in My Code",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "code-coach-vscode.showSimilarExample",
+        "title": "Code Coach: Show a Similar Example",
+        "icon": "$(book)"
+      },
+      {
+        "command": "code-coach-vscode.openCourseUnit",
+        "title": "Code Coach: Learn This (Free Course)",
+        "icon": "$(mortar-board)"
+      },
+      {
+        "command": "code-coach-vscode.explainCompilerError",
+        "title": "Code Coach: Explain This Compiler Error",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "code-coach-vscode.muteErrorType",
+        "title": "Code Coach: Mute This Kind of Finding",
+        "icon": "$(bell-slash)"
+      },
+      {
+        "command": "code-coach-vscode.revealDiagnostic",
+        "title": "Code Coach: Go to Issue"
       }
     ],
     "menus": {
@@ -141,6 +195,56 @@
           "command": "code-coach-vscode.openCoachPanel",
           "group": "navigation",
           "when": "resourceLangId == java"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "code-coach-vscode.analyzeCurrentFile",
+          "when": "view == codeCoachIssues",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "code-coach-vscode.explainInMyCode",
+          "when": "view == codeCoachIssues && viewItem == codeCoachIssue",
+          "group": "inline"
+        },
+        {
+          "command": "code-coach-vscode.openCourseUnit",
+          "when": "view == codeCoachIssues && viewItem == codeCoachIssue",
+          "group": "inline"
+        },
+        {
+          "command": "code-coach-vscode.explainCompilerError",
+          "when": "view == codeCoachIssues && viewItem == codeCoachCompilerError",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "code-coach-vscode.revealDiagnostic",
+          "when": "false"
+        },
+        {
+          "command": "code-coach-vscode.explainCompilerError",
+          "when": "false"
+        },
+        {
+          "command": "code-coach-vscode.muteErrorType",
+          "when": "false"
+        },
+        {
+          "command": "code-coach-vscode.showSimilarExample",
+          "when": "false"
+        },
+        {
+          "command": "code-coach-vscode.openCourseUnit",
+          "when": "false"
+        },
+        {
+          "command": "code-coach-vscode.explainInMyCode",
+          "when": "false"
         }
       ]
     },
@@ -166,7 +270,7 @@
           {
             "id": "openJavaFile",
             "title": "Open a Java File",
-            "description": "Code Coach works with Java source files. Open any `.java` file in your workspace to begin \u2014 your own assignment, a practice exercise, or any Java project.\n\nCode Coach will automatically detect supported files.",
+            "description": "Code Coach works with Java source files. Open any `.java` file in your workspace to begin — your own assignment, a practice exercise, or any Java project.\n\nCode Coach will automatically detect supported files.",
             "media": {
               "image": "media/walkthrough/step-openfile.svg",
               "altText": "VS Code editor with a Java file open showing code"
@@ -178,7 +282,7 @@
           {
             "id": "analyzeCode",
             "title": "Analyze Your Code",
-            "description": "Run analysis to detect common beginner issues like uninitialized variables, missing brackets, and more.\n\n[Analyze Current File](command:code-coach-vscode.analyzeCurrentFile)\n\nCode Coach also runs **automatically** as you type, with results appearing after a brief pause.",
+            "description": "Code Coach checks your Java for **30 kinds of beginner logic mistakes** - loops that stop one element early, a total reset inside its loop, `&` where `&&` was meant, else-if tests in the wrong order, and more. Most are judged by machine-learning models trained on code that was actually run.\n\n[Analyze Current File](command:code-coach-vscode.analyzeCurrentFile)\n\nCode Coach also runs **automatically** as you type, with results appearing after a brief pause.",
             "media": {
               "image": "media/walkthrough/step-analyze.svg",
               "altText": "Magnifying glass analyzing code with results showing 3 issues found"
@@ -190,7 +294,7 @@
           {
             "id": "exploreHints",
             "title": "Explore Progressive Hints",
-            "description": "Each issue comes with **3 levels of hints** that progressively guide you to the answer:\n\n- \ud83d\udca1 **Concept** \u2014 explains the underlying concept\n- \ud83e\udded **Guidance** \u2014 points you in the right direction\n- \ud83c\udfaf **Targeted** \u2014 gives a specific fix suggestion\n\nLook for the **\ud83d\udca1 lightbulb** on warning squiggles and the **CodeLens** links above problem lines.",
+            "description": "Each issue comes with **3 levels of hints** that progressively guide you to the answer:\n\n- 💡 **Concept** — explains the underlying idea\n- 🧭 **Guidance** — points you in the right direction\n- 🎯 **Targeted** — quotes your own code and asks the question that leads to the fix\n\nStill stuck? **✨ Explain in my code** walks through your own lines with an example, **📘 Similar example** shows the same mistake fixed, and **🎓 Learn this** opens the free course unit. Code that does not compile yet? Code Coach explains the compiler's message in plain words too.",
             "media": {
               "image": "media/walkthrough/step-hints.svg",
               "altText": "Three progressive hint blocks in blue, teal, and purple"
@@ -203,7 +307,7 @@
           {
             "id": "openCoachPanel",
             "title": "Use the Coach Panel",
-            "description": "The Coach Panel is your command center. Click the **\ud83c\udf93 graduation cap** icon in the activity bar (left sidebar) to open it.\n\nNavigate between issues, view all hints at a glance, and track your session.\n\n[Open Coach Panel](command:code-coach-vscode.openCoachPanel)",
+            "description": "The Coach Panel is your command center. Click the **🎓 graduation cap** icon in the activity bar (left sidebar) to open it.\n\nNavigate between issues, view all hints at a glance, and track your session.\n\n[Open Coach Panel](command:code-coach-vscode.openCoachPanel)",
             "media": {
               "image": "media/walkthrough/step-panel.svg",
               "altText": "Sidebar panel showing issue navigation and hint cards with editor warnings"

@@ -22,6 +22,61 @@ export type DiagnosticItem = {
   ml_probability?: number;
   locator_confidence?: number;
   hints: HintSet;
+  /** Plain-words name of the mistake (backends from 0.3 on). */
+  title?: string;
+  /** Where the flagged code ends, 1-based, when the backend knows it. */
+  end_line?: number;
+  end_column?: number;
+};
+
+/** The answer to "Explain in my code" or "Explain this error". */
+export type ExplanationResponse = {
+  status: string;
+  explanation: string;
+  /** "llm" (written for this code), "cache" (written earlier) or "template". */
+  source: string;
+  remaining_today: number;
+  daily_limit: number;
+  limit_reached: boolean;
+};
+
+export type WorkedExample = {
+  title: string;
+  buggy?: string;
+  fixed?: string;
+  code?: string;
+  note?: string;
+};
+
+export type SimilarExampleResponse = {
+  error_type: string;
+  title: string;
+  examples: WorkedExample[];
+  course_path: string;
+  source: string;
+};
+
+/** What the panel shows under a finding after the student asks for it. */
+export type AssistEntry = {
+  kind: "explanation" | "example" | "compiler";
+  loading?: boolean;
+  text?: string;
+  source?: string;
+  remaining?: number;
+  limit?: number;
+  limitReached?: boolean;
+  example?: SimilarExampleResponse;
+  /** For a compiler error: its message and line. */
+  message?: string;
+  line?: number;
+  error?: string;
+};
+
+/** A compiler error VS Code's Java extension reported for the open file. */
+export type CompilerProblem = {
+  message: string;
+  line: number;
+  source?: string;
 };
 
 export type AnalyzeResponse = {
@@ -122,6 +177,8 @@ export type CoachPanelState = {
   activeDiagnostic?: DiagnosticItem;
   snapshot?: AnalysisSnapshot;
   learningSessionId?: string;
+  /** The file the panel is about, for its compiler errors. */
+  fileUriKey?: string;
 };
 
 export class ApiError extends Error {
@@ -169,6 +226,19 @@ export type ExtensionState = {
    * to flip the report button to "Reported ✓" and avoid duplicate events.
    */
   disputedDiagnosticIds: Set<string>;
+  /**
+   * Explanations and worked examples the student asked for, keyed by
+   * "explain:<diagnostic_id>", "example:<diagnostic_id>" or
+   * "compiler:<line>:<message>", so re-analysis while the student reads does
+   * not throw them away.
+   */
+  assistByKey: Map<string, AssistEntry>;
+  /** Findings that went away after an edit, this session - "Fixed it!". */
+  fixedThisSession: number;
+  lastFix?: { title: string; at: number };
+  /** Set when the backend could not be reached, cleared on the next success. */
+  backendOffline: boolean;
+  issuesTreeProvider: { refresh(): void } | undefined;
   coachPanel: vscode.WebviewPanel | undefined;
   sidebarProvider: CoachSidebarProvider | undefined;
   codeLensProvider: CoachCodeLensProvider | undefined;
