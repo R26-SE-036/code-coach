@@ -948,6 +948,171 @@
         ]
       }
     },
+    "/api/v1/code-coach/catalog": {
+      "get": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "List Catalogue",
+        "operationId": "list_catalogue_api_v1_code_coach_catalog_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogueEntry"
+                  },
+                  "type": "array",
+                  "title": "Response List Catalogue Api V1 Code Coach Catalog Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/code-coach/explain": {
+      "post": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Explain",
+        "operationId": "explain_api_v1_code_coach_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplanationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/code-coach/explain-compiler-error": {
+      "post": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Explain Compiler",
+        "operationId": "explain_compiler_api_v1_code_coach_explain_compiler_error_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompilerErrorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplanationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/code-coach/similar-example": {
+      "post": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Worked Example",
+        "operationId": "worked_example_api_v1_code_coach_similar_example_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimilarExampleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Worked Example Api V1 Code Coach Similar Example Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/dashboard/me/overview": {
       "get": {
         "tags": [
@@ -1884,6 +2049,383 @@
         }
       }
     },
+    "/api/v1/internal/concepts": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Concepts In Code",
+        "description": "The platform concepts the detector finds in a piece of Java.\n\nPairPath's free-coding sessions have no exercise, so there are no concept\ntags to choose course notes by. This gives it the same vocabulary a\nfinding in the editor would carry.",
+        "operationId": "concepts_in_code_api_v1_internal_concepts_post",
+        "parameters": [
+          {
+            "name": "x-internal-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConceptsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/me": {
+      "get": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "My Plan",
+        "operationId": "my_plan_api_v1_billing_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response My Plan Api V1 Billing Me Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/checkout": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Start Checkout",
+        "operationId": "start_checkout_api_v1_billing_me_checkout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Start Checkout Api V1 Billing Me Checkout Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/payhere/notify": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Payhere Notify",
+        "description": "PayHere's server-to-server payment notification (form-encoded).\n\nAlways 200 once it has been read: a refusal makes PayHere retry, and a\nnotification that does not verify never will.",
+        "operationId": "payhere_notify_api_v1_billing_payhere_notify_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/me/demo-payment": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Demo Payment",
+        "operationId": "demo_payment_api_v1_billing_me_demo_payment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DemoPaymentRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Demo Payment Api V1 Billing Me Demo Payment Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/cancel": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Cancel Subscription",
+        "description": "Stop renewing; Pro lasts to the end of what was paid for.",
+        "operationId": "cancel_subscription_api_v1_billing_me_cancel_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Cancel Subscription Api V1 Billing Me Cancel Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/resume": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Resume Subscription",
+        "operationId": "resume_subscription_api_v1_billing_me_resume_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Resume Subscription Api V1 Billing Me Resume Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/downgrade": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Downgrade Now",
+        "description": "Back to Free immediately. Renewal is stopped too; nothing is refunded.",
+        "operationId": "downgrade_now_api_v1_billing_me_downgrade_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Downgrade Now Api V1 Billing Me Downgrade Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/reset": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Reset To Free",
+        "description": "Put a demo account back on Free, to rehearse the upgrade again.",
+        "operationId": "reset_to_free_api_v1_billing_me_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Reset To Free Api V1 Billing Me Reset Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/billing/me/lesson-unlocks": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Unlock Lesson",
+        "description": "Called by the web app before it opens a Study Guider lesson for this student.",
+        "operationId": "unlock_lesson_api_v1_billing_me_lesson_unlocks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonUnlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Unlock Lesson Api V1 Billing Me Lesson Unlocks Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "summary": "Root",
@@ -2128,6 +2670,71 @@
           "created_at"
         ],
         "title": "AuthUser"
+      },
+      "CatalogueEntry": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "concept_tag": {
+            "type": "string",
+            "title": "Concept Tag"
+          },
+          "detection_mode": {
+            "type": "string",
+            "title": "Detection Mode"
+          },
+          "course_path": {
+            "type": "string",
+            "title": "Course Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type",
+          "title",
+          "concept_tag",
+          "detection_mode",
+          "course_path"
+        ],
+        "title": "CatalogueEntry"
+      },
+      "CheckoutRequest": {
+        "properties": {
+          "interval": {
+            "type": "string",
+            "enum": [
+              "month",
+              "year"
+            ],
+            "title": "Interval",
+            "default": "month"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 9,
+            "pattern": "^\\+?[0-9 ]{9,20}$",
+            "title": "Phone"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "City"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "city"
+        ],
+        "title": "CheckoutRequest"
       },
       "CollaborationActionResponse": {
         "properties": {
@@ -2556,6 +3163,34 @@
         ],
         "title": "CollaborationSessionView"
       },
+      "CompilerErrorRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Code"
+          },
+          "line": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Line"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "code",
+          "line"
+        ],
+        "title": "CompilerErrorRequest"
+      },
       "ConceptMasteryListResponse": {
         "properties": {
           "status": {
@@ -2967,6 +3602,44 @@
         ],
         "title": "ConceptSummaryView"
       },
+      "ConceptsRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 50000,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "ConceptsRequest"
+      },
+      "ConceptsResponse": {
+        "properties": {
+          "concept_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Concept Tags"
+          },
+          "error_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Error Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "concept_tags",
+          "error_types"
+        ],
+        "title": "ConceptsResponse"
+      },
       "ConfirmTokenRequest": {
         "properties": {
           "token": {
@@ -3291,6 +3964,21 @@
         ],
         "title": "DashboardTimelineResponse"
       },
+      "DemoPaymentRequest": {
+        "properties": {
+          "interval": {
+            "type": "string",
+            "enum": [
+              "month",
+              "year"
+            ],
+            "title": "Interval",
+            "default": "month"
+          }
+        },
+        "type": "object",
+        "title": "DemoPaymentRequest"
+      },
       "Diagnostic": {
         "properties": {
           "diagnostic_id": {
@@ -3365,6 +4053,39 @@
           },
           "hints": {
             "$ref": "#/components/schemas/HintSet"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "end_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Line"
+          },
+          "end_column": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Column"
           }
         },
         "type": "object",
@@ -3493,6 +4214,96 @@
           "last_seen_at"
         ],
         "title": "ErrorTypeSummaryView"
+      },
+      "ExplainRequest": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Error Type"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Code"
+          },
+          "line": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Line"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "diagnostic_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnostic Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type",
+          "code",
+          "line"
+        ],
+        "title": "ExplainRequest"
+      },
+      "ExplanationResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "ok"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "remaining_today": {
+            "type": "integer",
+            "title": "Remaining Today"
+          },
+          "daily_limit": {
+            "type": "integer",
+            "title": "Daily Limit"
+          },
+          "limit_reached": {
+            "type": "boolean",
+            "title": "Limit Reached",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "explanation",
+          "source",
+          "remaining_today",
+          "daily_limit"
+        ],
+        "title": "ExplanationResponse"
       },
       "ForgotPasswordRequest": {
         "properties": {
@@ -4311,6 +5122,45 @@
           "lesson_id"
         ],
         "title": "LessonOpenedRequest"
+      },
+      "LessonUnlockRequest": {
+        "properties": {
+          "trigger_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Trigger Id"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Type"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trigger_id"
+        ],
+        "title": "LessonUnlockRequest"
       },
       "LoginRequest": {
         "properties": {
@@ -5236,6 +6086,34 @@
           "new_password"
         ],
         "title": "ResetPasswordRequest"
+      },
+      "SimilarExampleRequest": {
+        "properties": {
+          "error_type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Error Type"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Code",
+            "default": ""
+          },
+          "line": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Line",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "error_type"
+        ],
+        "title": "SimilarExampleRequest"
       },
       "StatusResponse": {
         "properties": {

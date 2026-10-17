@@ -55,6 +55,9 @@ PUBLIC = {
     # send; it is believed only if its md5sig verifies against our merchant
     # secret, for an order we created - see billing_service.apply_notification.
     ("POST", "/api/v1/billing/payhere/notify"): "PayHere's signed payment notification",
+    # The names of the mistakes Code Coach can find - the same for everyone,
+    # no student data in it.
+    ("GET", "/api/v1/code-coach/catalog"): "the list of error types and their titles",
 }
 
 REFUSALS = {401, 403}

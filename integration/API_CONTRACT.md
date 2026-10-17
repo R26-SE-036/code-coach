@@ -1345,7 +1345,7 @@ Response `200`:
 
 ## Code analysis (Code Coach internal)
 
-Used by the VS Code extension. Included for completeness.
+Used by the VS Code extension. Included for completeness. The catalogue lists all 30 error types with their plain-words title and concept tag, for any service that wants to name a mistake the way the editor does. Diagnostics gained three optional fields (title, end_line, end_column); nothing was removed or renamed.
 
 ### `POST /api/v1/code-coach/analyze`
 
@@ -1390,10 +1390,115 @@ Response `200`:
       "detection_engine": "...",
       "ml_probability": "...",
       "locator_confidence": "...",
-      "hints": "..."
+      "hints": "...",
+      "title": "...",
+      "end_line": "...",
+      "end_column": "..."
     }
   ]
 }
+```
+
+### `GET /api/v1/code-coach/catalog`
+
+List Catalogue
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+[
+  {
+    "error_type": "string",
+    "title": "string",
+    "concept_tag": "string",
+    "detection_mode": "string",
+    "course_path": "string"
+  }
+]
+```
+
+### `POST /api/v1/code-coach/explain`
+
+Explain
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "error_type": "string",
+  "code": "string",
+  "line": 0,
+  "message": "string",
+  "diagnostic_id": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "ok",
+  "explanation": "string",
+  "source": "string",
+  "remaining_today": 0,
+  "daily_limit": 0,
+  "limit_reached": false
+}
+```
+
+### `POST /api/v1/code-coach/explain-compiler-error`
+
+Explain Compiler
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "message": "string",
+  "code": "string",
+  "line": 0
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "ok",
+  "explanation": "string",
+  "source": "string",
+  "remaining_today": 0,
+  "daily_limit": 0,
+  "limit_reached": false
+}
+```
+
+### `POST /api/v1/code-coach/similar-example`
+
+Worked Example
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "error_type": "string",
+  "code": "",
+  "line": 1
+}
+```
+
+Response `200`:
+
+```json
+{}
 ```
 
 ---
@@ -1489,6 +1594,136 @@ Response `200`:
 }
 ```
 
+### `GET /api/v1/billing/me`
+
+My Plan
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/cancel`
+
+Cancel Subscription
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/checkout`
+
+Start Checkout
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "interval": "month",
+  "phone": "string",
+  "city": "string"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/demo-payment`
+
+Demo Payment
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "interval": "month"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/downgrade`
+
+Downgrade Now
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/lesson-unlocks`
+
+Unlock Lesson
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "trigger_id": "string",
+  "error_type": "string",
+  "concept_tag": "string"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/reset`
+
+Reset To Free
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/resume`
+
+Resume Subscription
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/payhere/notify`
+
+Payhere Notify
+
+Auth: `Authorization: Bearer <access_token>`
+
 ### `POST /api/v1/collaboration/me/pair-session-results`
 
 Record My Pair Session Result
@@ -1548,6 +1783,33 @@ Response `200`:
     }
   ],
   "trigger_ids": [
+    "string"
+  ]
+}
+```
+
+### `POST /api/v1/internal/concepts`
+
+Concepts In Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "code": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "concept_tags": [
+    "string"
+  ],
+  "error_types": [
     "string"
   ]
 }

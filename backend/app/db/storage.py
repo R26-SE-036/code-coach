@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.db.account_storage import InMemoryAccountStorage, MongoAccountStorage
 from app.db.research_storage import InMemoryResearchStorage, MongoResearchStorage
 from app.db.billing_storage import InMemoryBillingStorage, MongoBillingStorage
+from app.db.explanation_storage import InMemoryExplanationStorage, MongoExplanationStorage
 from app.models import DiagnosticSyncResult
 from app.services.diagnostic_matching import match_diagnostics
 from app.services.dispute_service import DISPUTED_STATUS
@@ -85,7 +86,9 @@ REMEDIATION_PROGRESS_FIELDS = [
 ]
 
 
-class InMemoryStorage(InMemoryAccountStorage, InMemoryResearchStorage, InMemoryBillingStorage):
+class InMemoryStorage(
+    InMemoryAccountStorage, InMemoryResearchStorage, InMemoryBillingStorage, InMemoryExplanationStorage,
+):
     def __init__(self) -> None:
         self.users: dict[str, dict[str, Any]] = {}
         self.auth_sessions: dict[str, dict[str, Any]] = {}
@@ -510,7 +513,9 @@ class InMemoryStorage(InMemoryAccountStorage, InMemoryResearchStorage, InMemoryB
         # create collaboration sessions
         # store gamification records
 
-class MongoStorage(MongoAccountStorage, MongoResearchStorage, MongoBillingStorage):
+class MongoStorage(
+    MongoAccountStorage, MongoResearchStorage, MongoBillingStorage, MongoExplanationStorage,
+):
     def __init__(self, mongo_uri: str, database_name: str) -> None:
         if MongoClient is None:
             raise RuntimeError("pymongo is required for MongoDB storage.")
@@ -527,6 +532,7 @@ class MongoStorage(MongoAccountStorage, MongoResearchStorage, MongoBillingStorag
         self.create_account_indexes()
         self.create_research_indexes()
         self.create_billing_indexes()
+        self.create_explanation_indexes()
 
         self.db.authSessions.create_index([("authSessionId", ASCENDING)], unique=True)
         self.db.authSessions.create_index([("userId", ASCENDING), ("status", ASCENDING)])

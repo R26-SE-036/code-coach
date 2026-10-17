@@ -16,3 +16,5 @@ tree-sitter-java==0.23.5
 pymongo==4.15.3
 # SRV lookups for mongodb+srv:// connection strings.
 dnspython==2.8.0
+# Calls to OpenAI for the on-demand explanations (app/services/llm_client.py).
+httpx==0.28.1
