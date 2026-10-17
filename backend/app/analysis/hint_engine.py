@@ -204,7 +204,17 @@ def build_diagnostic(finding: DetectionResult, *, occurrence: int = 0) -> Diagno
             guidance=knowledge.hints.guidance,
             targeted=targeted_hint_for(finding, knowledge.hints.targeted),
         ),
+        title=_title_for(finding.error_type),
+        end_line=finding.end_line,
+        end_column=finding.end_column,
     )
+
+
+def _title_for(error_type: str) -> str:
+    # Imported here: error_catalog imports this module for validation.
+    from app.analysis.error_catalog import title_for
+
+    return title_for(error_type)
 
 
 # THE public entry point, called once per analysis by analyzer.analyze_code()

@@ -113,6 +113,25 @@ class Settings(BaseSettings):
     # signed in can give themselves Pro while it is on, so it is off by default.
     billing_demo_mode: bool = False
 
+    # ── Explanations written by a language model ──
+    # "Explain in my code", the compiler-error explainer and the similar
+    # worked example. OpenAI, like Study Guider and PairPath. Unset key: the
+    # routes answer from the hint templates instead, so nothing breaks.
+    # Every student gets `llm_daily_limit` explanations a day; answers are
+    # cached by the code they explain, so asking twice costs nothing.
+    openai_api_key: Optional[str] = None
+    openai_model: str = "gpt-6-luna"
+    openai_embedding_model: str = "text-embedding-3-small"
+    openai_reasoning_effort: Optional[str] = "low"
+    openai_timeout_seconds: float = 25.0
+    llm_daily_limit: int = 20
+
+    # ── Error types shown to students ──
+    # Comma-separated error types to run in SHADOW mode: detected and logged,
+    # but left out of the response, so neither the editor nor Study Guider
+    # sees them. The switch for a new detector that misbehaves in a class.
+    shadow_error_types: str = ""
+
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600

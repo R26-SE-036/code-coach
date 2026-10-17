@@ -86,10 +86,10 @@ class AnalyzerRequirementTests(unittest.TestCase):
             with self.subTest(expected_error_type=expected_error_type):
                 self.assert_detects(expected_error_type, code)
 
-    def test_catalog_registers_nineteen_validated_error_types(self) -> None:
+    def test_catalog_registers_thirty_validated_error_types(self) -> None:
         # Pinned on purpose: adding an error type should be a decision this
         # file hears about, along with a detection case above.
-        self.assertEqual(len(ERROR_CATALOG), 19)
+        self.assertEqual(len(ERROR_CATALOG), 30)
         validate_catalog()
 
     def test_diagnostic_payload_explains_ml_and_locator_roles(self) -> None:

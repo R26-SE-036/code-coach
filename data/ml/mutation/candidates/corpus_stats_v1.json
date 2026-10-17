@@ -1,0 +1,28 @@
+{
+  "base_programs": 1899,
+  "base_methods": 1117,
+  "seed": 7,
+  "inputs_per_method": 60,
+  "types": {
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "original_candidates": 317,
+      "mutants": 248,
+      "behaviour_changed": 247,
+      "equivalent": 1,
+      "splits": {
+        "train": {
+          "rows": 395,
+          "positives": 176
+        },
+        "val": {
+          "rows": 87,
+          "positives": 32
+        },
+        "test": {
+          "rows": 83,
+          "positives": 39
+        }
+      }
+    }
+  }
+}

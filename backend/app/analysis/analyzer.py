@@ -20,7 +20,7 @@ the request. analyze_code() is the seam between the two.
 import logging
 from typing import Dict, List, Optional
 
-from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec
+from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec, shadow_error_types
 from app.analysis.feature_extractor import extract_features
 from app.analysis.hint_engine import build_diagnostics
 from app.analysis.ml_engine import (
@@ -28,6 +28,7 @@ from app.analysis.ml_engine import (
     MLPrediction,
     predict_candidates,
     predict_issue_types,
+    score_candidates,
 )
 from app.models import DetectionResult, Diagnostic, ParseResult
 from app.analysis.parser_utils import parse_java_code_safe
@@ -68,6 +69,19 @@ def _safe_predict_candidates(
             spec.error_type,
         )
         return []
+
+
+def _safe_score_candidates(spec: ErrorTypeSpec, candidates) -> List[float]:
+    try:
+        return score_candidates(spec, candidates)
+    except Exception:
+        # A missing or broken logic model means no findings of that type,
+        # never every proposed site unfiltered.
+        logger.exception(
+            "Logic model scoring failed; %s diagnostics disabled for this request",
+            spec.error_type,
+        )
+        return [0.0] * len(candidates)
 
 
 # Blend the two confidence signals into the number VS Code shows:
@@ -124,6 +138,8 @@ def _finalize_finding(
         # Rebuilt field by field, so anything not named here is lost - which
         # is how the code-specific hints would quietly fall back to generic.
         details=finding.details,
+        end_line=finding.end_line,
+        end_column=finding.end_column,
     )
 
 
@@ -139,6 +155,24 @@ def _detect_for_spec(
     parse_result: ParseResult,
     predictions_by_error_type: Dict[str, MLPrediction],
 ) -> List[DetectionResult]:
+    # CANDIDATE_ML: the proposer offers every site that might be this
+    # mistake; the type's own model, trained on executed mutants, decides
+    # each one. The model's probability IS the verdict - no rule vote.
+    if spec.detection_mode == "candidate_ml" and spec.proposer is not None:
+        candidates = spec.proposer(parse_result)
+        probabilities = _safe_score_candidates(spec, candidates)
+        threshold = spec.candidate_ml_threshold if spec.candidate_ml_threshold is not None else 0.5
+        return [
+            _finalize_finding(
+                candidate.finding,
+                parse_result,
+                detection_engine="candidate_ml",
+                ml_probability=probability,
+            )
+            for candidate, probability in zip(candidates, probabilities)
+            if probability >= threshold
+        ]
+
     # CANDIDATE-gated (upgrade of ml_gated): the locator PROPOSES every rule
     # match, then the per-site model DISPOSES each one individually. A real
     # bug and a rule-matching-but-correct site in the same file now get
@@ -213,11 +247,20 @@ def analyze_code(code: str) -> List[Diagnostic]:
         for prediction in _safe_predict_issue_types(feature_dict)
     }
 
-    # 4. detect and localize each catalog entry
+    # 4. detect and localize each catalog entry. Types switched to SHADOW
+    # mode are still run (so their cost and output can be watched in the
+    # log) but are left out of the response, which keeps them away from the
+    # editor, the stored diagnostics and Study Guider alike.
     findings: List[DetectionResult] = []
+    shadowed = shadow_error_types()
 
     for spec in ERROR_CATALOG.values():
-        findings.extend(_detect_for_spec(spec, parse_result, predictions_by_error_type))
+        detected = _detect_for_spec(spec, parse_result, predictions_by_error_type)
+        if spec.error_type in shadowed:
+            if detected:
+                logger.info("shadow %s: %d finding(s) withheld", spec.error_type, len(detected))
+            continue
+        findings.extend(detected)
 
     # 5. build diagnostics with hints - all at once, not one finding at a
     # time, because a finding's id counts the identical mistakes above it.

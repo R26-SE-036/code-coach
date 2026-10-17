@@ -1,0 +1,12 @@
+error_type,family,threshold,precision_target_reached,test_rows,test_positives,model_precision,model_recall,model_f1,model_average_precision,rule_precision,rule_recall,rule_f1,proposer_precision
+ACCUMULATOR_RESET_INSIDE_LOOP,random_forest,0.2887,f0.5,192,153,0.9053,1.0,0.9503,0.941,0.9053,1.0,0.9503,0.7969
+EARLY_RETURN_IN_LOOP,logistic_regression,0.2354,f0.5,86,83,0.9647,0.988,0.9762,0.9434,0.9651,1.0,0.9822,0.9651
+INDEX_PLUS_ONE_OUT_OF_BOUNDS,random_forest,0.6255,f0.5,43,16,0.8421,1.0,0.9143,0.9803,1.0,0.5,0.6667,0.3721
+LOOP_COUNTER_CHANGED_IN_BODY,random_forest,0.3399,f0.5,247,196,0.8655,0.9847,0.9212,0.9162,0.8704,0.7194,0.7877,0.7935
+LOOP_SKIPS_LAST_ELEMENT,logistic_regression,0.6253,precision_0.95,156,128,0.9905,0.8125,0.8927,0.9902,0.8533,1.0,0.9209,0.8205
+MISLEADING_INDENTATION_NO_BRACES,logistic_regression,0.4317,precision_0.95,402,58,0.9153,0.931,0.9231,0.9619,1.0,0.9138,0.955,0.1443
+NESTED_LOOP_WRONG_COUNTER,gradient_boosting,0.0126,precision_0.95,55,52,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9455
+NON_SHORT_CIRCUIT_OPERATOR,random_forest,0.8097,precision_0.95,260,122,0.9292,0.8607,0.8936,0.931,0.4692,1.0,0.6387,0.4692
+UNREACHABLE_ELSE_IF_ORDER,random_forest,0.3782,precision_0.95,52,26,1.0,1.0,1.0,1.0,0.963,1.0,0.9811,0.5
+WRONG_EXTREME_INITIAL_VALUE,logistic_regression,0.339,precision_0.95,83,39,0.9512,1.0,0.975,0.9635,0.8298,1.0,0.907,0.4699
+WRONG_LOOP_VARIABLE_IN_INDEX,logistic_regression,0.5614,precision_0.95,60,39,0.9655,0.7179,0.8235,0.9369,0.9545,0.5385,0.6885,0.65

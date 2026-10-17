@@ -169,5 +169,104 @@
       "guidance": "Write down the values that make each side true, and look for a value that appears in both lists.",
       "targeted": "Check whether one of the numbers in this condition is wrong, or whether the two checks should be combined with || instead."
     }
+  },
+  "LOOP_SKIPS_LAST_ELEMENT": {
+    "concept_tag": "loop_boundaries",
+    "explanation_key": "loop_stops_before_last_element",
+    "hints": {
+      "concept": "A loop over an array should visit every position from the first index to the last one, unless it deliberately needs fewer.",
+      "guidance": "Work out the value of the counter on the loop's final pass, and compare it with the index of the last element.",
+      "targeted": "Check whether this loop condition stops one pass too soon, so the element at the end is never processed."
+    }
+  },
+  "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+    "concept_tag": "array_indexing",
+    "explanation_key": "neighbour_index_past_end",
+    "hints": {
+      "concept": "An index such as i + 1 reaches one position further than i, so the loop has to stop early enough for it to stay inside the array.",
+      "guidance": "On the loop's last pass, write down the value of i and then of i + 1 (or i - 1). Does that position exist?",
+      "targeted": "Check whether the loop runs far enough that this neighbour index goes past the end (or before the start) of the array."
+    }
+  },
+  "WRONG_LOOP_VARIABLE_IN_INDEX": {
+    "concept_tag": "array_indexing",
+    "explanation_key": "index_uses_outer_counter",
+    "hints": {
+      "concept": "In nested loops each counter has its own job: the outer one picks the row or the first element, the inner one moves along.",
+      "guidance": "Trace two passes of the inner loop. Does this index change from one inner pass to the next?",
+      "targeted": "Check whether this index should use the inner loop's counter rather than the outer one."
+    }
+  },
+  "NESTED_LOOP_WRONG_COUNTER": {
+    "concept_tag": "loop_control",
+    "explanation_key": "loop_header_wrong_counter",
+    "hints": {
+      "concept": "A for loop's three parts - start, condition and update - should all be about the same counter.",
+      "guidance": "Read the loop header aloud: which variable does it start, which does it test, and which does it change?",
+      "targeted": "Check whether this loop's condition or update uses another loop's counter instead of its own."
+    }
+  },
+  "LOOP_COUNTER_CHANGED_IN_BODY": {
+    "concept_tag": "loop_control",
+    "explanation_key": "counter_changed_in_body",
+    "hints": {
+      "concept": "A for loop already moves its counter on every pass; changing it again inside the body makes the loop jump.",
+      "guidance": "Trace the counter through three passes, counting every place it changes. Which elements get visited?",
+      "targeted": "Check whether this extra change to the counter skips elements you meant to process."
+    }
+  },
+  "ACCUMULATOR_RESET_INSIDE_LOOP": {
+    "concept_tag": "loop_initialization",
+    "explanation_key": "accumulator_reset_each_pass",
+    "hints": {
+      "concept": "A running total has to be set to its starting value once, before the loop that builds it up.",
+      "guidance": "Trace the variable through two passes of the loop. What does it hold at the start of the second pass?",
+      "targeted": "Check whether this line throws away the running value on every pass, so only the last pass counts."
+    }
+  },
+  "WRONG_EXTREME_INITIAL_VALUE": {
+    "concept_tag": "loop_initialization",
+    "explanation_key": "extreme_starts_at_wrong_value",
+    "hints": {
+      "concept": "A search for the largest or smallest value needs a starting value that any real value can beat - usually the first element.",
+      "guidance": "Try the loop on an array where every value is negative (for a maximum) or every value is large (for a minimum).",
+      "targeted": "Check whether this starting value can win the comparison before any element of the data has been seen."
+    }
+  },
+  "EARLY_RETURN_IN_LOOP": {
+    "concept_tag": "control_flow",
+    "explanation_key": "loop_returns_on_first_pass",
+    "hints": {
+      "concept": "A return inside a loop ends the whole method at once, so it should only happen once the answer is certain.",
+      "guidance": "Ask what the method should answer when the first element does not match but a later one does.",
+      "targeted": "Check whether this part of the loop leaves the method on every pass, so the loop never reaches the second element."
+    }
+  },
+  "UNREACHABLE_ELSE_IF_ORDER": {
+    "concept_tag": "conditional_logic",
+    "explanation_key": "else_if_branch_unreachable",
+    "hints": {
+      "concept": "An if / else if chain stops at the first test that is true, so the order of the tests matters.",
+      "guidance": "Pick a value that should reach the later branch and walk it through the tests from the top.",
+      "targeted": "Check whether an earlier test already catches every value this branch is meant for, so it can never run."
+    }
+  },
+  "MISLEADING_INDENTATION_NO_BRACES": {
+    "concept_tag": "statement_structure",
+    "explanation_key": "indentation_without_braces",
+    "hints": {
+      "concept": "Without braces, an if or a loop controls exactly one statement; indentation does not change that.",
+      "guidance": "Which statements run when the condition is false? Mark where the controlled part really ends.",
+      "targeted": "Check whether the indented line below is meant to be controlled by this if or loop, and add braces if it is."
+    }
+  },
+  "NON_SHORT_CIRCUIT_OPERATOR": {
+    "concept_tag": "boolean_logic",
+    "explanation_key": "single_ampersand_or_pipe",
+    "hints": {
+      "concept": "&& and || stop as soon as the left side decides the answer; & and | always evaluate both sides.",
+      "guidance": "What happens to the right side of this condition when the left side is already false (or already true)?",
+      "targeted": "Check whether the right side of this condition is only safe when the left side is true, and use && or || if so."
+    }
   }
 }

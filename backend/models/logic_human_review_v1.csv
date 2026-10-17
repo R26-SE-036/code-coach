@@ -1,0 +1,3 @@
+file,line,error_type,probability,code,verdict
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9836,int highest = 0;,true find: a max search over marks starting at 0 - right here only because every mark is positive
+data/ml/raw_snippets/off_by_one/fixed/OffByOneFix006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9836,int highest = 0;,true find: a max search over marks starting at 0 - right here only because every mark is positive

@@ -142,6 +142,37 @@ def predict_candidates(spec: ErrorTypeSpec, parse_result: ParseResult) -> List[C
     ]
 
 
+def _get_logic_model(spec: ErrorTypeSpec):
+    cache_key = f"logic:{spec.error_type}"
+    if cache_key in _LOADED_MODELS:
+        return _LOADED_MODELS[cache_key]
+    model_path = MODELS_DIR / (spec.candidate_model_file or "")
+    if not model_path.exists():
+        raise FileNotFoundError(f"Candidate model file not found: {model_path}")
+    model = joblib.load(model_path)
+    _LOADED_MODELS[cache_key] = model
+    return model
+
+
+def score_candidates(spec: ErrorTypeSpec, candidates) -> List[float]:
+    """Probability that each proposed site is a real mistake (candidate_ml).
+
+    One batched predict_proba per error type per analysis. The columns are
+    lined up with the model's own feature_names_in_, so a feature added to a
+    proposer later is ignored by models trained before it existed.
+    """
+    if not candidates:
+        return []
+    model = _get_logic_model(spec)
+    expected = list(getattr(model, "feature_names_in_", candidates[0].features.keys()))
+    frame = pd.DataFrame(
+        [[float(c.features.get(col, 0.0)) for col in expected] for c in candidates],
+        columns=expected,
+    )
+    probabilities = model.predict_proba(frame)[:, _positive_class_index(model)]
+    return [round(float(p), 4) for p in probabilities]
+
+
 # Index of the "issue present" class in the model's probability output.
 # predict_proba's columns follow model.classes_ order — for our 0/1 integer
 # labels that is [0, 1], but reading classes_ instead of hard-coding [1] means

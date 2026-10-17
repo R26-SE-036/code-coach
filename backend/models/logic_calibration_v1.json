@@ -1,0 +1,1467 @@
+{
+  "results": {
+    "LOOP_SKIPS_LAST_ELEMENT": {
+      "error_type": "LOOP_SKIPS_LAST_ELEMENT",
+      "features": [
+        "ascending",
+        "cond_leq",
+        "init_is_zero",
+        "body_uses_next",
+        "body_uses_prev",
+        "body_uses_far_offset",
+        "body_indexes_target_at_var",
+        "body_indexes_other_at_var",
+        "body_accesses_target",
+        "compares_neighbours",
+        "body_has_compound_update",
+        "body_has_return",
+        "body_has_break",
+        "nested_in_loop",
+        "method_returns_boolean",
+        "method_name_neighbour",
+        "body_statement_count",
+        "var_uses_in_body",
+        "target_is_string",
+        "inner_loop_starts_after_var"
+      ],
+      "counts": {
+        "fit_rows": 1059,
+        "fit_positives": 846,
+        "test_rows": 156,
+        "test_positives": 128,
+        "test_negatives_from_correct_code": 8,
+        "test_negatives_from_equivalent_mutants": 20
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9529,
+            "recall": 0.7896,
+            "f1": 0.8636,
+            "flagged": 701,
+            "positives": 846,
+            "rows": 1059,
+            "average_precision": 0.9661
+          },
+          "threshold": 0.6253,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9514,
+            "recall": 0.9492,
+            "f1": 0.9503,
+            "flagged": 844,
+            "positives": 846,
+            "rows": 1059,
+            "average_precision": 0.9626
+          },
+          "threshold": 0.5475,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9505,
+            "recall": 0.9314,
+            "f1": 0.9409,
+            "flagged": 829,
+            "positives": 846,
+            "rows": 1059,
+            "average_precision": 0.9513
+          },
+          "threshold": 0.5132,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__loop_skips_last_element.joblib",
+        "threshold": 0.6253,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.01
+      },
+      "test": {
+        "model": {
+          "precision": 0.9905,
+          "recall": 0.8125,
+          "f1": 0.8927,
+          "flagged": 105,
+          "positives": 128,
+          "rows": 156,
+          "average_precision": 0.9902
+        },
+        "proposer_baseline": {
+          "precision": 0.8205,
+          "recall": 1.0,
+          "f1": 0.9014,
+          "flagged": 156,
+          "positives": 128,
+          "rows": 156
+        },
+        "rule_baseline": {
+          "precision": 0.8533,
+          "recall": 1.0,
+          "f1": 0.9209,
+          "flagged": 150,
+          "positives": 128,
+          "rows": 156
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 0.05
+      },
+      "top_features": [
+        [
+          "body_uses_next",
+          2.246
+        ],
+        [
+          "inner_loop_starts_after_var",
+          1.5309
+        ],
+        [
+          "target_is_string",
+          0.7118
+        ],
+        [
+          "compares_neighbours",
+          0.6379
+        ],
+        [
+          "init_is_zero",
+          0.5675
+        ],
+        [
+          "method_name_neighbour",
+          0.3978
+        ]
+      ]
+    },
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+      "error_type": "INDEX_PLUS_ONE_OUT_OF_BOUNDS",
+      "features": [
+        "offset_positive",
+        "offset_size",
+        "same_collection_as_bound",
+        "bound_minus_k",
+        "slack_known",
+        "slack_negative",
+        "cond_leq",
+        "ascending",
+        "init_is_zero",
+        "init_is_one",
+        "guarded",
+        "access_is_write",
+        "collection_declared_longer",
+        "collection_is_string",
+        "nested_in_loop",
+        "body_has_break",
+        "body_also_uses_var_plain"
+      ],
+      "counts": {
+        "fit_rows": 426,
+        "fit_positives": 181,
+        "test_rows": 43,
+        "test_positives": 16,
+        "test_negatives_from_correct_code": 27,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.7702,
+            "recall": 1.0,
+            "f1": 0.8702,
+            "flagged": 235,
+            "positives": 181,
+            "rows": 426,
+            "average_precision": 0.8215
+          },
+          "threshold": 0.4819,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.7834,
+            "recall": 0.9392,
+            "f1": 0.8543,
+            "flagged": 217,
+            "positives": 181,
+            "rows": 426,
+            "average_precision": 0.9022
+          },
+          "threshold": 0.6255,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 0.4862,
+            "f1": 0.6543,
+            "flagged": 88,
+            "positives": 181,
+            "rows": 426,
+            "average_precision": 0.9015
+          },
+          "threshold": 0.9288,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__index_plus_one_out_of_bounds.joblib",
+        "threshold": 0.6255,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 1.276
+      },
+      "test": {
+        "model": {
+          "precision": 0.8421,
+          "recall": 1.0,
+          "f1": 0.9143,
+          "flagged": 19,
+          "positives": 16,
+          "rows": 43,
+          "average_precision": 0.9803
+        },
+        "proposer_baseline": {
+          "precision": 0.3721,
+          "recall": 1.0,
+          "f1": 0.5424,
+          "flagged": 43,
+          "positives": 16,
+          "rows": 43
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6667,
+          "flagged": 8,
+          "positives": 16,
+          "rows": 43
+        },
+        "false_alarm_rate_on_original": 0.1111
+      },
+      "top_features": [
+        [
+          "slack_negative",
+          0.4939
+        ],
+        [
+          "bound_minus_k",
+          0.175
+        ],
+        [
+          "init_is_zero",
+          0.0949
+        ],
+        [
+          "offset_positive",
+          0.0911
+        ],
+        [
+          "init_is_one",
+          0.0604
+        ],
+        [
+          "guarded",
+          0.0359
+        ]
+      ]
+    },
+    "WRONG_LOOP_VARIABLE_IN_INDEX": {
+      "error_type": "WRONG_LOOP_VARIABLE_IN_INDEX",
+      "features": [
+        "kind_outer_index",
+        "kind_repeated_2d",
+        "inner_var_used_in_body",
+        "inner_var_used_in_statement",
+        "same_collection_indexed_with_inner",
+        "inner_bound_is_this_collection",
+        "inner_init_uses_outer",
+        "access_is_write",
+        "outer_uses_in_inner_body",
+        "inner_uses_in_inner_body",
+        "statement_is_comparison",
+        "loop_depth"
+      ],
+      "counts": {
+        "fit_rows": 378,
+        "fit_positives": 247,
+        "test_rows": 60,
+        "test_positives": 39,
+        "test_negatives_from_correct_code": 18,
+        "test_negatives_from_equivalent_mutants": 3
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9522,
+            "recall": 0.8866,
+            "f1": 0.9182,
+            "flagged": 230,
+            "positives": 247,
+            "rows": 378,
+            "average_precision": 0.9852
+          },
+          "threshold": 0.5614,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9551,
+            "recall": 0.9474,
+            "f1": 0.9512,
+            "flagged": 245,
+            "positives": 247,
+            "rows": 378,
+            "average_precision": 0.9825
+          },
+          "threshold": 0.4507,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.953,
+            "recall": 0.9028,
+            "f1": 0.9272,
+            "flagged": 234,
+            "positives": 247,
+            "rows": 378,
+            "average_precision": 0.967
+          },
+          "threshold": 0.5171,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__wrong_loop_variable_in_index.joblib",
+        "threshold": 0.5614,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0231
+      },
+      "test": {
+        "model": {
+          "precision": 0.9655,
+          "recall": 0.7179,
+          "f1": 0.8235,
+          "flagged": 29,
+          "positives": 39,
+          "rows": 60,
+          "average_precision": 0.9369
+        },
+        "proposer_baseline": {
+          "precision": 0.65,
+          "recall": 1.0,
+          "f1": 0.7879,
+          "flagged": 60,
+          "positives": 39,
+          "rows": 60
+        },
+        "rule_baseline": {
+          "precision": 0.9545,
+          "recall": 0.5385,
+          "f1": 0.6885,
+          "flagged": 22,
+          "positives": 39,
+          "rows": 60
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 0.3333
+      },
+      "top_features": [
+        [
+          "outer_uses_in_inner_body",
+          2.0569
+        ],
+        [
+          "inner_uses_in_inner_body",
+          1.8567
+        ],
+        [
+          "same_collection_indexed_with_inner",
+          1.5915
+        ],
+        [
+          "inner_bound_is_this_collection",
+          1.1861
+        ],
+        [
+          "kind_repeated_2d",
+          0.6034
+        ],
+        [
+          "kind_outer_index",
+          0.6034
+        ]
+      ]
+    },
+    "NESTED_LOOP_WRONG_COUNTER": {
+      "error_type": "NESTED_LOOP_WRONG_COUNTER",
+      "features": [
+        "update_misses_own_var",
+        "cond_misses_own_var",
+        "update_writes_outer_var",
+        "cond_uses_outer_var",
+        "nested",
+        "own_var_written_in_body",
+        "own_var_used_in_body",
+        "cond_has_call",
+        "cond_single_identifier",
+        "multi_var_init",
+        "update_count",
+        "body_has_break"
+      ],
+      "counts": {
+        "fit_rows": 447,
+        "fit_positives": 418,
+        "test_rows": 55,
+        "test_positives": 52,
+        "test_negatives_from_correct_code": 3,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9654,
+            "recall": 1.0,
+            "f1": 0.9824,
+            "flagged": 433,
+            "positives": 418,
+            "rows": 447,
+            "average_precision": 0.994
+          },
+          "threshold": 0.0015,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.95,
+            "recall": 1.0,
+            "f1": 0.9744,
+            "flagged": 440,
+            "positives": 418,
+            "rows": 447,
+            "average_precision": 0.9948
+          },
+          "threshold": 0.0056,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9522,
+            "recall": 1.0,
+            "f1": 0.9755,
+            "flagged": 439,
+            "positives": 418,
+            "rows": 447,
+            "average_precision": 0.995
+          },
+          "threshold": 0.0126,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "gradient_boosting",
+        "model_file": "logic__nested_loop_wrong_counter.joblib",
+        "threshold": 0.0126,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.1143
+      },
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 52,
+          "positives": 52,
+          "rows": 55,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.9455,
+          "recall": 1.0,
+          "f1": 0.972,
+          "flagged": 55,
+          "positives": 52,
+          "rows": 55
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 52,
+          "positives": 52,
+          "rows": 55
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": []
+    },
+    "LOOP_COUNTER_CHANGED_IN_BODY": {
+      "error_type": "LOOP_COUNTER_CHANGED_IN_BODY",
+      "features": [
+        "write_conditional",
+        "write_in_inner_loop",
+        "write_is_last_statement",
+        "write_is_first_statement",
+        "same_direction",
+        "opposite_direction",
+        "write_is_reset",
+        "body_looks_ahead",
+        "if_condition_looks_ahead",
+        "followed_by_continue",
+        "body_has_break",
+        "body_statement_count",
+        "loop_update_is_step_one",
+        "reads_var_after_write"
+      ],
+      "counts": {
+        "fit_rows": 1753,
+        "fit_positives": 1464,
+        "test_rows": 247,
+        "test_positives": 196,
+        "test_negatives_from_correct_code": 15,
+        "test_negatives_from_equivalent_mutants": 36
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.8873,
+            "recall": 0.9898,
+            "f1": 0.9357,
+            "flagged": 1633,
+            "positives": 1464,
+            "rows": 1753,
+            "average_precision": 0.9097
+          },
+          "threshold": 0.3725,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.8856,
+            "recall": 0.9891,
+            "f1": 0.9345,
+            "flagged": 1635,
+            "positives": 1464,
+            "rows": 1753,
+            "average_precision": 0.9153
+          },
+          "threshold": 0.3399,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.8774,
+            "recall": 0.9822,
+            "f1": 0.9268,
+            "flagged": 1639,
+            "positives": 1464,
+            "rows": 1753,
+            "average_precision": 0.9129
+          },
+          "threshold": 0.3043,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__loop_counter_changed_in_body.joblib",
+        "threshold": 0.3399,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 0.2357
+      },
+      "test": {
+        "model": {
+          "precision": 0.8655,
+          "recall": 0.9847,
+          "f1": 0.9212,
+          "flagged": 223,
+          "positives": 196,
+          "rows": 247,
+          "average_precision": 0.9162
+        },
+        "proposer_baseline": {
+          "precision": 0.7935,
+          "recall": 1.0,
+          "f1": 0.8849,
+          "flagged": 247,
+          "positives": 196,
+          "rows": 247
+        },
+        "rule_baseline": {
+          "precision": 0.8704,
+          "recall": 0.7194,
+          "f1": 0.7877,
+          "flagged": 162,
+          "positives": 196,
+          "rows": 247
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 0.8333
+      },
+      "top_features": [
+        [
+          "if_condition_looks_ahead",
+          0.2646
+        ],
+        [
+          "body_statement_count",
+          0.1781
+        ],
+        [
+          "write_conditional",
+          0.0998
+        ],
+        [
+          "write_in_inner_loop",
+          0.0732
+        ],
+        [
+          "body_looks_ahead",
+          0.0712
+        ],
+        [
+          "same_direction",
+          0.0691
+        ]
+      ]
+    },
+    "ACCUMULATOR_RESET_INSIDE_LOOP": {
+      "error_type": "ACCUMULATOR_RESET_INSIDE_LOOP",
+      "features": [
+        "is_declaration",
+        "update_in_same_loop",
+        "update_only_in_nested_loop",
+        "reset_conditional",
+        "reset_is_first_statement",
+        "read_after_loop",
+        "declared_before_loop",
+        "read_inside_loop",
+        "printed_in_loop",
+        "name_accumulator",
+        "name_resettable",
+        "literal_zero",
+        "literal_string",
+        "loop_depth",
+        "loop_is_for",
+        "update_count"
+      ],
+      "counts": {
+        "fit_rows": 1206,
+        "fit_positives": 926,
+        "test_rows": 192,
+        "test_positives": 153,
+        "test_negatives_from_correct_code": 23,
+        "test_negatives_from_equivalent_mutants": 16
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9177,
+            "recall": 1.0,
+            "f1": 0.9571,
+            "flagged": 1009,
+            "positives": 926,
+            "rows": 1206,
+            "average_precision": 0.9384
+          },
+          "threshold": 0.1671,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9168,
+            "recall": 1.0,
+            "f1": 0.9566,
+            "flagged": 1010,
+            "positives": 926,
+            "rows": 1206,
+            "average_precision": 0.9486
+          },
+          "threshold": 0.2887,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9177,
+            "recall": 1.0,
+            "f1": 0.9571,
+            "flagged": 1009,
+            "positives": 926,
+            "rows": 1206,
+            "average_precision": 0.9398
+          },
+          "threshold": 0.0039,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__accumulator_reset_inside_loop.joblib",
+        "threshold": 0.2887,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 0.2995
+      },
+      "test": {
+        "model": {
+          "precision": 0.9053,
+          "recall": 1.0,
+          "f1": 0.9503,
+          "flagged": 169,
+          "positives": 153,
+          "rows": 192,
+          "average_precision": 0.941
+        },
+        "proposer_baseline": {
+          "precision": 0.7969,
+          "recall": 1.0,
+          "f1": 0.887,
+          "flagged": 192,
+          "positives": 153,
+          "rows": 192
+        },
+        "rule_baseline": {
+          "precision": 0.9053,
+          "recall": 1.0,
+          "f1": 0.9503,
+          "flagged": 169,
+          "positives": 153,
+          "rows": 192
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "reset_is_first_statement",
+          0.2597
+        ],
+        [
+          "declared_before_loop",
+          0.137
+        ],
+        [
+          "reset_conditional",
+          0.107
+        ],
+        [
+          "is_declaration",
+          0.0964
+        ],
+        [
+          "update_in_same_loop",
+          0.0931
+        ],
+        [
+          "update_only_in_nested_loop",
+          0.0789
+        ]
+      ]
+    },
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "error_type": "WRONG_EXTREME_INITIAL_VALUE",
+      "features": [
+        "direction_max",
+        "init_zero",
+        "init_one_or_minus_one",
+        "init_min_constant",
+        "init_max_constant",
+        "init_element",
+        "init_other",
+        "constant_mismatch",
+        "compared_nonnegative",
+        "compared_from_collection",
+        "compared_is_element",
+        "compared_is_counter",
+        "name_extreme",
+        "name_matches_direction",
+        "loop_starts_at_one",
+        "decimal_type"
+      ],
+      "counts": {
+        "fit_rows": 482,
+        "fit_positives": 208,
+        "test_rows": 83,
+        "test_positives": 39,
+        "test_negatives_from_correct_code": 43,
+        "test_negatives_from_equivalent_mutants": 1
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9541,
+            "recall": 1.0,
+            "f1": 0.9765,
+            "flagged": 218,
+            "positives": 208,
+            "rows": 482,
+            "average_precision": 0.9988
+          },
+          "threshold": 0.339,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9541,
+            "recall": 1.0,
+            "f1": 0.9765,
+            "flagged": 218,
+            "positives": 208,
+            "rows": 482,
+            "average_precision": 0.9988
+          },
+          "threshold": 0.295,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9541,
+            "recall": 1.0,
+            "f1": 0.9765,
+            "flagged": 218,
+            "positives": 208,
+            "rows": 482,
+            "average_precision": 0.9988
+          },
+          "threshold": 0.0115,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__wrong_extreme_initial_value.joblib",
+        "threshold": 0.339,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0184
+      },
+      "test": {
+        "model": {
+          "precision": 0.9512,
+          "recall": 1.0,
+          "f1": 0.975,
+          "flagged": 41,
+          "positives": 39,
+          "rows": 83,
+          "average_precision": 0.9635
+        },
+        "proposer_baseline": {
+          "precision": 0.4699,
+          "recall": 1.0,
+          "f1": 0.6393,
+          "flagged": 83,
+          "positives": 39,
+          "rows": 83
+        },
+        "rule_baseline": {
+          "precision": 0.8298,
+          "recall": 1.0,
+          "f1": 0.907,
+          "flagged": 47,
+          "positives": 39,
+          "rows": 83
+        },
+        "false_alarm_rate_on_original": 0.0233,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "compared_is_element",
+          2.7254
+        ],
+        [
+          "init_zero",
+          2.5585
+        ],
+        [
+          "constant_mismatch",
+          2.0757
+        ],
+        [
+          "init_element",
+          1.9675
+        ],
+        [
+          "init_max_constant",
+          0.8471
+        ],
+        [
+          "compared_is_counter",
+          0.7861
+        ]
+      ]
+    },
+    "EARLY_RETURN_IN_LOOP": {
+      "error_type": "EARLY_RETURN_IN_LOOP",
+      "features": [
+        "both_branches_exit",
+        "unconditional_return",
+        "opposite_booleans",
+        "returns_literals",
+        "uses_break",
+        "method_returns_boolean",
+        "return_after_loop",
+        "loop_var_in_condition",
+        "statements_before_in_body",
+        "body_statement_count",
+        "loop_is_while",
+        "returns_loop_var"
+      ],
+      "counts": {
+        "fit_rows": 635,
+        "fit_positives": 582,
+        "test_rows": 86,
+        "test_positives": 83,
+        "test_negatives_from_correct_code": 0,
+        "test_negatives_from_equivalent_mutants": 3
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9246,
+            "recall": 0.9897,
+            "f1": 0.956,
+            "flagged": 623,
+            "positives": 582,
+            "rows": 635,
+            "average_precision": 0.9435
+          },
+          "threshold": 0.2354,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9206,
+            "recall": 0.9966,
+            "f1": 0.9571,
+            "flagged": 630,
+            "positives": 582,
+            "rows": 635,
+            "average_precision": 0.931
+          },
+          "threshold": 0.245,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9231,
+            "recall": 0.9897,
+            "f1": 0.9552,
+            "flagged": 624,
+            "positives": 582,
+            "rows": 635,
+            "average_precision": 0.9323
+          },
+          "threshold": 0.165,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__early_return_in_loop.joblib",
+        "threshold": 0.2354,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 0.0151
+      },
+      "test": {
+        "model": {
+          "precision": 0.9647,
+          "recall": 0.988,
+          "f1": 0.9762,
+          "flagged": 85,
+          "positives": 83,
+          "rows": 86,
+          "average_precision": 0.9434
+        },
+        "proposer_baseline": {
+          "precision": 0.9651,
+          "recall": 1.0,
+          "f1": 0.9822,
+          "flagged": 86,
+          "positives": 83,
+          "rows": 86
+        },
+        "rule_baseline": {
+          "precision": 0.9651,
+          "recall": 1.0,
+          "f1": 0.9822,
+          "flagged": 86,
+          "positives": 83,
+          "rows": 86
+        },
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "opposite_booleans",
+          0.6552
+        ],
+        [
+          "loop_is_while",
+          0.4198
+        ],
+        [
+          "returns_literals",
+          0.4123
+        ],
+        [
+          "unconditional_return",
+          0.3145
+        ],
+        [
+          "both_branches_exit",
+          0.3145
+        ],
+        [
+          "method_returns_boolean",
+          0.1881
+        ]
+      ]
+    },
+    "UNREACHABLE_ELSE_IF_ORDER": {
+      "error_type": "UNREACHABLE_ELSE_IF_ORDER",
+      "features": [
+        "branch_count",
+        "same_var_share",
+        "has_unreachable_branch",
+        "unreachable_position",
+        "uses_ranges",
+        "all_greater",
+        "all_less",
+        "mixed_directions",
+        "thresholds_ascending",
+        "thresholds_descending",
+        "order_consistent",
+        "order_reversed",
+        "has_final_else",
+        "has_equality_branch"
+      ],
+      "counts": {
+        "fit_rows": 527,
+        "fit_positives": 277,
+        "test_rows": 52,
+        "test_positives": 26,
+        "test_negatives_from_correct_code": 16,
+        "test_negatives_from_equivalent_mutants": 10
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9509,
+            "recall": 0.9783,
+            "f1": 0.9644,
+            "flagged": 285,
+            "positives": 277,
+            "rows": 527,
+            "average_precision": 0.9817
+          },
+          "threshold": 0.4534,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.9856,
+            "f1": 0.9681,
+            "flagged": 287,
+            "positives": 277,
+            "rows": 527,
+            "average_precision": 0.9879
+          },
+          "threshold": 0.3782,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.9856,
+            "f1": 0.9681,
+            "flagged": 287,
+            "positives": 277,
+            "rows": 527,
+            "average_precision": 0.9877
+          },
+          "threshold": 0.2653,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__unreachable_else_if_order.joblib",
+        "threshold": 0.3782,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.7427
+      },
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 26,
+          "positives": 26,
+          "rows": 52,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6667,
+          "flagged": 52,
+          "positives": 26,
+          "rows": 52
+        },
+        "rule_baseline": {
+          "precision": 0.963,
+          "recall": 1.0,
+          "f1": 0.9811,
+          "flagged": 27,
+          "positives": 26,
+          "rows": 52
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 0.0
+      },
+      "top_features": [
+        [
+          "has_unreachable_branch",
+          0.3158
+        ],
+        [
+          "unreachable_position",
+          0.2445
+        ],
+        [
+          "branch_count",
+          0.1006
+        ],
+        [
+          "uses_ranges",
+          0.0822
+        ],
+        [
+          "order_consistent",
+          0.074
+        ],
+        [
+          "all_less",
+          0.0523
+        ]
+      ]
+    },
+    "MISLEADING_INDENTATION_NO_BRACES": {
+      "error_type": "MISLEADING_INDENTATION_NO_BRACES",
+      "features": [
+        "kind_if",
+        "kind_else",
+        "kind_loop",
+        "body_on_own_line",
+        "next_exists",
+        "next_indent_deeper",
+        "next_indent_equals_body",
+        "next_on_body_line",
+        "blank_line_before_next",
+        "next_uses_body_writes",
+        "next_is_exit",
+        "next_is_closing"
+      ],
+      "counts": {
+        "fit_rows": 2264,
+        "fit_positives": 411,
+        "test_rows": 402,
+        "test_positives": 58,
+        "test_negatives_from_correct_code": 344,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9534,
+            "recall": 0.8954,
+            "f1": 0.9235,
+            "flagged": 386,
+            "positives": 411,
+            "rows": 2264,
+            "average_precision": 0.9427
+          },
+          "threshold": 0.4317,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9946,
+            "recall": 0.8929,
+            "f1": 0.941,
+            "flagged": 369,
+            "positives": 411,
+            "rows": 2264,
+            "average_precision": 0.9424
+          },
+          "threshold": 0.413,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9576,
+            "recall": 0.8783,
+            "f1": 0.9162,
+            "flagged": 377,
+            "positives": 411,
+            "rows": 2264,
+            "average_precision": 0.9323
+          },
+          "threshold": 0.4296,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__misleading_indentation_no_braces.joblib",
+        "threshold": 0.4317,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0047
+      },
+      "test": {
+        "model": {
+          "precision": 0.9153,
+          "recall": 0.931,
+          "f1": 0.9231,
+          "flagged": 59,
+          "positives": 58,
+          "rows": 402,
+          "average_precision": 0.9619
+        },
+        "proposer_baseline": {
+          "precision": 0.1443,
+          "recall": 1.0,
+          "f1": 0.2522,
+          "flagged": 402,
+          "positives": 58,
+          "rows": 402
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 0.9138,
+          "f1": 0.955,
+          "flagged": 53,
+          "positives": 58,
+          "rows": 402
+        },
+        "false_alarm_rate_on_original": 0.0145
+      },
+      "top_features": [
+        [
+          "next_indent_deeper",
+          2.3641
+        ],
+        [
+          "body_on_own_line",
+          1.0623
+        ],
+        [
+          "kind_else",
+          0.8962
+        ],
+        [
+          "next_indent_equals_body",
+          0.8699
+        ],
+        [
+          "next_on_body_line",
+          0.8688
+        ],
+        [
+          "blank_line_before_next",
+          0.8265
+        ]
+      ]
+    },
+    "NON_SHORT_CIRCUIT_OPERATOR": {
+      "error_type": "NON_SHORT_CIRCUIT_OPERATOR",
+      "features": [
+        "op_and",
+        "left_null_check",
+        "left_bounds_check",
+        "left_nonzero_check",
+        "right_derefs_checked_var",
+        "right_indexes_with_left_var",
+        "right_divides_by_left_var",
+        "right_has_call",
+        "right_has_side_effect",
+        "right_has_index",
+        "shared_identifiers",
+        "both_simple_comparisons",
+        "in_condition",
+        "checked_var_guarded_before"
+      ],
+      "counts": {
+        "fit_rows": 1543,
+        "fit_positives": 812,
+        "test_rows": 260,
+        "test_positives": 122,
+        "test_negatives_from_correct_code": 0,
+        "test_negatives_from_equivalent_mutants": 138
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9429,
+            "recall": 0.8547,
+            "f1": 0.8966,
+            "flagged": 736,
+            "positives": 812,
+            "rows": 1543,
+            "average_precision": 0.9269
+          },
+          "threshold": 0.8314,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9519,
+            "recall": 0.8781,
+            "f1": 0.9135,
+            "flagged": 749,
+            "positives": 812,
+            "rows": 1543,
+            "average_precision": 0.9413
+          },
+          "threshold": 0.8097,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9424,
+            "recall": 0.9261,
+            "f1": 0.9342,
+            "flagged": 798,
+            "positives": 812,
+            "rows": 1543,
+            "average_precision": 0.9258
+          },
+          "threshold": 0.8203,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__non_short_circuit_operator.joblib",
+        "threshold": 0.8097,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.1701
+      },
+      "test": {
+        "model": {
+          "precision": 0.9292,
+          "recall": 0.8607,
+          "f1": 0.8936,
+          "flagged": 113,
+          "positives": 122,
+          "rows": 260,
+          "average_precision": 0.931
+        },
+        "proposer_baseline": {
+          "precision": 0.4692,
+          "recall": 1.0,
+          "f1": 0.6387,
+          "flagged": 260,
+          "positives": 122,
+          "rows": 260
+        },
+        "rule_baseline": {
+          "precision": 0.4692,
+          "recall": 1.0,
+          "f1": 0.6387,
+          "flagged": 260,
+          "positives": 122,
+          "rows": 260
+        },
+        "false_alarm_rate_on_equivalent_mutant": 0.058
+      },
+      "top_features": [
+        [
+          "right_derefs_checked_var",
+          0.3118
+        ],
+        [
+          "left_null_check",
+          0.2074
+        ],
+        [
+          "shared_identifiers",
+          0.1582
+        ],
+        [
+          "op_and",
+          0.1294
+        ],
+        [
+          "right_has_call",
+          0.0873
+        ],
+        [
+          "right_indexes_with_left_var",
+          0.0289
+        ]
+      ]
+    }
+  },
+  "selected": {
+    "LOOP_SKIPS_LAST_ELEMENT": {
+      "model_file": "logic__loop_skips_last_element.joblib",
+      "threshold": 0.6253,
+      "family": "logistic_regression"
+    },
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+      "model_file": "logic__index_plus_one_out_of_bounds.joblib",
+      "threshold": 0.6255,
+      "family": "random_forest"
+    },
+    "WRONG_LOOP_VARIABLE_IN_INDEX": {
+      "model_file": "logic__wrong_loop_variable_in_index.joblib",
+      "threshold": 0.5614,
+      "family": "logistic_regression"
+    },
+    "NESTED_LOOP_WRONG_COUNTER": {
+      "model_file": "logic__nested_loop_wrong_counter.joblib",
+      "threshold": 0.0126,
+      "family": "gradient_boosting"
+    },
+    "LOOP_COUNTER_CHANGED_IN_BODY": {
+      "model_file": "logic__loop_counter_changed_in_body.joblib",
+      "threshold": 0.3399,
+      "family": "random_forest"
+    },
+    "ACCUMULATOR_RESET_INSIDE_LOOP": {
+      "model_file": "logic__accumulator_reset_inside_loop.joblib",
+      "threshold": 0.2887,
+      "family": "random_forest"
+    },
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "model_file": "logic__wrong_extreme_initial_value.joblib",
+      "threshold": 0.339,
+      "family": "logistic_regression"
+    },
+    "EARLY_RETURN_IN_LOOP": {
+      "model_file": "logic__early_return_in_loop.joblib",
+      "threshold": 0.2354,
+      "family": "logistic_regression"
+    },
+    "UNREACHABLE_ELSE_IF_ORDER": {
+      "model_file": "logic__unreachable_else_if_order.joblib",
+      "threshold": 0.3782,
+      "family": "random_forest"
+    },
+    "MISLEADING_INDENTATION_NO_BRACES": {
+      "model_file": "logic__misleading_indentation_no_braces.joblib",
+      "threshold": 0.4317,
+      "family": "logistic_regression"
+    },
+    "NON_SHORT_CIRCUIT_OPERATOR": {
+      "model_file": "logic__non_short_circuit_operator.joblib",
+      "threshold": 0.8097,
+      "family": "random_forest"
+    }
+  },
+  "precision_target": 0.95
+}
