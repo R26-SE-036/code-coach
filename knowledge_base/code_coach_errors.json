@@ -103,8 +103,8 @@
     "explanation_key": "integer_division_by_zero",
     "hints": {
       "concept": "Dividing an integer by zero is not a number Java can produce; it stops the program instead.",
-      "guidance": "Look at the value on the right side of this division or modulo operation.",
-      "targeted": "Check whether the divisor here should be something other than 0."
+      "guidance": "Look at the value on the right side of this division or modulo operation, and ask whether it can ever be 0 when this line runs.",
+      "targeted": "Check whether the divisor here can be 0 - and what the code should do when it is."
     }
   },
   "CONSTANT_FALSE_LOOP_CONDITION": {

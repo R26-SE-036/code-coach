@@ -167,7 +167,7 @@ class TemplateCoverageTests(unittest.TestCase):
                 findings = findings_for(error_type)
                 self.assertTrue(findings, f"the {error_type} sample is not found by its locator")
                 supplied = {key for key, value in findings[0].details.items() if value}
-                self.assertLessEqual(template_fields(TARGETED_HINT_TEMPLATES[error_type]), supplied)
+                self.assertTrue(any(template_fields(t) <= supplied for t in TARGETED_HINT_TEMPLATES[error_type]))
 
     def test_the_targeted_hint_quotes_the_students_code(self) -> None:
         for error_type in ERROR_CATALOG:

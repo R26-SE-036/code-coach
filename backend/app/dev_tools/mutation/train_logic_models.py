@@ -16,8 +16,11 @@ For each type's corpus (build_mutation_corpus.py):
 
 Two baselines are scored on the same test rows, for the thesis comparison:
   - "proposer": flag every candidate (what a pattern-only rule does), and
-  - "rule": a hand-written rule over the same features, the best a rule
-    author could reasonably write without seeing the data.
+  - "rule": for the thirteen types that had a detector before, exactly that
+    detector (the rule, behind the old file-level gate where there was one -
+    the corpus builder records its verdict per row as `legacy_flag`); for the
+    eleven new types, a hand-written rule over the same features, the best a
+    rule author could reasonably write without seeing the data.
 
 USAGE (from backend/)   python -m app.dev_tools.mutation.train_logic_models
 OUTPUT  backend/models/logic__<type>.joblib
@@ -49,7 +52,7 @@ from app.dev_tools.mutation.java_runner import PROJECT_ROOT
 
 CAND_DIR = PROJECT_ROOT / "data" / "ml" / "mutation" / "candidates"
 MODELS_DIR = PROJECT_ROOT / "backend" / "models"
-META = {"group", "unit", "split", "origin", "line", "label"}
+META = {"group", "unit", "split", "origin", "line", "label", "legacy_flag", "span_start", "span_end"}
 PRECISION_TARGET = 0.95
 MIN_RECALL = 0.75
 
@@ -127,7 +130,10 @@ def choose_threshold(scores: np.ndarray, labels: np.ndarray) -> tuple[float, str
             continue
         precision = float(labels[predicted].mean())
         recall = float(predicted[labels == 1].mean()) if positives else 0.0
-        if precision >= PRECISION_TARGET and recall > best_recall:
+        # `>=`: of the thresholds that catch the most bugs, the highest - the
+        # one with the fewest wrong underlines. Taking the lowest let a model
+        # whose recall saturates early sit at 0.01 and flag everything near it.
+        if precision >= PRECISION_TARGET and recall >= best_recall:
             best_recall, strict = recall, float(threshold)
         score = _f_half(precision, recall)
         if score > best_half:
@@ -193,6 +199,8 @@ def train_type(error_type: str) -> dict | None:
     test_scores = model.predict_proba(x_test)[:, 1] if len(x_test) else np.array([])
     latency = (time.perf_counter() - start) * 1000 / max(1, len(x_test))
     model_file = f"logic__{error_type.lower()}.joblib"
+    if hasattr(model, "n_jobs"):
+        model.n_jobs = 1  # parallel to train, single-threaded to serve
     joblib.dump(model, MODELS_DIR / model_file)
 
     record["selected"] = {
@@ -203,10 +211,17 @@ def train_type(error_type: str) -> dict | None:
         "latency_ms_per_candidate": round(latency, 4),
     }
     if len(x_test):
+        legacy = test_frame["legacy_flag"] if "legacy_flag" in test_frame else pd.Series(dtype=float)
+        if legacy.notna().any():
+            rule_flags = legacy.fillna(0).astype(int).to_numpy().astype(bool)
+            record["rule_baseline_is"] = "the detector this type had before (rule, behind its file-level gate if it had one)"
+        else:
+            rule_flags = RULES[error_type](x_test).to_numpy().astype(bool)
+            record["rule_baseline_is"] = "a hand-written rule over the same features"
         record["test"] = {
             "model": _metrics(y_test, test_scores >= threshold, test_scores),
             "proposer_baseline": _metrics(y_test, np.ones(len(y_test), dtype=bool)),
-            "rule_baseline": _metrics(y_test, RULES[error_type](x_test).to_numpy().astype(bool)),
+            "rule_baseline": _metrics(y_test, rule_flags),
         }
         negatives = test_frame["label"] == 0
         for origin in ("original", "equivalent_mutant"):
@@ -233,8 +248,9 @@ def main() -> None:
     parser.add_argument("--types", default="")
     args = parser.parse_args()
     from app.analysis.logic_candidates import PROPOSERS
+    from app.analysis.promoted_candidates import PROMOTED_PROPOSERS
 
-    types = [t for t in args.types.split(",") if t] or list(PROPOSERS)
+    types = [t for t in args.types.split(",") if t] or [*PROPOSERS, *PROMOTED_PROPOSERS]
     calibration_path = MODELS_DIR / "logic_calibration_v1.json"
     existing = json.loads(calibration_path.read_text(encoding="utf-8")) if calibration_path.exists() else {"results": {}, "selected": {}}
 
@@ -261,15 +277,16 @@ def main() -> None:
         writer = csv.writer(handle)
         writer.writerow(["error_type", "family", "threshold", "precision_target_reached", "test_rows", "test_positives",
                          "model_precision", "model_recall", "model_f1", "model_average_precision",
-                         "rule_precision", "rule_recall", "rule_f1", "proposer_precision"])
+                         "baseline", "rule_precision", "rule_recall", "rule_f1", "proposer_precision"])
         for error_type, record in sorted(existing["results"].items()):
             if "selected" not in record or "test" not in record:
                 continue
             m, r, p = record["test"]["model"], record["test"]["rule_baseline"], record["test"]["proposer_baseline"]
+            baseline = "previous detector" if str(record.get("rule_baseline_is", "")).startswith("the detector") else "hand-written rule"
             writer.writerow([error_type, record["selected"]["family"], record["selected"]["threshold"],
                              record["selected"]["precision_target_reached"], m["rows"], m["positives"],
                              m["precision"], m["recall"], m["f1"], m.get("average_precision", ""),
-                             r["precision"], r["recall"], r["f1"], p["precision"]])
+                             baseline, r["precision"], r["recall"], r["f1"], p["precision"]])
 
 
 if __name__ == "__main__":

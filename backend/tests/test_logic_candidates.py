@@ -102,7 +102,9 @@ def types_found(code: str) -> set:
 class ContractTests(unittest.TestCase):
     def test_thirty_types_all_validated(self) -> None:
         self.assertEqual(len(ERROR_CATALOG), 30)
-        self.assertEqual(sum(1 for s in ERROR_CATALOG.values() if s.detection_mode == "candidate_ml"), 11)
+        # The eleven here plus the thirteen moved off rules and gates
+        # (test_promoted_candidates.py).
+        self.assertEqual(sum(1 for s in ERROR_CATALOG.values() if s.detection_mode == "candidate_ml"), 24)
         validate_catalog()
 
     def test_every_type_maps_to_an_existing_concept_tag(self) -> None:

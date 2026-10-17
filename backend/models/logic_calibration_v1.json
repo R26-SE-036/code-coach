@@ -22,117 +22,119 @@
         "body_statement_count",
         "var_uses_in_body",
         "target_is_string",
-        "inner_loop_starts_after_var"
+        "inner_loop_starts_after_var",
+        "var_only_in_inner_bounds"
       ],
       "counts": {
-        "fit_rows": 1059,
-        "fit_positives": 846,
-        "test_rows": 156,
-        "test_positives": 128,
-        "test_negatives_from_correct_code": 8,
-        "test_negatives_from_equivalent_mutants": 20
+        "fit_rows": 1495,
+        "fit_positives": 1192,
+        "test_rows": 235,
+        "test_positives": 179,
+        "test_negatives_from_correct_code": 24,
+        "test_negatives_from_equivalent_mutants": 32
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9529,
-            "recall": 0.7896,
-            "f1": 0.8636,
-            "flagged": 701,
-            "positives": 846,
-            "rows": 1059,
-            "average_precision": 0.9661
+            "precision": 0.9501,
+            "recall": 0.8792,
+            "f1": 0.9133,
+            "flagged": 1103,
+            "positives": 1192,
+            "rows": 1495,
+            "average_precision": 0.9626
           },
-          "threshold": 0.6253,
+          "threshold": 0.6028,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9514,
-            "recall": 0.9492,
-            "f1": 0.9503,
-            "flagged": 844,
-            "positives": 846,
-            "rows": 1059,
-            "average_precision": 0.9626
+            "precision": 0.9503,
+            "recall": 0.9471,
+            "f1": 0.9487,
+            "flagged": 1188,
+            "positives": 1192,
+            "rows": 1495,
+            "average_precision": 0.9774
           },
-          "threshold": 0.5475,
+          "threshold": 0.5371,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9505,
-            "recall": 0.9314,
-            "f1": 0.9409,
-            "flagged": 829,
-            "positives": 846,
-            "rows": 1059,
-            "average_precision": 0.9513
+            "precision": 0.952,
+            "recall": 0.9153,
+            "f1": 0.9333,
+            "flagged": 1146,
+            "positives": 1192,
+            "rows": 1495,
+            "average_precision": 0.9636
           },
-          "threshold": 0.5132,
+          "threshold": 0.5043,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "logistic_regression",
+        "family": "random_forest",
         "model_file": "logic__loop_skips_last_element.joblib",
-        "threshold": 0.6253,
+        "threshold": 0.5371,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.01
+        "latency_ms_per_candidate": 0.1875
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9905,
-          "recall": 0.8125,
-          "f1": 0.8927,
-          "flagged": 105,
-          "positives": 128,
-          "rows": 156,
-          "average_precision": 0.9902
+          "precision": 0.9344,
+          "recall": 0.9553,
+          "f1": 0.9448,
+          "flagged": 183,
+          "positives": 179,
+          "rows": 235,
+          "average_precision": 0.9888
         },
         "proposer_baseline": {
-          "precision": 0.8205,
+          "precision": 0.7617,
           "recall": 1.0,
-          "f1": 0.9014,
-          "flagged": 156,
-          "positives": 128,
-          "rows": 156
+          "f1": 0.8647,
+          "flagged": 235,
+          "positives": 179,
+          "rows": 235
         },
         "rule_baseline": {
-          "precision": 0.8533,
-          "recall": 1.0,
-          "f1": 0.9209,
-          "flagged": 150,
-          "positives": 128,
-          "rows": 156
+          "precision": 0.8091,
+          "recall": 0.9944,
+          "f1": 0.8922,
+          "flagged": 220,
+          "positives": 179,
+          "rows": 235
         },
         "false_alarm_rate_on_original": 0.0,
-        "false_alarm_rate_on_equivalent_mutant": 0.05
+        "false_alarm_rate_on_equivalent_mutant": 0.375
       },
       "top_features": [
         [
           "body_uses_next",
-          2.246
+          0.2003
         ],
         [
           "inner_loop_starts_after_var",
-          1.5309
+          0.198
         ],
         [
-          "target_is_string",
-          0.7118
-        ],
-        [
-          "compares_neighbours",
-          0.6379
-        ],
-        [
-          "init_is_zero",
-          0.5675
+          "var_uses_in_body",
+          0.1057
         ],
         [
           "method_name_neighbour",
-          0.3978
+          0.0842
+        ],
+        [
+          "body_statement_count",
+          0.0758
+        ],
+        [
+          "var_only_in_inner_bounds",
+          0.0507
         ]
       ]
     },
@@ -155,118 +157,96 @@
         "collection_is_string",
         "nested_in_loop",
         "body_has_break",
-        "body_also_uses_var_plain"
+        "body_also_uses_var_plain",
+        "condition_adds_to_var",
+        "first_pass_below_zero"
       ],
       "counts": {
-        "fit_rows": 426,
-        "fit_positives": 181,
-        "test_rows": 43,
-        "test_positives": 16,
-        "test_negatives_from_correct_code": 27,
+        "fit_rows": 704,
+        "fit_positives": 282,
+        "test_rows": 128,
+        "test_positives": 49,
+        "test_negatives_from_correct_code": 79,
         "test_negatives_from_equivalent_mutants": 0
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.7702,
-            "recall": 1.0,
-            "f1": 0.8702,
-            "flagged": 235,
-            "positives": 181,
-            "rows": 426,
-            "average_precision": 0.8215
+            "precision": 0.9614,
+            "recall": 0.7943,
+            "f1": 0.8699,
+            "flagged": 233,
+            "positives": 282,
+            "rows": 704,
+            "average_precision": 0.9611
           },
-          "threshold": 0.4819,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.9115,
+          "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.7834,
-            "recall": 0.9392,
-            "f1": 0.8543,
-            "flagged": 217,
-            "positives": 181,
-            "rows": 426,
-            "average_precision": 0.9022
+            "precision": 0.951,
+            "recall": 0.9645,
+            "f1": 0.9577,
+            "flagged": 286,
+            "positives": 282,
+            "rows": 704,
+            "average_precision": 0.9805
           },
-          "threshold": 0.6255,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.7778,
+          "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 1.0,
-            "recall": 0.4862,
-            "f1": 0.6543,
-            "flagged": 88,
-            "positives": 181,
-            "rows": 426,
-            "average_precision": 0.9015
+            "precision": 0.9573,
+            "recall": 0.9539,
+            "f1": 0.9556,
+            "flagged": 281,
+            "positives": 282,
+            "rows": 704,
+            "average_precision": 0.9844
           },
-          "threshold": 0.9288,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.9021,
+          "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "random_forest",
+        "family": "gradient_boosting",
         "model_file": "logic__index_plus_one_out_of_bounds.joblib",
-        "threshold": 0.6255,
-        "precision_target_reached": "f0.5",
-        "latency_ms_per_candidate": 1.276
+        "threshold": 0.9021,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0493
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.8421,
-          "recall": 1.0,
-          "f1": 0.9143,
-          "flagged": 19,
-          "positives": 16,
-          "rows": 43,
-          "average_precision": 0.9803
+          "precision": 1.0,
+          "recall": 0.898,
+          "f1": 0.9462,
+          "flagged": 44,
+          "positives": 49,
+          "rows": 128,
+          "average_precision": 0.994
         },
         "proposer_baseline": {
-          "precision": 0.3721,
+          "precision": 0.3828,
           "recall": 1.0,
-          "f1": 0.5424,
-          "flagged": 43,
-          "positives": 16,
-          "rows": 43
+          "f1": 0.5537,
+          "flagged": 128,
+          "positives": 49,
+          "rows": 128
         },
         "rule_baseline": {
           "precision": 1.0,
-          "recall": 0.5,
-          "f1": 0.6667,
-          "flagged": 8,
-          "positives": 16,
-          "rows": 43
+          "recall": 0.5306,
+          "f1": 0.6933,
+          "flagged": 26,
+          "positives": 49,
+          "rows": 128
         },
-        "false_alarm_rate_on_original": 0.1111
+        "false_alarm_rate_on_original": 0.0
       },
-      "top_features": [
-        [
-          "slack_negative",
-          0.4939
-        ],
-        [
-          "bound_minus_k",
-          0.175
-        ],
-        [
-          "init_is_zero",
-          0.0949
-        ],
-        [
-          "offset_positive",
-          0.0911
-        ],
-        [
-          "init_is_one",
-          0.0604
-        ],
-        [
-          "guarded",
-          0.0359
-        ]
-      ]
+      "top_features": []
     },
     "WRONG_LOOP_VARIABLE_IN_INDEX": {
       "error_type": "WRONG_LOOP_VARIABLE_IN_INDEX",
@@ -285,116 +265,92 @@
         "loop_depth"
       ],
       "counts": {
-        "fit_rows": 378,
-        "fit_positives": 247,
-        "test_rows": 60,
-        "test_positives": 39,
-        "test_negatives_from_correct_code": 18,
-        "test_negatives_from_equivalent_mutants": 3
+        "fit_rows": 575,
+        "fit_positives": 418,
+        "test_rows": 97,
+        "test_positives": 59,
+        "test_negatives_from_correct_code": 26,
+        "test_negatives_from_equivalent_mutants": 12
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9522,
-            "recall": 0.8866,
-            "f1": 0.9182,
-            "flagged": 230,
-            "positives": 247,
-            "rows": 378,
-            "average_precision": 0.9852
+            "precision": 0.9536,
+            "recall": 0.8852,
+            "f1": 0.9181,
+            "flagged": 388,
+            "positives": 418,
+            "rows": 575,
+            "average_precision": 0.9745
           },
-          "threshold": 0.5614,
+          "threshold": 0.4785,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9551,
-            "recall": 0.9474,
-            "f1": 0.9512,
-            "flagged": 245,
-            "positives": 247,
-            "rows": 378,
-            "average_precision": 0.9825
+            "precision": 0.9632,
+            "recall": 0.9402,
+            "f1": 0.9516,
+            "flagged": 408,
+            "positives": 418,
+            "rows": 575,
+            "average_precision": 0.9823
           },
-          "threshold": 0.4507,
+          "threshold": 0.4608,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.953,
-            "recall": 0.9028,
-            "f1": 0.9272,
-            "flagged": 234,
-            "positives": 247,
-            "rows": 378,
-            "average_precision": 0.967
+            "precision": 0.9581,
+            "recall": 0.9306,
+            "f1": 0.9442,
+            "flagged": 406,
+            "positives": 418,
+            "rows": 575,
+            "average_precision": 0.9836
           },
-          "threshold": 0.5171,
+          "threshold": 0.3894,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "logistic_regression",
+        "family": "gradient_boosting",
         "model_file": "logic__wrong_loop_variable_in_index.joblib",
-        "threshold": 0.5614,
+        "threshold": 0.3894,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.0231
+        "latency_ms_per_candidate": 0.06
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9655,
-          "recall": 0.7179,
-          "f1": 0.8235,
-          "flagged": 29,
-          "positives": 39,
-          "rows": 60,
-          "average_precision": 0.9369
+          "precision": 0.8667,
+          "recall": 0.8814,
+          "f1": 0.8739,
+          "flagged": 60,
+          "positives": 59,
+          "rows": 97,
+          "average_precision": 0.9262
         },
         "proposer_baseline": {
-          "precision": 0.65,
+          "precision": 0.6082,
           "recall": 1.0,
-          "f1": 0.7879,
-          "flagged": 60,
-          "positives": 39,
-          "rows": 60
+          "f1": 0.7564,
+          "flagged": 97,
+          "positives": 59,
+          "rows": 97
         },
         "rule_baseline": {
-          "precision": 0.9545,
-          "recall": 0.5385,
-          "f1": 0.6885,
-          "flagged": 22,
-          "positives": 39,
-          "rows": 60
+          "precision": 0.9444,
+          "recall": 0.5763,
+          "f1": 0.7158,
+          "flagged": 36,
+          "positives": 59,
+          "rows": 97
         },
         "false_alarm_rate_on_original": 0.0,
-        "false_alarm_rate_on_equivalent_mutant": 0.3333
+        "false_alarm_rate_on_equivalent_mutant": 0.6667
       },
-      "top_features": [
-        [
-          "outer_uses_in_inner_body",
-          2.0569
-        ],
-        [
-          "inner_uses_in_inner_body",
-          1.8567
-        ],
-        [
-          "same_collection_indexed_with_inner",
-          1.5915
-        ],
-        [
-          "inner_bound_is_this_collection",
-          1.1861
-        ],
-        [
-          "kind_repeated_2d",
-          0.6034
-        ],
-        [
-          "kind_outer_index",
-          0.6034
-        ]
-      ]
+      "top_features": []
     },
     "NESTED_LOOP_WRONG_COUNTER": {
       "error_type": "NESTED_LOOP_WRONG_COUNTER",
@@ -413,88 +369,90 @@
         "body_has_break"
       ],
       "counts": {
-        "fit_rows": 447,
-        "fit_positives": 418,
-        "test_rows": 55,
-        "test_positives": 52,
+        "fit_rows": 647,
+        "fit_positives": 619,
+        "test_rows": 97,
+        "test_positives": 92,
         "test_negatives_from_correct_code": 3,
-        "test_negatives_from_equivalent_mutants": 0
+        "test_negatives_from_equivalent_mutants": 2
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9654,
+            "precision": 0.9872,
             "recall": 1.0,
-            "f1": 0.9824,
-            "flagged": 433,
-            "positives": 418,
-            "rows": 447,
-            "average_precision": 0.994
+            "f1": 0.9936,
+            "flagged": 627,
+            "positives": 619,
+            "rows": 647,
+            "average_precision": 0.9931
           },
-          "threshold": 0.0015,
+          "threshold": 0.0017,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.95,
+            "precision": 0.9904,
             "recall": 1.0,
-            "f1": 0.9744,
-            "flagged": 440,
-            "positives": 418,
-            "rows": 447,
-            "average_precision": 0.9948
+            "f1": 0.9952,
+            "flagged": 625,
+            "positives": 619,
+            "rows": 647,
+            "average_precision": 0.9877
           },
-          "threshold": 0.0056,
+          "threshold": 0.019,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9522,
+            "precision": 0.9904,
             "recall": 1.0,
-            "f1": 0.9755,
-            "flagged": 439,
-            "positives": 418,
-            "rows": 447,
-            "average_precision": 0.995
+            "f1": 0.9952,
+            "flagged": 625,
+            "positives": 619,
+            "rows": 647,
+            "average_precision": 0.994
           },
-          "threshold": 0.0126,
+          "threshold": 0.4271,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
         "family": "gradient_boosting",
         "model_file": "logic__nested_loop_wrong_counter.joblib",
-        "threshold": 0.0126,
+        "threshold": 0.4271,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.1143
+        "latency_ms_per_candidate": 0.0544
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 1.0,
+          "precision": 0.9787,
           "recall": 1.0,
-          "f1": 1.0,
-          "flagged": 52,
-          "positives": 52,
-          "rows": 55,
-          "average_precision": 1.0
+          "f1": 0.9892,
+          "flagged": 94,
+          "positives": 92,
+          "rows": 97,
+          "average_precision": 0.9981
         },
         "proposer_baseline": {
-          "precision": 0.9455,
+          "precision": 0.9485,
           "recall": 1.0,
-          "f1": 0.972,
-          "flagged": 55,
-          "positives": 52,
-          "rows": 55
+          "f1": 0.9735,
+          "flagged": 97,
+          "positives": 92,
+          "rows": 97
         },
         "rule_baseline": {
-          "precision": 1.0,
+          "precision": 0.9787,
           "recall": 1.0,
-          "f1": 1.0,
-          "flagged": 52,
-          "positives": 52,
-          "rows": 55
+          "f1": 0.9892,
+          "flagged": 94,
+          "positives": 92,
+          "rows": 97
         },
-        "false_alarm_rate_on_original": 0.0
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
       },
       "top_features": []
     },
@@ -517,114 +475,115 @@
         "reads_var_after_write"
       ],
       "counts": {
-        "fit_rows": 1753,
-        "fit_positives": 1464,
-        "test_rows": 247,
-        "test_positives": 196,
+        "fit_rows": 2407,
+        "fit_positives": 2054,
+        "test_rows": 367,
+        "test_positives": 296,
         "test_negatives_from_correct_code": 15,
-        "test_negatives_from_equivalent_mutants": 36
+        "test_negatives_from_equivalent_mutants": 56
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.8873,
-            "recall": 0.9898,
-            "f1": 0.9357,
-            "flagged": 1633,
-            "positives": 1464,
-            "rows": 1753,
-            "average_precision": 0.9097
+            "precision": 0.8886,
+            "recall": 0.9791,
+            "f1": 0.9317,
+            "flagged": 2263,
+            "positives": 2054,
+            "rows": 2407,
+            "average_precision": 0.8897
           },
-          "threshold": 0.3725,
+          "threshold": 0.3492,
           "precision_target_reached": "f0.5"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.8856,
-            "recall": 0.9891,
-            "f1": 0.9345,
-            "flagged": 1635,
-            "positives": 1464,
-            "rows": 1753,
-            "average_precision": 0.9153
+            "precision": 0.886,
+            "recall": 0.999,
+            "f1": 0.9391,
+            "flagged": 2316,
+            "positives": 2054,
+            "rows": 2407,
+            "average_precision": 0.9176
           },
-          "threshold": 0.3399,
+          "threshold": 0.3043,
           "precision_target_reached": "f0.5"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.8774,
-            "recall": 0.9822,
-            "f1": 0.9268,
-            "flagged": 1639,
-            "positives": 1464,
-            "rows": 1753,
-            "average_precision": 0.9129
+            "precision": 0.8804,
+            "recall": 0.9961,
+            "f1": 0.9347,
+            "flagged": 2324,
+            "positives": 2054,
+            "rows": 2407,
+            "average_precision": 0.9127
           },
-          "threshold": 0.3043,
+          "threshold": 0.2662,
           "precision_target_reached": "f0.5"
         }
       },
       "selected": {
         "family": "random_forest",
         "model_file": "logic__loop_counter_changed_in_body.joblib",
-        "threshold": 0.3399,
+        "threshold": 0.3043,
         "precision_target_reached": "f0.5",
-        "latency_ms_per_candidate": 0.2357
+        "latency_ms_per_candidate": 0.2993
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.8655,
-          "recall": 0.9847,
-          "f1": 0.9212,
-          "flagged": 223,
-          "positives": 196,
-          "rows": 247,
-          "average_precision": 0.9162
+          "precision": 0.853,
+          "recall": 1.0,
+          "f1": 0.9207,
+          "flagged": 347,
+          "positives": 296,
+          "rows": 367,
+          "average_precision": 0.8794
         },
         "proposer_baseline": {
-          "precision": 0.7935,
+          "precision": 0.8065,
           "recall": 1.0,
-          "f1": 0.8849,
-          "flagged": 247,
-          "positives": 196,
-          "rows": 247
+          "f1": 0.8929,
+          "flagged": 367,
+          "positives": 296,
+          "rows": 367
         },
         "rule_baseline": {
-          "precision": 0.8704,
-          "recall": 0.7194,
-          "f1": 0.7877,
-          "flagged": 162,
-          "positives": 196,
-          "rows": 247
+          "precision": 0.8588,
+          "recall": 0.7399,
+          "f1": 0.7949,
+          "flagged": 255,
+          "positives": 296,
+          "rows": 367
         },
         "false_alarm_rate_on_original": 0.0,
-        "false_alarm_rate_on_equivalent_mutant": 0.8333
+        "false_alarm_rate_on_equivalent_mutant": 0.9107
       },
       "top_features": [
         [
-          "if_condition_looks_ahead",
-          0.2646
+          "body_statement_count",
+          0.2365
         ],
         [
-          "body_statement_count",
-          0.1781
+          "if_condition_looks_ahead",
+          0.1673
         ],
         [
           "write_conditional",
-          0.0998
+          0.1477
         ],
         [
-          "write_in_inner_loop",
-          0.0732
-        ],
-        [
-          "body_looks_ahead",
-          0.0712
+          "write_is_last_statement",
+          0.0643
         ],
         [
           "same_direction",
-          0.0691
+          0.0627
+        ],
+        [
+          "write_in_inner_loop",
+          0.0579
         ]
       ]
     },
@@ -649,86 +608,87 @@
         "update_count"
       ],
       "counts": {
-        "fit_rows": 1206,
-        "fit_positives": 926,
-        "test_rows": 192,
-        "test_positives": 153,
+        "fit_rows": 1748,
+        "fit_positives": 1421,
+        "test_rows": 268,
+        "test_positives": 219,
         "test_negatives_from_correct_code": 23,
-        "test_negatives_from_equivalent_mutants": 16
+        "test_negatives_from_equivalent_mutants": 26
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9177,
-            "recall": 1.0,
-            "f1": 0.9571,
-            "flagged": 1009,
-            "positives": 926,
-            "rows": 1206,
-            "average_precision": 0.9384
+            "precision": 0.9197,
+            "recall": 0.9993,
+            "f1": 0.9578,
+            "flagged": 1544,
+            "positives": 1421,
+            "rows": 1748,
+            "average_precision": 0.9452
           },
-          "threshold": 0.1671,
+          "threshold": 0.2694,
           "precision_target_reached": "f0.5"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9168,
+            "precision": 0.9191,
             "recall": 1.0,
-            "f1": 0.9566,
-            "flagged": 1010,
-            "positives": 926,
-            "rows": 1206,
-            "average_precision": 0.9486
+            "f1": 0.9579,
+            "flagged": 1546,
+            "positives": 1421,
+            "rows": 1748,
+            "average_precision": 0.9509
           },
-          "threshold": 0.2887,
+          "threshold": 0.3623,
           "precision_target_reached": "f0.5"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9177,
-            "recall": 1.0,
-            "f1": 0.9571,
-            "flagged": 1009,
-            "positives": 926,
-            "rows": 1206,
-            "average_precision": 0.9398
+            "precision": 0.9233,
+            "recall": 0.9993,
+            "f1": 0.9598,
+            "flagged": 1538,
+            "positives": 1421,
+            "rows": 1748,
+            "average_precision": 0.9444
           },
-          "threshold": 0.0039,
+          "threshold": 0.236,
           "precision_target_reached": "f0.5"
         }
       },
       "selected": {
         "family": "random_forest",
         "model_file": "logic__accumulator_reset_inside_loop.joblib",
-        "threshold": 0.2887,
+        "threshold": 0.3623,
         "precision_target_reached": "f0.5",
-        "latency_ms_per_candidate": 0.2995
+        "latency_ms_per_candidate": 0.3405
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9053,
+          "precision": 0.8939,
           "recall": 1.0,
-          "f1": 0.9503,
-          "flagged": 169,
-          "positives": 153,
-          "rows": 192,
-          "average_precision": 0.941
+          "f1": 0.944,
+          "flagged": 245,
+          "positives": 219,
+          "rows": 268,
+          "average_precision": 0.9444
         },
         "proposer_baseline": {
-          "precision": 0.7969,
+          "precision": 0.8172,
           "recall": 1.0,
-          "f1": 0.887,
-          "flagged": 192,
-          "positives": 153,
-          "rows": 192
+          "f1": 0.8994,
+          "flagged": 268,
+          "positives": 219,
+          "rows": 268
         },
         "rule_baseline": {
-          "precision": 0.9053,
+          "precision": 0.8939,
           "recall": 1.0,
-          "f1": 0.9503,
-          "flagged": 169,
-          "positives": 153,
-          "rows": 192
+          "f1": 0.944,
+          "flagged": 245,
+          "positives": 219,
+          "rows": 268
         },
         "false_alarm_rate_on_original": 0.0,
         "false_alarm_rate_on_equivalent_mutant": 1.0
@@ -736,27 +696,27 @@
       "top_features": [
         [
           "reset_is_first_statement",
-          0.2597
+          0.2456
         ],
         [
           "declared_before_loop",
-          0.137
-        ],
-        [
-          "reset_conditional",
-          0.107
-        ],
-        [
-          "is_declaration",
-          0.0964
+          0.135
         ],
         [
           "update_in_same_loop",
-          0.0931
+          0.0981
+        ],
+        [
+          "reset_conditional",
+          0.0957
+        ],
+        [
+          "is_declaration",
+          0.0949
         ],
         [
           "update_only_in_nested_loop",
-          0.0789
+          0.0766
         ]
       ]
     },
@@ -781,7 +741,7 @@
         "decimal_type"
       ],
       "counts": {
-        "fit_rows": 482,
+        "fit_rows": 483,
         "fit_positives": 208,
         "test_rows": 83,
         "test_positives": 39,
@@ -796,10 +756,10 @@
             "f1": 0.9765,
             "flagged": 218,
             "positives": 208,
-            "rows": 482,
-            "average_precision": 0.9988
+            "rows": 483,
+            "average_precision": 0.9965
           },
-          "threshold": 0.339,
+          "threshold": 0.3713,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
@@ -809,10 +769,10 @@
             "f1": 0.9765,
             "flagged": 218,
             "positives": 208,
-            "rows": 482,
-            "average_precision": 0.9988
+            "rows": 483,
+            "average_precision": 0.9983
           },
-          "threshold": 0.295,
+          "threshold": 0.362,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
@@ -822,20 +782,21 @@
             "f1": 0.9765,
             "flagged": 218,
             "positives": 208,
-            "rows": 482,
-            "average_precision": 0.9988
+            "rows": 483,
+            "average_precision": 0.994
           },
-          "threshold": 0.0115,
+          "threshold": 0.017,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "logistic_regression",
+        "family": "random_forest",
         "model_file": "logic__wrong_extreme_initial_value.joblib",
-        "threshold": 0.339,
+        "threshold": 0.362,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.0184
+        "latency_ms_per_candidate": 0.7956
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
           "precision": 0.9512,
@@ -844,7 +805,7 @@
           "flagged": 41,
           "positives": 39,
           "rows": 83,
-          "average_precision": 0.9635
+          "average_precision": 0.9393
         },
         "proposer_baseline": {
           "precision": 0.4699,
@@ -867,28 +828,28 @@
       },
       "top_features": [
         [
-          "compared_is_element",
-          2.7254
-        ],
-        [
           "init_zero",
-          2.5585
+          0.2523
         ],
         [
-          "constant_mismatch",
-          2.0757
+          "compared_is_element",
+          0.1948
         ],
         [
           "init_element",
-          1.9675
+          0.1878
         ],
         [
-          "init_max_constant",
-          0.8471
+          "constant_mismatch",
+          0.1104
         ],
         [
           "compared_is_counter",
-          0.7861
+          0.0866
+        ],
+        [
+          "init_min_constant",
+          0.034
         ]
       ]
     },
@@ -909,115 +870,91 @@
         "returns_loop_var"
       ],
       "counts": {
-        "fit_rows": 635,
-        "fit_positives": 582,
-        "test_rows": 86,
-        "test_positives": 83,
+        "fit_rows": 920,
+        "fit_positives": 900,
+        "test_rows": 144,
+        "test_positives": 141,
         "test_negatives_from_correct_code": 0,
         "test_negatives_from_equivalent_mutants": 3
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9246,
-            "recall": 0.9897,
-            "f1": 0.956,
-            "flagged": 623,
-            "positives": 582,
-            "rows": 635,
-            "average_precision": 0.9435
+            "precision": 0.9783,
+            "recall": 1.0,
+            "f1": 0.989,
+            "flagged": 920,
+            "positives": 900,
+            "rows": 920,
+            "average_precision": 0.9979
           },
-          "threshold": 0.2354,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.0302,
+          "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9206,
-            "recall": 0.9966,
-            "f1": 0.9571,
-            "flagged": 630,
-            "positives": 582,
-            "rows": 635,
-            "average_precision": 0.931
+            "precision": 0.9783,
+            "recall": 1.0,
+            "f1": 0.989,
+            "flagged": 920,
+            "positives": 900,
+            "rows": 920,
+            "average_precision": 0.9978
           },
-          "threshold": 0.245,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.0724,
+          "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9231,
-            "recall": 0.9897,
-            "f1": 0.9552,
-            "flagged": 624,
-            "positives": 582,
-            "rows": 635,
-            "average_precision": 0.9323
+            "precision": 0.9782,
+            "recall": 0.9967,
+            "f1": 0.9873,
+            "flagged": 917,
+            "positives": 900,
+            "rows": 920,
+            "average_precision": 0.998
           },
-          "threshold": 0.165,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.0223,
+          "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "logistic_regression",
+        "family": "gradient_boosting",
         "model_file": "logic__early_return_in_loop.joblib",
-        "threshold": 0.2354,
-        "precision_target_reached": "f0.5",
-        "latency_ms_per_candidate": 0.0151
+        "threshold": 0.0223,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.1061
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9647,
-          "recall": 0.988,
-          "f1": 0.9762,
-          "flagged": 85,
-          "positives": 83,
-          "rows": 86,
-          "average_precision": 0.9434
+          "precision": 0.9792,
+          "recall": 1.0,
+          "f1": 0.9895,
+          "flagged": 144,
+          "positives": 141,
+          "rows": 144,
+          "average_precision": 0.9973
         },
         "proposer_baseline": {
-          "precision": 0.9651,
+          "precision": 0.9792,
           "recall": 1.0,
-          "f1": 0.9822,
-          "flagged": 86,
-          "positives": 83,
-          "rows": 86
+          "f1": 0.9895,
+          "flagged": 144,
+          "positives": 141,
+          "rows": 144
         },
         "rule_baseline": {
-          "precision": 0.9651,
+          "precision": 0.9792,
           "recall": 1.0,
-          "f1": 0.9822,
-          "flagged": 86,
-          "positives": 83,
-          "rows": 86
+          "f1": 0.9895,
+          "flagged": 144,
+          "positives": 141,
+          "rows": 144
         },
         "false_alarm_rate_on_equivalent_mutant": 1.0
       },
-      "top_features": [
-        [
-          "opposite_booleans",
-          0.6552
-        ],
-        [
-          "loop_is_while",
-          0.4198
-        ],
-        [
-          "returns_literals",
-          0.4123
-        ],
-        [
-          "unconditional_return",
-          0.3145
-        ],
-        [
-          "both_branches_exit",
-          0.3145
-        ],
-        [
-          "method_returns_boolean",
-          0.1881
-        ]
-      ]
+      "top_features": []
     },
     "UNREACHABLE_ELSE_IF_ORDER": {
       "error_type": "UNREACHABLE_ELSE_IF_ORDER",
@@ -1038,61 +975,62 @@
         "has_equality_branch"
       ],
       "counts": {
-        "fit_rows": 527,
-        "fit_positives": 277,
-        "test_rows": 52,
+        "fit_rows": 555,
+        "fit_positives": 286,
+        "test_rows": 54,
         "test_positives": 26,
-        "test_negatives_from_correct_code": 16,
-        "test_negatives_from_equivalent_mutants": 10
+        "test_negatives_from_correct_code": 17,
+        "test_negatives_from_equivalent_mutants": 11
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9509,
-            "recall": 0.9783,
-            "f1": 0.9644,
-            "flagged": 285,
-            "positives": 277,
-            "rows": 527,
-            "average_precision": 0.9817
+            "precision": 0.957,
+            "recall": 0.8566,
+            "f1": 0.9041,
+            "flagged": 256,
+            "positives": 286,
+            "rows": 555,
+            "average_precision": 0.9836
           },
-          "threshold": 0.4534,
+          "threshold": 0.7494,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9512,
-            "recall": 0.9856,
-            "f1": 0.9681,
-            "flagged": 287,
-            "positives": 277,
-            "rows": 527,
+            "precision": 0.9544,
+            "recall": 0.951,
+            "f1": 0.9527,
+            "flagged": 285,
+            "positives": 286,
+            "rows": 555,
             "average_precision": 0.9879
           },
-          "threshold": 0.3782,
+          "threshold": 0.5538,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9512,
-            "recall": 0.9856,
-            "f1": 0.9681,
-            "flagged": 287,
-            "positives": 277,
-            "rows": 527,
-            "average_precision": 0.9877
+            "precision": 0.9611,
+            "recall": 0.951,
+            "f1": 0.9561,
+            "flagged": 283,
+            "positives": 286,
+            "rows": 555,
+            "average_precision": 0.9891
           },
-          "threshold": 0.2653,
+          "threshold": 0.6324,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
-        "family": "random_forest",
+        "family": "gradient_boosting",
         "model_file": "logic__unreachable_else_if_order.joblib",
-        "threshold": 0.3782,
+        "threshold": 0.6324,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.7427
+        "latency_ms_per_candidate": 0.2007
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
           "precision": 1.0,
@@ -1100,16 +1038,16 @@
           "f1": 1.0,
           "flagged": 26,
           "positives": 26,
-          "rows": 52,
+          "rows": 54,
           "average_precision": 1.0
         },
         "proposer_baseline": {
-          "precision": 0.5,
+          "precision": 0.4815,
           "recall": 1.0,
-          "f1": 0.6667,
-          "flagged": 52,
+          "f1": 0.65,
+          "flagged": 54,
           "positives": 26,
-          "rows": 52
+          "rows": 54
         },
         "rule_baseline": {
           "precision": 0.963,
@@ -1117,37 +1055,12 @@
           "f1": 0.9811,
           "flagged": 27,
           "positives": 26,
-          "rows": 52
+          "rows": 54
         },
         "false_alarm_rate_on_original": 0.0,
         "false_alarm_rate_on_equivalent_mutant": 0.0
       },
-      "top_features": [
-        [
-          "has_unreachable_branch",
-          0.3158
-        ],
-        [
-          "unreachable_position",
-          0.2445
-        ],
-        [
-          "branch_count",
-          0.1006
-        ],
-        [
-          "uses_ranges",
-          0.0822
-        ],
-        [
-          "order_consistent",
-          0.074
-        ],
-        [
-          "all_less",
-          0.0523
-        ]
-      ]
+      "top_features": []
     },
     "MISLEADING_INDENTATION_NO_BRACES": {
       "error_type": "MISLEADING_INDENTATION_NO_BRACES",
@@ -1166,113 +1079,114 @@
         "next_is_closing"
       ],
       "counts": {
-        "fit_rows": 2264,
-        "fit_positives": 411,
-        "test_rows": 402,
-        "test_positives": 58,
-        "test_negatives_from_correct_code": 344,
+        "fit_rows": 3606,
+        "fit_positives": 645,
+        "test_rows": 645,
+        "test_positives": 96,
+        "test_negatives_from_correct_code": 549,
         "test_negatives_from_equivalent_mutants": 0
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9534,
-            "recall": 0.8954,
-            "f1": 0.9235,
-            "flagged": 386,
-            "positives": 411,
-            "rows": 2264,
-            "average_precision": 0.9427
+            "precision": 0.9881,
+            "recall": 0.9008,
+            "f1": 0.9424,
+            "flagged": 588,
+            "positives": 645,
+            "rows": 3606,
+            "average_precision": 0.9441
           },
-          "threshold": 0.4317,
+          "threshold": 0.5995,
           "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9946,
-            "recall": 0.8929,
-            "f1": 0.941,
-            "flagged": 369,
-            "positives": 411,
-            "rows": 2264,
-            "average_precision": 0.9424
+            "precision": 1.0,
+            "recall": 0.8992,
+            "f1": 0.9469,
+            "flagged": 580,
+            "positives": 645,
+            "rows": 3606,
+            "average_precision": 0.943
           },
-          "threshold": 0.413,
+          "threshold": 0.8525,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9576,
-            "recall": 0.8783,
-            "f1": 0.9162,
-            "flagged": 377,
-            "positives": 411,
-            "rows": 2264,
-            "average_precision": 0.9323
+            "precision": 1.0,
+            "recall": 0.8992,
+            "f1": 0.9469,
+            "flagged": 580,
+            "positives": 645,
+            "rows": 3606,
+            "average_precision": 0.9423
           },
-          "threshold": 0.4296,
+          "threshold": 0.9988,
           "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
         "family": "logistic_regression",
         "model_file": "logic__misleading_indentation_no_braces.joblib",
-        "threshold": 0.4317,
+        "threshold": 0.5995,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.0047
+        "latency_ms_per_candidate": 0.0029
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9153,
-          "recall": 0.931,
-          "f1": 0.9231,
-          "flagged": 59,
-          "positives": 58,
-          "rows": 402,
-          "average_precision": 0.9619
+          "precision": 1.0,
+          "recall": 0.9479,
+          "f1": 0.9733,
+          "flagged": 91,
+          "positives": 96,
+          "rows": 645,
+          "average_precision": 0.9705
         },
         "proposer_baseline": {
-          "precision": 0.1443,
+          "precision": 0.1488,
           "recall": 1.0,
-          "f1": 0.2522,
-          "flagged": 402,
-          "positives": 58,
-          "rows": 402
+          "f1": 0.2591,
+          "flagged": 645,
+          "positives": 96,
+          "rows": 645
         },
         "rule_baseline": {
           "precision": 1.0,
-          "recall": 0.9138,
-          "f1": 0.955,
-          "flagged": 53,
-          "positives": 58,
-          "rows": 402
+          "recall": 0.8958,
+          "f1": 0.9451,
+          "flagged": 86,
+          "positives": 96,
+          "rows": 645
         },
-        "false_alarm_rate_on_original": 0.0145
+        "false_alarm_rate_on_original": 0.0
       },
       "top_features": [
         [
           "next_indent_deeper",
-          2.3641
-        ],
-        [
-          "body_on_own_line",
-          1.0623
-        ],
-        [
-          "kind_else",
-          0.8962
-        ],
-        [
-          "next_indent_equals_body",
-          0.8699
-        ],
-        [
-          "next_on_body_line",
-          0.8688
+          3.4774
         ],
         [
           "blank_line_before_next",
-          0.8265
+          1.0834
+        ],
+        [
+          "body_on_own_line",
+          0.9834
+        ],
+        [
+          "next_on_body_line",
+          0.8316
+        ],
+        [
+          "next_is_exit",
+          0.7989
+        ],
+        [
+          "next_indent_equals_body",
+          0.5141
         ]
       ]
     },
@@ -1295,113 +1209,1750 @@
         "checked_var_guarded_before"
       ],
       "counts": {
-        "fit_rows": 1543,
-        "fit_positives": 812,
-        "test_rows": 260,
-        "test_positives": 122,
+        "fit_rows": 2174,
+        "fit_positives": 1159,
+        "test_rows": 379,
+        "test_positives": 190,
         "test_negatives_from_correct_code": 0,
-        "test_negatives_from_equivalent_mutants": 138
+        "test_negatives_from_equivalent_mutants": 189
       },
       "families": {
         "logistic_regression": {
           "oof": {
-            "precision": 0.9429,
-            "recall": 0.8547,
-            "f1": 0.8966,
-            "flagged": 736,
-            "positives": 812,
-            "rows": 1543,
-            "average_precision": 0.9269
+            "precision": 0.9542,
+            "recall": 0.8628,
+            "f1": 0.9062,
+            "flagged": 1048,
+            "positives": 1159,
+            "rows": 2174,
+            "average_precision": 0.9425
           },
-          "threshold": 0.8314,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.871,
+          "precision_target_reached": "precision_0.95"
         },
         "random_forest": {
           "oof": {
-            "precision": 0.9519,
-            "recall": 0.8781,
-            "f1": 0.9135,
-            "flagged": 749,
-            "positives": 812,
-            "rows": 1543,
-            "average_precision": 0.9413
+            "precision": 0.951,
+            "recall": 0.9387,
+            "f1": 0.9449,
+            "flagged": 1144,
+            "positives": 1159,
+            "rows": 2174,
+            "average_precision": 0.956
           },
-          "threshold": 0.8097,
+          "threshold": 0.7388,
           "precision_target_reached": "precision_0.95"
         },
         "gradient_boosting": {
           "oof": {
-            "precision": 0.9424,
-            "recall": 0.9261,
-            "f1": 0.9342,
-            "flagged": 798,
-            "positives": 812,
-            "rows": 1543,
-            "average_precision": 0.9258
+            "precision": 0.9517,
+            "recall": 0.9517,
+            "f1": 0.9517,
+            "flagged": 1159,
+            "positives": 1159,
+            "rows": 2174,
+            "average_precision": 0.9441
           },
-          "threshold": 0.8203,
-          "precision_target_reached": "f0.5"
+          "threshold": 0.8195,
+          "precision_target_reached": "precision_0.95"
         }
       },
       "selected": {
         "family": "random_forest",
         "model_file": "logic__non_short_circuit_operator.joblib",
-        "threshold": 0.8097,
+        "threshold": 0.7388,
         "precision_target_reached": "precision_0.95",
-        "latency_ms_per_candidate": 0.1701
+        "latency_ms_per_candidate": 0.2245
       },
+      "rule_baseline_is": "a hand-written rule over the same features",
       "test": {
         "model": {
-          "precision": 0.9292,
-          "recall": 0.8607,
-          "f1": 0.8936,
-          "flagged": 113,
-          "positives": 122,
-          "rows": 260,
-          "average_precision": 0.931
+          "precision": 0.9832,
+          "recall": 0.9263,
+          "f1": 0.9539,
+          "flagged": 179,
+          "positives": 190,
+          "rows": 379,
+          "average_precision": 0.9864
         },
         "proposer_baseline": {
-          "precision": 0.4692,
+          "precision": 0.5013,
           "recall": 1.0,
-          "f1": 0.6387,
-          "flagged": 260,
-          "positives": 122,
-          "rows": 260
+          "f1": 0.6678,
+          "flagged": 379,
+          "positives": 190,
+          "rows": 379
         },
         "rule_baseline": {
-          "precision": 0.4692,
+          "precision": 0.5013,
           "recall": 1.0,
-          "f1": 0.6387,
-          "flagged": 260,
-          "positives": 122,
-          "rows": 260
+          "f1": 0.6678,
+          "flagged": 379,
+          "positives": 190,
+          "rows": 379
         },
-        "false_alarm_rate_on_equivalent_mutant": 0.058
+        "false_alarm_rate_on_equivalent_mutant": 0.0159
       },
       "top_features": [
         [
           "right_derefs_checked_var",
-          0.3118
+          0.3234
         ],
         [
           "left_null_check",
-          0.2074
+          0.2024
         ],
         [
           "shared_identifiers",
-          0.1582
+          0.1671
         ],
         [
           "op_and",
-          0.1294
+          0.099
         ],
         [
           "right_has_call",
-          0.0873
+          0.0798
         ],
         [
           "right_indexes_with_left_var",
-          0.0289
+          0.0406
+        ]
+      ]
+    },
+    "OFF_BY_ONE_LOOP_BOUNDARY": {
+      "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
+      "features": [
+        "ascending",
+        "cond_leq",
+        "bound_is_length",
+        "bound_beyond_length",
+        "bound_is_identifier",
+        "bound_is_literal",
+        "bound_alias_of_length",
+        "bound_alias_of_length_minus",
+        "bound_name_count_like",
+        "init_is_zero",
+        "init_is_one",
+        "body_indexes_collection_at_var",
+        "body_indexes_collection_before_var",
+        "body_indexes_other_at_var",
+        "body_indexes_anything_at_var",
+        "collection_made_longer",
+        "var_uses_in_body",
+        "body_has_break",
+        "nested_in_loop",
+        "target_is_string"
+      ],
+      "counts": {
+        "fit_rows": 1480,
+        "fit_positives": 1344,
+        "test_rows": 229,
+        "test_positives": 212,
+        "test_negatives_from_correct_code": 7,
+        "test_negatives_from_equivalent_mutants": 10
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9506,
+            "recall": 0.9732,
+            "f1": 0.9618,
+            "flagged": 1376,
+            "positives": 1344,
+            "rows": 1480,
+            "average_precision": 0.9743
+          },
+          "threshold": 0.144,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9504,
+            "recall": 0.997,
+            "f1": 0.9731,
+            "flagged": 1410,
+            "positives": 1344,
+            "rows": 1480,
+            "average_precision": 0.989
+          },
+          "threshold": 0.2039,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9502,
+            "recall": 0.9948,
+            "f1": 0.972,
+            "flagged": 1407,
+            "positives": 1344,
+            "rows": 1480,
+            "average_precision": 0.9888
+          },
+          "threshold": 0.1391,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__off_by_one_loop_boundary.joblib",
+        "threshold": 0.2039,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.3548
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9507,
+          "recall": 1.0,
+          "f1": 0.9747,
+          "flagged": 223,
+          "positives": 212,
+          "rows": 229,
+          "average_precision": 0.9878
+        },
+        "proposer_baseline": {
+          "precision": 0.9258,
+          "recall": 1.0,
+          "f1": 0.9615,
+          "flagged": 229,
+          "positives": 212,
+          "rows": 229
+        },
+        "rule_baseline": {
+          "precision": 0.9315,
+          "recall": 0.6415,
+          "f1": 0.7598,
+          "flagged": 146,
+          "positives": 212,
+          "rows": 229
+        },
+        "false_alarm_rate_on_original": 0.1429,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "body_indexes_collection_at_var",
+          0.2366
+        ],
+        [
+          "var_uses_in_body",
+          0.2297
+        ],
+        [
+          "body_indexes_anything_at_var",
+          0.1468
+        ],
+        [
+          "bound_is_length",
+          0.0718
+        ],
+        [
+          "init_is_zero",
+          0.0547
+        ],
+        [
+          "init_is_one",
+          0.0426
+        ]
+      ]
+    },
+    "INCORRECT_CONDITIONAL_OPERATOR": {
+      "error_type": "INCORRECT_CONDITIONAL_OPERATOR",
+      "features": [
+        "whole_condition",
+        "right_is_boolean_literal",
+        "left_is_boolean",
+        "inside_comparison",
+        "inside_logical",
+        "negated",
+        "compound_operator",
+        "right_has_call",
+        "right_is_identifier",
+        "in_loop_condition",
+        "left_used_in_body"
+      ],
+      "counts": {
+        "fit_rows": 177,
+        "fit_positives": 129,
+        "test_rows": 38,
+        "test_positives": 33,
+        "test_negatives_from_correct_code": 4,
+        "test_negatives_from_equivalent_mutants": 1
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9021,
+            "recall": 1.0,
+            "f1": 0.9485,
+            "flagged": 143,
+            "positives": 129,
+            "rows": 177,
+            "average_precision": 0.8924
+          },
+          "threshold": 0.0083,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9021,
+            "recall": 1.0,
+            "f1": 0.9485,
+            "flagged": 143,
+            "positives": 129,
+            "rows": 177,
+            "average_precision": 0.8925
+          },
+          "threshold": 0.018,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9014,
+            "recall": 0.9922,
+            "f1": 0.9446,
+            "flagged": 142,
+            "positives": 129,
+            "rows": 177,
+            "average_precision": 0.8915
+          },
+          "threshold": 0.7214,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__incorrect_conditional_operator.joblib",
+        "threshold": 0.018,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 1.7052
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9706,
+          "recall": 1.0,
+          "f1": 0.9851,
+          "flagged": 34,
+          "positives": 33,
+          "rows": 38,
+          "average_precision": 0.9715
+        },
+        "proposer_baseline": {
+          "precision": 0.8684,
+          "recall": 1.0,
+          "f1": 0.9296,
+          "flagged": 38,
+          "positives": 33,
+          "rows": 38
+        },
+        "rule_baseline": {
+          "precision": 0.9429,
+          "recall": 1.0,
+          "f1": 0.9706,
+          "flagged": 35,
+          "positives": 33,
+          "rows": 38
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "inside_comparison",
+          0.2652
+        ],
+        [
+          "left_is_boolean",
+          0.2641
+        ],
+        [
+          "whole_condition",
+          0.1958
+        ],
+        [
+          "right_is_boolean_literal",
+          0.1497
+        ],
+        [
+          "right_has_call",
+          0.0552
+        ],
+        [
+          "in_loop_condition",
+          0.0509
+        ]
+      ]
+    },
+    "ARRAY_LENGTH_INDEX_MISUSE": {
+      "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
+      "features": [
+        "minus_k",
+        "at_or_past_length",
+        "same_collection",
+        "collection_made_longer",
+        "is_write",
+        "via_alias",
+        "is_string",
+        "is_list",
+        "in_loop",
+        "guarded_by_length",
+        "in_return"
+      ],
+      "counts": {
+        "fit_rows": 237,
+        "fit_positives": 80,
+        "test_rows": 45,
+        "test_positives": 16,
+        "test_negatives_from_correct_code": 29,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9639,
+            "recall": 1.0,
+            "f1": 0.9816,
+            "flagged": 83,
+            "positives": 80,
+            "rows": 237,
+            "average_precision": 1.0
+          },
+          "threshold": 0.0247,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 80,
+            "positives": 80,
+            "rows": 237,
+            "average_precision": 1.0
+          },
+          "threshold": 0.0423,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 0.975,
+            "f1": 0.9873,
+            "flagged": 78,
+            "positives": 80,
+            "rows": 237,
+            "average_precision": 0.997
+          },
+          "threshold": 0.0938,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__array_length_index_misuse.joblib",
+        "threshold": 0.0423,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 1.5105
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 16,
+          "positives": 16,
+          "rows": 45,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.3556,
+          "recall": 1.0,
+          "f1": 0.5246,
+          "flagged": 45,
+          "positives": 16,
+          "rows": 45
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571,
+          "flagged": 12,
+          "positives": 16,
+          "rows": 45
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": [
+        [
+          "minus_k",
+          0.4346
+        ],
+        [
+          "at_or_past_length",
+          0.3678
+        ],
+        [
+          "via_alias",
+          0.0595
+        ],
+        [
+          "guarded_by_length",
+          0.0458
+        ],
+        [
+          "collection_made_longer",
+          0.0374
+        ],
+        [
+          "same_collection",
+          0.035
+        ]
+      ]
+    },
+    "MISSING_BREAK_IN_SWITCH": {
+      "error_type": "MISSING_BREAK_IN_SWITCH",
+      "features": [
+        "fallthrough_comment",
+        "next_identical",
+        "next_only_breaks",
+        "next_is_default",
+        "next_writes_same_var",
+        "next_prints",
+        "next_returns",
+        "cumulative",
+        "statement_count",
+        "group_prints",
+        "last_group_follows",
+        "in_loop",
+        "overwritten_by_next"
+      ],
+      "counts": {
+        "fit_rows": 401,
+        "fit_positives": 284,
+        "test_rows": 79,
+        "test_positives": 61,
+        "test_negatives_from_correct_code": 10,
+        "test_negatives_from_equivalent_mutants": 8
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.8426,
+            "recall": 0.9613,
+            "f1": 0.898,
+            "flagged": 324,
+            "positives": 284,
+            "rows": 401,
+            "average_precision": 0.8615
+          },
+          "threshold": 0.2917,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.859,
+            "recall": 0.9225,
+            "f1": 0.8896,
+            "flagged": 305,
+            "positives": 284,
+            "rows": 401,
+            "average_precision": 0.8839
+          },
+          "threshold": 0.4542,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.8498,
+            "recall": 0.9366,
+            "f1": 0.8911,
+            "flagged": 313,
+            "positives": 284,
+            "rows": 401,
+            "average_precision": 0.8845
+          },
+          "threshold": 0.3649,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "gradient_boosting",
+        "model_file": "logic__missing_break_in_switch.joblib",
+        "threshold": 0.3649,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 19.9955
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9355,
+          "recall": 0.9508,
+          "f1": 0.9431,
+          "flagged": 62,
+          "positives": 61,
+          "rows": 79,
+          "average_precision": 0.9651
+        },
+        "proposer_baseline": {
+          "precision": 0.7722,
+          "recall": 1.0,
+          "f1": 0.8714,
+          "flagged": 79,
+          "positives": 61,
+          "rows": 79
+        },
+        "rule_baseline": {
+          "precision": 0.791,
+          "recall": 0.8689,
+          "f1": 0.8281,
+          "flagged": 67,
+          "positives": 61,
+          "rows": 79
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 0.5
+      },
+      "top_features": []
+    },
+    "WHILE_VARIABLE_NOT_UPDATED": {
+      "error_type": "WHILE_VARIABLE_NOT_UPDATED",
+      "features": [
+        "cond_vars_written",
+        "written_unconditionally",
+        "written_only_in_branch",
+        "written_only_in_nested_loop",
+        "write_count",
+        "cond_var_count",
+        "cond_vars_unwritten",
+        "cond_has_call",
+        "cond_has_index",
+        "index_var_written",
+        "cond_is_flag",
+        "body_has_break",
+        "body_has_return",
+        "body_calls_methods",
+        "is_do_while"
+      ],
+      "counts": {
+        "fit_rows": 1063,
+        "fit_positives": 508,
+        "test_rows": 164,
+        "test_positives": 80,
+        "test_negatives_from_correct_code": 84,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9431,
+            "recall": 0.75,
+            "f1": 0.8355,
+            "flagged": 404,
+            "positives": 508,
+            "rows": 1063,
+            "average_precision": 0.9215
+          },
+          "threshold": 0.7545,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.951,
+            "recall": 0.8406,
+            "f1": 0.8924,
+            "flagged": 449,
+            "positives": 508,
+            "rows": 1063,
+            "average_precision": 0.9576
+          },
+          "threshold": 0.6507,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9535,
+            "recall": 0.7677,
+            "f1": 0.8506,
+            "flagged": 409,
+            "positives": 508,
+            "rows": 1063,
+            "average_precision": 0.9472
+          },
+          "threshold": 0.8554,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__while_variable_not_updated.joblib",
+        "threshold": 0.6507,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.5974
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9467,
+          "recall": 0.8875,
+          "f1": 0.9161,
+          "flagged": 75,
+          "positives": 80,
+          "rows": 164,
+          "average_precision": 0.9612
+        },
+        "proposer_baseline": {
+          "precision": 0.4878,
+          "recall": 1.0,
+          "f1": 0.6557,
+          "flagged": 164,
+          "positives": 80,
+          "rows": 164
+        },
+        "rule_baseline": {
+          "precision": 0.9048,
+          "recall": 0.2375,
+          "f1": 0.3762,
+          "flagged": 21,
+          "positives": 80,
+          "rows": 164
+        },
+        "false_alarm_rate_on_original": 0.0476
+      },
+      "top_features": [
+        [
+          "write_count",
+          0.2656
+        ],
+        [
+          "cond_vars_written",
+          0.2322
+        ],
+        [
+          "written_unconditionally",
+          0.1787
+        ],
+        [
+          "cond_vars_unwritten",
+          0.1155
+        ],
+        [
+          "cond_var_count",
+          0.0481
+        ],
+        [
+          "body_has_return",
+          0.0317
+        ]
+      ]
+    },
+    "STRING_EQUALITY_WITH_OPERATOR": {
+      "error_type": "STRING_EQUALITY_WITH_OPERATOR",
+      "features": [
+        "both_string",
+        "one_string",
+        "string_literal_side",
+        "unknown_side",
+        "object_side",
+        "primitive_other_side",
+        "constant_side",
+        "call_side",
+        "element_side",
+        "operator_not_equal",
+        "in_condition",
+        "same_text_both_sides"
+      ],
+      "counts": {
+        "fit_rows": 161,
+        "fit_positives": 149,
+        "test_rows": 28,
+        "test_positives": 27,
+        "test_negatives_from_correct_code": 1,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9635,
+            "recall": 0.8859,
+            "f1": 0.9231,
+            "flagged": 137,
+            "positives": 149,
+            "rows": 161,
+            "average_precision": 0.9913
+          },
+          "threshold": 0.1837,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9565,
+            "recall": 0.8859,
+            "f1": 0.9199,
+            "flagged": 138,
+            "positives": 149,
+            "rows": 161,
+            "average_precision": 0.9903
+          },
+          "threshold": 0.209,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9577,
+            "recall": 0.9128,
+            "f1": 0.9347,
+            "flagged": 142,
+            "positives": 149,
+            "rows": 161,
+            "average_precision": 0.9906
+          },
+          "threshold": 0.1633,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__string_equality_with_operator.joblib",
+        "threshold": 0.1837,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0656
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 0.8148,
+          "f1": 0.898,
+          "flagged": 22,
+          "positives": 27,
+          "rows": 28,
+          "average_precision": 0.9934
+        },
+        "proposer_baseline": {
+          "precision": 0.9643,
+          "recall": 1.0,
+          "f1": 0.9818,
+          "flagged": 28,
+          "positives": 27,
+          "rows": 28
+        },
+        "rule_baseline": {
+          "precision": 0.9412,
+          "recall": 0.5926,
+          "f1": 0.7273,
+          "flagged": 17,
+          "positives": 27,
+          "rows": 28
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": [
+        [
+          "string_literal_side",
+          2.2151
+        ],
+        [
+          "element_side",
+          1.8889
+        ],
+        [
+          "in_condition",
+          1.3865
+        ],
+        [
+          "call_side",
+          0.9853
+        ],
+        [
+          "operator_not_equal",
+          0.5219
+        ],
+        [
+          "same_text_both_sides",
+          0.0
+        ]
+      ]
+    },
+    "LOOP_UPDATE_WRONG_DIRECTION": {
+      "error_type": "LOOP_UPDATE_WRONG_DIRECTION",
+      "features": [
+        "direction_agrees",
+        "update_up",
+        "condition_upward",
+        "cond_inclusive",
+        "init_literal",
+        "bound_literal",
+        "init_below_bound",
+        "init_is_length_minus",
+        "bound_is_zero",
+        "bound_is_length",
+        "body_writes_var",
+        "body_exits",
+        "step_is_one"
+      ],
+      "counts": {
+        "fit_rows": 3396,
+        "fit_positives": 1685,
+        "test_rows": 534,
+        "test_positives": 265,
+        "test_negatives_from_correct_code": 267,
+        "test_negatives_from_equivalent_mutants": 2
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9912,
+            "recall": 1.0,
+            "f1": 0.9956,
+            "flagged": 1700,
+            "positives": 1685,
+            "rows": 3396,
+            "average_precision": 0.9912
+          },
+          "threshold": 0.051,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9923,
+            "recall": 1.0,
+            "f1": 0.9962,
+            "flagged": 1698,
+            "positives": 1685,
+            "rows": 3396,
+            "average_precision": 0.998
+          },
+          "threshold": 0.3788,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9923,
+            "recall": 1.0,
+            "f1": 0.9962,
+            "flagged": 1698,
+            "positives": 1685,
+            "rows": 3396,
+            "average_precision": 0.9908
+          },
+          "threshold": 0.0002,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__loop_update_wrong_direction.joblib",
+        "threshold": 0.3788,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.1669
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9925,
+          "recall": 1.0,
+          "f1": 0.9962,
+          "flagged": 267,
+          "positives": 265,
+          "rows": 534,
+          "average_precision": 0.9986
+        },
+        "proposer_baseline": {
+          "precision": 0.4963,
+          "recall": 1.0,
+          "f1": 0.6633,
+          "flagged": 534,
+          "positives": 265,
+          "rows": 534
+        },
+        "rule_baseline": {
+          "precision": 0.9925,
+          "recall": 1.0,
+          "f1": 0.9962,
+          "flagged": 267,
+          "positives": 265,
+          "rows": 534
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "direction_agrees",
+          0.5772
+        ],
+        [
+          "update_up",
+          0.3888
+        ],
+        [
+          "condition_upward",
+          0.0084
+        ],
+        [
+          "bound_is_zero",
+          0.0077
+        ],
+        [
+          "bound_literal",
+          0.0076
+        ],
+        [
+          "init_is_length_minus",
+          0.0045
+        ]
+      ]
+    },
+    "CONSTANT_FALSE_LOOP_CONDITION": {
+      "error_type": "CONSTANT_FALSE_LOOP_CONDITION",
+      "features": [
+        "literal_decidable",
+        "false_on_entry_literal",
+        "never_for_lengths",
+        "init_equals_bound",
+        "op_strict",
+        "op_equality",
+        "update_up",
+        "update_down",
+        "direction_toward_bound",
+        "points_away",
+        "bound_zero_counting_below",
+        "init_small",
+        "bound_identifier",
+        "body_statement_count",
+        "nested_in_loop"
+      ],
+      "counts": {
+        "fit_rows": 2233,
+        "fit_positives": 2135,
+        "test_rows": 347,
+        "test_positives": 330,
+        "test_negatives_from_correct_code": 0,
+        "test_negatives_from_equivalent_mutants": 17
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9561,
+            "recall": 0.9995,
+            "f1": 0.9773,
+            "flagged": 2232,
+            "positives": 2135,
+            "rows": 2233,
+            "average_precision": 0.966
+          },
+          "threshold": 0.1831,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9561,
+            "recall": 1.0,
+            "f1": 0.9776,
+            "flagged": 2233,
+            "positives": 2135,
+            "rows": 2233,
+            "average_precision": 0.969
+          },
+          "threshold": 0.2363,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.956,
+            "recall": 0.9977,
+            "f1": 0.9764,
+            "flagged": 2228,
+            "positives": 2135,
+            "rows": 2233,
+            "average_precision": 0.9702
+          },
+          "threshold": 0.159,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "gradient_boosting",
+        "model_file": "logic__constant_false_loop_condition.joblib",
+        "threshold": 0.159,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0512
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.951,
+          "recall": 1.0,
+          "f1": 0.9749,
+          "flagged": 347,
+          "positives": 330,
+          "rows": 347,
+          "average_precision": 0.9515
+        },
+        "proposer_baseline": {
+          "precision": 0.951,
+          "recall": 1.0,
+          "f1": 0.9749,
+          "flagged": 347,
+          "positives": 330,
+          "rows": 347
+        },
+        "rule_baseline": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "flagged": 0,
+          "positives": 330,
+          "rows": 347
+        },
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": []
+    },
+    "IGNORED_STRING_METHOD_RESULT": {
+      "error_type": "IGNORED_STRING_METHOD_RESULT",
+      "features": [
+        "receiver_string",
+        "receiver_builder",
+        "receiver_list",
+        "receiver_unknown",
+        "receiver_literal",
+        "receiver_chained_call",
+        "method_transforms",
+        "method_builds",
+        "receiver_read_after",
+        "receiver_is_parameter",
+        "in_loop"
+      ],
+      "counts": {
+        "fit_rows": 178,
+        "fit_positives": 77,
+        "test_rows": 30,
+        "test_positives": 7,
+        "test_negatives_from_correct_code": 23,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 77,
+            "positives": 77,
+            "rows": 178,
+            "average_precision": 1.0
+          },
+          "threshold": 0.0137,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 77,
+            "positives": 77,
+            "rows": 178,
+            "average_precision": 1.0
+          },
+          "threshold": 0.8931,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 77,
+            "positives": 77,
+            "rows": 178,
+            "average_precision": 1.0
+          },
+          "threshold": 0.9988,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__ignored_string_method_result.joblib",
+        "threshold": 0.0137,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 0.0593
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 7,
+          "positives": 7,
+          "rows": 30,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.2333,
+          "recall": 1.0,
+          "f1": 0.3784,
+          "flagged": 30,
+          "positives": 7,
+          "rows": 30
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 7,
+          "positives": 7,
+          "rows": 30
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": [
+        [
+          "method_transforms",
+          1.1425
+        ],
+        [
+          "receiver_string",
+          1.1425
+        ],
+        [
+          "receiver_builder",
+          1.1425
+        ],
+        [
+          "method_builds",
+          1.1425
+        ],
+        [
+          "receiver_is_parameter",
+          0.4423
+        ],
+        [
+          "in_loop",
+          0.3947
+        ]
+      ]
+    },
+    "DIVISION_BY_ZERO_LITERAL": {
+      "error_type": "DIVISION_BY_ZERO_LITERAL",
+      "features": [
+        "divisor_zero_literal",
+        "divisor_identifier",
+        "divisor_is_length",
+        "divisor_is_parameter",
+        "divisor_declared_zero",
+        "divisor_declared_nonzero_literal",
+        "divisor_written_before",
+        "divisor_incremented_in_loop",
+        "guarded_nonzero",
+        "any_guard",
+        "decimal_division",
+        "is_modulo",
+        "in_loop",
+        "divisor_is_expression"
+      ],
+      "counts": {
+        "fit_rows": 124,
+        "fit_positives": 52,
+        "test_rows": 28,
+        "test_positives": 10,
+        "test_negatives_from_correct_code": 18,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9811,
+            "recall": 1.0,
+            "f1": 0.9905,
+            "flagged": 53,
+            "positives": 52,
+            "rows": 124,
+            "average_precision": 0.9952
+          },
+          "threshold": 0.0501,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.9804,
+            "recall": 0.9615,
+            "f1": 0.9709,
+            "flagged": 51,
+            "positives": 52,
+            "rows": 124,
+            "average_precision": 0.9965
+          },
+          "threshold": 0.7233,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.98,
+            "recall": 0.9423,
+            "f1": 0.9608,
+            "flagged": 50,
+            "positives": 52,
+            "rows": 124,
+            "average_precision": 0.9727
+          },
+          "threshold": 0.921,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__division_by_zero_literal.joblib",
+        "threshold": 0.7233,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 2.4344
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 10,
+          "positives": 10,
+          "rows": 28,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.3571,
+          "recall": 1.0,
+          "f1": 0.5263,
+          "flagged": 28,
+          "positives": 10,
+          "rows": 28
+        },
+        "rule_baseline": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "flagged": 0,
+          "positives": 10,
+          "rows": 28
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": [
+        [
+          "guarded_nonzero",
+          0.7468
+        ],
+        [
+          "any_guard",
+          0.2091
+        ],
+        [
+          "divisor_identifier",
+          0.0118
+        ],
+        [
+          "in_loop",
+          0.0099
+        ],
+        [
+          "divisor_is_parameter",
+          0.0096
+        ],
+        [
+          "is_modulo",
+          0.0074
+        ]
+      ]
+    },
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+      "error_type": "INTEGER_DIVISION_IN_DECIMAL_CONTEXT",
+      "features": [
+        "stored_in_decimal",
+        "stored_in_int",
+        "returned_from_decimal_method",
+        "cast_after_division",
+        "combined_with_decimal",
+        "in_rounding_call",
+        "in_print",
+        "used_as_index",
+        "divisor_is_two",
+        "divisor_is_ten_power",
+        "modulo_nearby",
+        "name_suggests_fraction",
+        "divisor_is_length",
+        "dividend_is_sum"
+      ],
+      "counts": {
+        "fit_rows": 289,
+        "fit_positives": 94,
+        "test_rows": 47,
+        "test_positives": 20,
+        "test_negatives_from_correct_code": 27,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9216,
+            "recall": 1.0,
+            "f1": 0.9592,
+            "flagged": 102,
+            "positives": 94,
+            "rows": 289,
+            "average_precision": 0.9597
+          },
+          "threshold": 0.0817,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.92,
+            "recall": 0.9787,
+            "f1": 0.9485,
+            "flagged": 100,
+            "positives": 94,
+            "rows": 289,
+            "average_precision": 0.9458
+          },
+          "threshold": 0.3987,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9216,
+            "recall": 1.0,
+            "f1": 0.9592,
+            "flagged": 102,
+            "positives": 94,
+            "rows": 289,
+            "average_precision": 0.9361
+          },
+          "threshold": 0.0095,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "logistic_regression",
+        "model_file": "logic__integer_division_in_decimal_context.joblib",
+        "threshold": 0.0817,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 0.0486
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "flagged": 20,
+          "positives": 20,
+          "rows": 47,
+          "average_precision": 1.0
+        },
+        "proposer_baseline": {
+          "precision": 0.4255,
+          "recall": 1.0,
+          "f1": 0.597,
+          "flagged": 47,
+          "positives": 20,
+          "rows": 47
+        },
+        "rule_baseline": {
+          "precision": 1.0,
+          "recall": 0.05,
+          "f1": 0.0952,
+          "flagged": 1,
+          "positives": 20,
+          "rows": 47
+        },
+        "false_alarm_rate_on_original": 0.0
+      },
+      "top_features": [
+        [
+          "returned_from_decimal_method",
+          2.2303
+        ],
+        [
+          "stored_in_decimal",
+          1.2493
+        ],
+        [
+          "stored_in_int",
+          1.1926
+        ],
+        [
+          "name_suggests_fraction",
+          0.7645
+        ],
+        [
+          "divisor_is_two",
+          0.4395
+        ],
+        [
+          "modulo_nearby",
+          0.4379
+        ]
+      ]
+    },
+    "DECIMAL_EQUALITY_COMPARISON": {
+      "error_type": "DECIMAL_EQUALITY_COMPARISON",
+      "features": [
+        "zero_literal",
+        "fractional_literal",
+        "whole_literal",
+        "negative_sentinel",
+        "both_computed",
+        "arithmetic_side",
+        "rounding_side",
+        "operator_not_equal",
+        "money_name",
+        "both_decimal",
+        "in_condition",
+        "in_loop"
+      ],
+      "counts": {
+        "fit_rows": 250,
+        "fit_positives": 142,
+        "test_rows": 47,
+        "test_positives": 28,
+        "test_negatives_from_correct_code": 19,
+        "test_negatives_from_equivalent_mutants": 0
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.993,
+            "recall": 1.0,
+            "f1": 0.9965,
+            "flagged": 143,
+            "positives": 142,
+            "rows": 250,
+            "average_precision": 0.9739
+          },
+          "threshold": 0.2697,
+          "precision_target_reached": "precision_0.95"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.993,
+            "recall": 0.993,
+            "f1": 0.993,
+            "flagged": 142,
+            "positives": 142,
+            "rows": 250,
+            "average_precision": 0.9973
+          },
+          "threshold": 0.2673,
+          "precision_target_reached": "precision_0.95"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9928,
+            "recall": 0.9718,
+            "f1": 0.9822,
+            "flagged": 139,
+            "positives": 142,
+            "rows": 250,
+            "average_precision": 0.9932
+          },
+          "threshold": 0.9286,
+          "precision_target_reached": "precision_0.95"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__decimal_equality_comparison.joblib",
+        "threshold": 0.2673,
+        "precision_target_reached": "precision_0.95",
+        "latency_ms_per_candidate": 1.3033
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.9333,
+          "recall": 1.0,
+          "f1": 0.9655,
+          "flagged": 30,
+          "positives": 28,
+          "rows": 47,
+          "average_precision": 0.9952
+        },
+        "proposer_baseline": {
+          "precision": 0.5957,
+          "recall": 1.0,
+          "f1": 0.7467,
+          "flagged": 47,
+          "positives": 28,
+          "rows": 47
+        },
+        "rule_baseline": {
+          "precision": 0.9259,
+          "recall": 0.8929,
+          "f1": 0.9091,
+          "flagged": 27,
+          "positives": 28,
+          "rows": 47
+        },
+        "false_alarm_rate_on_original": 0.1053
+      },
+      "top_features": [
+        [
+          "zero_literal",
+          0.3931
+        ],
+        [
+          "fractional_literal",
+          0.1865
+        ],
+        [
+          "rounding_side",
+          0.1779
+        ],
+        [
+          "both_computed",
+          0.101
+        ],
+        [
+          "in_condition",
+          0.0287
+        ],
+        [
+          "whole_literal",
+          0.0253
+        ]
+      ]
+    },
+    "EMPTY_CONDITIONAL_BODY": {
+      "error_type": "EMPTY_CONDITIONAL_BODY",
+      "features": [
+        "kind_if",
+        "kind_while",
+        "kind_for",
+        "empty_block",
+        "semicolon_same_line",
+        "next_is_block",
+        "next_indented_deeper",
+        "condition_has_side_effect",
+        "for_has_update",
+        "condition_has_call",
+        "condition_has_logical_and",
+        "has_else"
+      ],
+      "counts": {
+        "fit_rows": 1207,
+        "fit_positives": 1073,
+        "test_rows": 205,
+        "test_positives": 182,
+        "test_negatives_from_correct_code": 3,
+        "test_negatives_from_equivalent_mutants": 20
+      },
+      "families": {
+        "logistic_regression": {
+          "oof": {
+            "precision": 0.9037,
+            "recall": 0.9888,
+            "f1": 0.9444,
+            "flagged": 1174,
+            "positives": 1073,
+            "rows": 1207,
+            "average_precision": 0.9485
+          },
+          "threshold": 0.3094,
+          "precision_target_reached": "f0.5"
+        },
+        "random_forest": {
+          "oof": {
+            "precision": 0.904,
+            "recall": 1.0,
+            "f1": 0.9496,
+            "flagged": 1187,
+            "positives": 1073,
+            "rows": 1207,
+            "average_precision": 0.9491
+          },
+          "threshold": 0.1454,
+          "precision_target_reached": "f0.5"
+        },
+        "gradient_boosting": {
+          "oof": {
+            "precision": 0.9032,
+            "recall": 1.0,
+            "f1": 0.9491,
+            "flagged": 1188,
+            "positives": 1073,
+            "rows": 1207,
+            "average_precision": 0.9482
+          },
+          "threshold": 0.0446,
+          "precision_target_reached": "f0.5"
+        }
+      },
+      "selected": {
+        "family": "random_forest",
+        "model_file": "logic__empty_conditional_body.joblib",
+        "threshold": 0.1454,
+        "precision_target_reached": "f0.5",
+        "latency_ms_per_candidate": 0.3677
+      },
+      "rule_baseline_is": "the detector this type had before (rule, behind its file-level gate if it had one)",
+      "test": {
+        "model": {
+          "precision": 0.901,
+          "recall": 1.0,
+          "f1": 0.9479,
+          "flagged": 202,
+          "positives": 182,
+          "rows": 205,
+          "average_precision": 0.9456
+        },
+        "proposer_baseline": {
+          "precision": 0.8878,
+          "recall": 1.0,
+          "f1": 0.9406,
+          "flagged": 205,
+          "positives": 182,
+          "rows": 205
+        },
+        "rule_baseline": {
+          "precision": 0.8878,
+          "recall": 1.0,
+          "f1": 0.9406,
+          "flagged": 205,
+          "positives": 182,
+          "rows": 205
+        },
+        "false_alarm_rate_on_original": 0.0,
+        "false_alarm_rate_on_equivalent_mutant": 1.0
+      },
+      "top_features": [
+        [
+          "kind_while",
+          0.3002
+        ],
+        [
+          "kind_if",
+          0.1583
+        ],
+        [
+          "condition_has_call",
+          0.114
+        ],
+        [
+          "condition_has_logical_and",
+          0.0887
+        ],
+        [
+          "next_is_block",
+          0.0855
+        ],
+        [
+          "kind_for",
+          0.0814
         ]
       ]
     }
@@ -1409,57 +2960,122 @@
   "selected": {
     "LOOP_SKIPS_LAST_ELEMENT": {
       "model_file": "logic__loop_skips_last_element.joblib",
-      "threshold": 0.6253,
-      "family": "logistic_regression"
+      "threshold": 0.5371,
+      "family": "random_forest"
     },
     "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
       "model_file": "logic__index_plus_one_out_of_bounds.joblib",
-      "threshold": 0.6255,
-      "family": "random_forest"
+      "threshold": 0.9021,
+      "family": "gradient_boosting"
     },
     "WRONG_LOOP_VARIABLE_IN_INDEX": {
       "model_file": "logic__wrong_loop_variable_in_index.joblib",
-      "threshold": 0.5614,
-      "family": "logistic_regression"
+      "threshold": 0.3894,
+      "family": "gradient_boosting"
     },
     "NESTED_LOOP_WRONG_COUNTER": {
       "model_file": "logic__nested_loop_wrong_counter.joblib",
-      "threshold": 0.0126,
+      "threshold": 0.4271,
       "family": "gradient_boosting"
     },
     "LOOP_COUNTER_CHANGED_IN_BODY": {
       "model_file": "logic__loop_counter_changed_in_body.joblib",
-      "threshold": 0.3399,
+      "threshold": 0.3043,
       "family": "random_forest"
     },
     "ACCUMULATOR_RESET_INSIDE_LOOP": {
       "model_file": "logic__accumulator_reset_inside_loop.joblib",
-      "threshold": 0.2887,
+      "threshold": 0.3623,
       "family": "random_forest"
     },
     "WRONG_EXTREME_INITIAL_VALUE": {
       "model_file": "logic__wrong_extreme_initial_value.joblib",
-      "threshold": 0.339,
-      "family": "logistic_regression"
+      "threshold": 0.362,
+      "family": "random_forest"
     },
     "EARLY_RETURN_IN_LOOP": {
       "model_file": "logic__early_return_in_loop.joblib",
-      "threshold": 0.2354,
-      "family": "logistic_regression"
+      "threshold": 0.0223,
+      "family": "gradient_boosting"
     },
     "UNREACHABLE_ELSE_IF_ORDER": {
       "model_file": "logic__unreachable_else_if_order.joblib",
-      "threshold": 0.3782,
-      "family": "random_forest"
+      "threshold": 0.6324,
+      "family": "gradient_boosting"
     },
     "MISLEADING_INDENTATION_NO_BRACES": {
       "model_file": "logic__misleading_indentation_no_braces.joblib",
-      "threshold": 0.4317,
+      "threshold": 0.5995,
       "family": "logistic_regression"
     },
     "NON_SHORT_CIRCUIT_OPERATOR": {
       "model_file": "logic__non_short_circuit_operator.joblib",
-      "threshold": 0.8097,
+      "threshold": 0.7388,
+      "family": "random_forest"
+    },
+    "OFF_BY_ONE_LOOP_BOUNDARY": {
+      "model_file": "logic__off_by_one_loop_boundary.joblib",
+      "threshold": 0.2039,
+      "family": "random_forest"
+    },
+    "INCORRECT_CONDITIONAL_OPERATOR": {
+      "model_file": "logic__incorrect_conditional_operator.joblib",
+      "threshold": 0.018,
+      "family": "random_forest"
+    },
+    "ARRAY_LENGTH_INDEX_MISUSE": {
+      "model_file": "logic__array_length_index_misuse.joblib",
+      "threshold": 0.0423,
+      "family": "random_forest"
+    },
+    "MISSING_BREAK_IN_SWITCH": {
+      "model_file": "logic__missing_break_in_switch.joblib",
+      "threshold": 0.3649,
+      "family": "gradient_boosting"
+    },
+    "WHILE_VARIABLE_NOT_UPDATED": {
+      "model_file": "logic__while_variable_not_updated.joblib",
+      "threshold": 0.6507,
+      "family": "random_forest"
+    },
+    "STRING_EQUALITY_WITH_OPERATOR": {
+      "model_file": "logic__string_equality_with_operator.joblib",
+      "threshold": 0.1837,
+      "family": "logistic_regression"
+    },
+    "LOOP_UPDATE_WRONG_DIRECTION": {
+      "model_file": "logic__loop_update_wrong_direction.joblib",
+      "threshold": 0.3788,
+      "family": "random_forest"
+    },
+    "CONSTANT_FALSE_LOOP_CONDITION": {
+      "model_file": "logic__constant_false_loop_condition.joblib",
+      "threshold": 0.159,
+      "family": "gradient_boosting"
+    },
+    "IGNORED_STRING_METHOD_RESULT": {
+      "model_file": "logic__ignored_string_method_result.joblib",
+      "threshold": 0.0137,
+      "family": "logistic_regression"
+    },
+    "DIVISION_BY_ZERO_LITERAL": {
+      "model_file": "logic__division_by_zero_literal.joblib",
+      "threshold": 0.7233,
+      "family": "random_forest"
+    },
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+      "model_file": "logic__integer_division_in_decimal_context.joblib",
+      "threshold": 0.0817,
+      "family": "logistic_regression"
+    },
+    "DECIMAL_EQUALITY_COMPARISON": {
+      "model_file": "logic__decimal_equality_comparison.joblib",
+      "threshold": 0.2673,
+      "family": "random_forest"
+    },
+    "EMPTY_CONDITIONAL_BODY": {
+      "model_file": "logic__empty_conditional_body.joblib",
+      "threshold": 0.1454,
       "family": "random_forest"
     }
   },

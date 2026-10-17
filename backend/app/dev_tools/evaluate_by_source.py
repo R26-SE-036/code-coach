@@ -44,7 +44,7 @@ import joblib
 import pandas as pd
 
 from app.analysis.analyzer import analyze_code
-from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
+from app.analysis.error_catalog import LEGACY_SPECS, MODELS_DIR, ErrorTypeSpec, ml_gated_specs
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 TEST_FILE = PROJECT_ROOT / "data" / "ml" / "splits" / "test_v1.csv"
@@ -123,7 +123,10 @@ def collect_outcomes(
     analyze: Callable[[str], list] = analyze_code,
     project_root: Path = PROJECT_ROOT,
 ) -> list[Outcome]:
-    specs = list(ml_gated_specs() if specs is None else specs)
+    # The file-level gates now exist only as the legacy detectors of the five
+    # types that moved to per-site models; this tool measures those gates.
+    specs = list([s for s in LEGACY_SPECS.values() if s.detection_mode == "ml_gated"] + ml_gated_specs()
+                 if specs is None else specs)
     rows = test_rows.reset_index(drop=True)
 
     gate_hits = {

@@ -65,7 +65,13 @@ def _load_error_knowledge_base() -> dict[str, ErrorKnowledge]:
         return {}
 
 
-def _load_targeted_hint_templates() -> dict[str, str]:
+def _load_targeted_hint_templates() -> dict[str, list[str]]:
+    """error type -> its targeted templates, most specific first.
+
+    An entry's "targeted" is one template or a list: a division by a variable
+    that can be zero needs a different sentence from a division by the
+    literal 0, and the first template whose fields the finding supplies wins.
+    """
     if not HINT_TEMPLATES_PATH.exists():
         return {}
 
@@ -74,11 +80,14 @@ def _load_targeted_hint_templates() -> dict[str, str]:
     except (OSError, json.JSONDecodeError):
         return {}
 
-    return {
-        error_type: entry["targeted"]
-        for error_type, entry in raw_items.items()
-        if isinstance(entry, dict) and isinstance(entry.get("targeted"), str)
-    }
+    templates: dict[str, list[str]] = {}
+    for error_type, entry in raw_items.items():
+        targeted = entry.get("targeted") if isinstance(entry, dict) else None
+        if isinstance(targeted, str):
+            templates[error_type] = [targeted]
+        elif isinstance(targeted, list) and all(isinstance(t, str) for t in targeted) and targeted:
+            templates[error_type] = list(targeted)
+    return templates
 
 
 ERROR_KNOWLEDGE_BASE = _load_error_knowledge_base()
@@ -122,17 +131,13 @@ def template_fields(template: str) -> set[str]:
 # general one.
 # =========================================================================
 def targeted_hint_for(finding: DetectionResult, fallback: str) -> str:
-    template = TARGETED_HINT_TEMPLATES.get(finding.error_type)
-    if not template:
-        return fallback
-
     supplied = {key for key, value in (finding.details or {}).items() if value}
-    if not template_fields(template) <= supplied:
-        return fallback
-
-    # format_map parses only the template, so braces in the student's code
-    # are inserted as they are.
-    return template.format_map(finding.details)
+    for template in TARGETED_HINT_TEMPLATES.get(finding.error_type, []):
+        if template_fields(template) <= supplied:
+            # format_map parses only the template, so braces in the student's
+            # code are inserted as they are.
+            return template.format_map(finding.details)
+    return fallback
 
 
 # A STABLE id for a finding: the same mistake keeps the same id while the

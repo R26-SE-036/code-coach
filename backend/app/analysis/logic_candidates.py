@@ -138,6 +138,9 @@ def propose_loop_skips_last_element(parse_result: ParseResult) -> List[Candidate
             # partner left, so stopping one early is exactly right (two-sum,
             # bubble sort, counting duplicate pairs).
             "inner_loop_starts_after_var": jf.flag(_inner_starts_after(body, var, source)),
+            # The counter only bounds an inner loop (`j < n - 1 - pass`): a
+            # pass counter, as in bubble sort, where n - 1 passes are enough.
+            "var_only_in_inner_bounds": jf.flag(_only_in_inner_bounds(body, var, source)),
         }
         finding = _result(
             "LOOP_SKIPS_LAST_ELEMENT", condition, source, 0.8,
@@ -155,6 +158,20 @@ def _inner_starts_after(body, var: str, source: bytes) -> bool:
         if start in (f"{var}+1", f"1+{var}"):
             return True
     return False
+
+
+def _only_in_inner_bounds(body, var: str, source: bytes) -> bool:
+    uses = [n for n in jf.descendants(body, "identifier") if jf.text(n, source) == var]
+    if not uses:
+        return False
+    for use in uses:
+        inner = jf.enclosing(use, {"for_statement"})
+        if inner is None or not jf.is_inside(inner, body):
+            return False
+        header = [inner.child_by_field_name("condition"), inner.child_by_field_name("init")]
+        if not any(part is not None and jf.is_inside(use, part) for part in header):
+            return False
+    return True
 
 
 def _init_value_node(for_node):
@@ -210,6 +227,13 @@ def propose_index_plus_one_out_of_bounds(parse_result: ParseResult) -> List[Cand
         op = jf.operator(condition) if condition.type == "binary_expression" else ""
         right = jf.unwrap(condition.child_by_field_name("right")) if condition.type == "binary_expression" else None
         bound_target, bound_k = jf.length_minus(right, source) if right is not None else (None, 0)
+        # `i + 1 < a.length` is `i < a.length - 1` written the other way: the
+        # guard every correct neighbour loop needs, not the missing one.
+        left_shift = _left_shift(condition, var, source)
+        if left_shift is None:
+            bound_target = None
+        else:
+            bound_k += left_shift
         init_text = jf.for_init_value(loop, source)
         method = jf.method_of(loop)
         body = jf.loop_body(loop)
@@ -242,6 +266,9 @@ def propose_index_plus_one_out_of_bounds(parse_result: ParseResult) -> List[Cand
                 "nested_in_loop": jf.flag(bool(jf.enclosing_loops(loop))),
                 "body_has_break": jf.flag(bool(jf.descendants(body, "break_statement"))),
                 "body_also_uses_var_plain": jf.flag(any(jf.index_offset(i, var, source) == 0 for _, _, i in jf.indexed_accesses(body, source))),
+                "condition_adds_to_var": jf.flag(bool(left_shift)),
+                # a[i - 1] on the very first pass of a loop that starts at 0.
+                "first_pass_below_zero": jf.flag(offset < 0 and init_text.isdigit() and int(init_text) + offset < 0 and direction == 1),
             }
             finding = _result(
                 "INDEX_PLUS_ONE_OUT_OF_BOUNDS", access, source, 0.8,
@@ -259,6 +286,24 @@ def propose_index_plus_one_out_of_bounds(parse_result: ParseResult) -> List[Cand
                 spans.append(jf.span(init))
             found.append(Candidate(finding, features, spans))
     return found
+
+
+def _left_shift(condition, var: str, source: bytes) -> Optional[int]:
+    """How much the condition adds to the counter before comparing: 0 for
+    `i < n`, 1 for `i + 1 < n`, None when the left side is not the counter."""
+    if condition is None or condition.type != "binary_expression":
+        return None
+    left = jf.unwrap(condition.child_by_field_name("left"))
+    if left is None:
+        return None
+    if left.type == "identifier":
+        return 0 if jf.text(left, source) == var else None
+    if left.type == "binary_expression" and jf.operator(left) == "+":
+        a, b = jf.unwrap(left.child_by_field_name("left")), jf.unwrap(left.child_by_field_name("right"))
+        for name, number in ((a, b), (b, a)):
+            if name is not None and number is not None and name.type == "identifier" and jf.text(name, source) == var and jf.text(number, source).strip().isdigit():
+                return int(jf.text(number, source))
+    return None
 
 
 def _guarded(access, body, var: str, coll: str, source: bytes) -> bool:
@@ -502,19 +547,24 @@ def propose_accumulator_reset_inside_loop(parse_result: ParseResult) -> List[Can
         updates = [w for w in jf.writes_of(loop, acc, source) if not jf.is_inside(w, statement) and jf.is_compound_update(w, acc, source)]
         if not updates:
             continue
-        method = jf.method_of(loop)
         body = jf.loop_body(loop)
         top = jf.statements(body)
         same_loop = any(jf.enclosing_loops(u)[:1] == [loop] for u in updates)
         reads_in_loop = jf.uses(loop, acc, source) - len(updates) - 1
+        # Java scope, not the name: two loops that each declare their own
+        # `int total = 0;` are two variables, and the second must not count
+        # as "declared before" its loop, nor the first as "read after" it.
+        scope = statement.parent if is_declaration else _declaring_scope(statement, acc, source)
+        declared_outside = scope is not None and not is_declaration and jf.is_inside(loop, scope)
+        read_after = declared_outside and _reads_from(scope, loop.end_byte, acc, source) > 0
         features = {
             "is_declaration": jf.flag(is_declaration),
             "update_in_same_loop": jf.flag(same_loop),
             "update_only_in_nested_loop": jf.flag(not same_loop),
             "reset_conditional": jf.flag(any(p.type == "if_statement" and jf.is_inside(p, loop) for p in jf.ancestors(statement))),
             "reset_is_first_statement": jf.flag(bool(top) and top[0] == statement),
-            "read_after_loop": jf.flag(jf.reads_after(method, loop.end_byte, acc, source) > 0),
-            "declared_before_loop": jf.flag(jf.declared_before(method, acc, loop.start_byte, source)),
+            "read_after_loop": jf.flag(read_after),
+            "declared_before_loop": jf.flag(declared_outside),
             "read_inside_loop": jf.flag(reads_in_loop > 0),
             "printed_in_loop": jf.flag(any(acc in jf.text(c, source) for c in jf.descendants(loop, "method_invocation") if "print" in jf.text(c.child_by_field_name("name"), source))),
             "name_accumulator": jf.has_token(acc, _ACC_WORDS),
@@ -533,6 +583,42 @@ def propose_accumulator_reset_inside_loop(parse_result: ParseResult) -> List[Can
         )
         found.append(Candidate(finding, features, [jf.span(statement)]))
     return found
+
+
+def _declaring_scope(node, name: str, source: bytes):
+    """The block (or method, for a parameter) whose declaration of `name` is
+    the one `node` sees; None when it is a field or undeclared."""
+    for parent in jf.ancestors(node):
+        if parent.type in ("block", "switch_block_statement_group"):
+            for child in parent.named_children:
+                if child.start_byte >= node.start_byte:
+                    break
+                if child.type == "local_variable_declaration" and any(
+                    jf.text(d.child_by_field_name("name"), source) == name
+                    for d in child.named_children if d.type == "variable_declarator"
+                ):
+                    return parent
+        if parent.type in ("for_statement", "enhanced_for_statement"):
+            if name in jf.for_declared_vars(parent, source) or jf.loop_var_of(parent, source) == name and parent.type == "enhanced_for_statement":
+                return parent
+        if parent.type in ("method_declaration", "constructor_declaration"):
+            for parameter in jf.descendants(parent.child_by_field_name("parameters"), "formal_parameter"):
+                if jf.text(parameter.child_by_field_name("name"), source) == name:
+                    return parent
+            return None
+    return None
+
+
+def _reads_from(scope, position: int, name: str, source: bytes) -> int:
+    count = 0
+    for identifier in jf.descendants(scope, "identifier"):
+        if identifier.start_byte < position or jf.text(identifier, source) != name:
+            continue
+        parent = identifier.parent
+        if parent is not None and parent.type == "assignment_expression" and parent.child_by_field_name("left") == identifier:
+            continue
+        count += 1
+    return count
 
 
 def _literal_assignment(statement, source: bytes):

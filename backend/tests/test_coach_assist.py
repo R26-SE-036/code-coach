@@ -65,7 +65,7 @@ def test_the_catalogue_is_public_and_names_all_thirty(client):
     entries = response.json()
     assert len(entries) == 30
     assert all(entry["title"] and "_" not in entry["title"] for entry in entries)
-    assert sum(entry["detection_mode"] == "candidate_ml" for entry in entries) == 11
+    assert sum(entry["detection_mode"] == "candidate_ml" for entry in entries) == 24
 
 
 def test_the_help_routes_need_a_signed_in_student(client):

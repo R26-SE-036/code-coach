@@ -116,6 +116,11 @@ def mutate_index_plus_one_out_of_bounds(pr: ParseResult) -> List[Mutation]:
         if target and jf.operator(condition) == "<" and k == 1 and (target, 1) in offsets:
             length_node = jf.unwrap(right.child_by_field_name("left"))
             out.append(_mutation(pr, [(right.start_byte, right.end_byte, _b(jf.text(length_node, source)))], "loop to the end with a[i + 1]"))
+        # i + 1 < a.length  ->  i < a.length : the guard written on the left side, dropped
+        left = jf.unwrap(condition.child_by_field_name("left"))
+        if target and k == 0 and jf.operator(condition) == "<" and left is not None and left.type == "binary_expression" \
+                and jf.text(left, source).replace(" ", "") == f"{var}+1" and (target, 1) in offsets:
+            out.append(_mutation(pr, [(left.start_byte, left.end_byte, _b(var))], "i + 1 < n loses its + 1"))
         init_value = None
         init = loop.child_by_field_name("init")
         if init is not None and init.type == "local_variable_declaration":
@@ -396,7 +401,11 @@ NEEDS_RNG = {"LOOP_COUNTER_CHANGED_IN_BODY", "EARLY_RETURN_IN_LOOP"}
 
 
 def mutate(error_type: str, parse_result: ParseResult, rng: random.Random) -> List[Mutation]:
-    operator_fn = MUTATORS[error_type]
-    if error_type in NEEDS_RNG:
+    # The operators for the types moved off rules and file-level gates live
+    # in promoted_mutators.py, which builds on the helpers above.
+    from app.dev_tools.mutation.promoted_mutators import PROMOTED_MUTATORS, PROMOTED_NEEDS_RNG
+
+    operator_fn = MUTATORS.get(error_type) or PROMOTED_MUTATORS[error_type]
+    if error_type in NEEDS_RNG or error_type in PROMOTED_NEEDS_RNG:
         return operator_fn(parse_result, rng)
     return operator_fn(parse_result)

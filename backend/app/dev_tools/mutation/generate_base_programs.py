@@ -79,6 +79,22 @@ TOPICS = [
     "loops with two counters or a flag condition: two-pointer palindrome checks, merging two sorted arrays, a for loop that stops when a boolean becomes true, walking two arrays at once",
     "tracking the largest or smallest value and where it is: start from the first element or from Integer.MIN_VALUE / MAX_VALUE, and also maxima of lengths or counts that may correctly start at 0",
     "streaks and runs: the longest streak of rising values, the longest run of one character, counting words by resetting a counter at spaces, per-row totals reset for every row of a 2D array",
+    # Added with the types moved from rules and file-level gates to per-site
+    # models: the correct forms of String and double comparison, stored
+    # String results, guarded division, boolean flags, while-loop updates,
+    # last-element access, inclusive bounds and switch fall-through.
+    "comparing Strings correctly with equals and equalsIgnoreCase: menu commands, answers to a quiz, counting words equal to a target, finding a name in a String[], while also comparing chars with == and checking Strings against null",
+    "double calculations compared with a tolerance: does a computed total match the expected one (Math.abs(a - b) < 0.0001), is a value a whole number, are two averages close, plus deliberate exact checks such as value == 0.0 before dividing",
+    "String methods whose result is stored or returned: trim, toUpperCase, toLowerCase, replace, substring, concat and strip used to normalise or clean text before comparing or counting, plus StringBuilder append, reverse, insert and setCharAt that change the builder in place",
+    "division that has to be guarded: average of a possibly empty array, percentage of a possibly zero total, ratio of two counts, safe modulo, returning a default when the divisor is zero, counting before dividing",
+    "boolean flags: found, done, valid, seenNegative flags set inside loops and then tested with if (flag), if (!flag), while (!done) and in return statements",
+    "while and do-while loops that update their condition variable on every pass: digit-by-digit processing, binary search with low and high, two pointers moving towards each other, doubling until a limit, skipping leading spaces",
+    "the last element and positions near the end: the last element of an array or List, the last character of a String, the second last element, comparing the first and the last, shifting elements towards the end",
+    "for loops whose inclusive bound is correct: summing 1 to n inclusive, i <= n for a count, prefix-sum arrays of size n + 1, loops from 1 to length that read a[i - 1], multiplication tables up to and including n",
+    "counting in both directions: loops counting down from n to 0, iterating backwards over arrays and Strings, stepping by 2 or by k upwards and downwards, loops that only run when a range is non-empty",
+    "integer division on purpose and decimal division done right: midpoints of two indexes, how many full boxes, extracting digits with / 10 and % 10, averages and percentages with a cast to double or a 100.0 literal",
+    "switch statements where cases share code: stacked case labels for the same result, deliberate fall-through with a comment saying so, cumulative cases that add up as they fall through, default branches",
+    "simple sorting and pass-based algorithms: bubble sort with n - 1 passes, selection sort, insertion sort, checking whether one pass is enough, counting the swaps",
 ]
 
 ALLOWED_TYPES = (
@@ -105,7 +121,8 @@ Rules for every method:
   "returns -1 when not found", "throws nothing; null counts as empty").
 - Vary the style across the methods: for loops, while loops, enhanced for
   loops, early return, break, else if chains, && and || guards, nested loops,
-  and some single-statement if/for bodies written without braces.
+  switch statements with break, and some single-statement if/for bodies
+  written without braces.
 - Each method between 4 and 25 lines.
 {avoid}
 Return ONLY a JSON object of this shape, with the Java code as a JSON string:

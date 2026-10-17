@@ -20,7 +20,7 @@ the request. analyze_code() is the seam between the two.
 import logging
 from typing import Dict, List, Optional
 
-from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec, shadow_error_types
+from app.analysis.error_catalog import ERROR_CATALOG, ErrorTypeSpec, ml_gated_specs, shadow_error_types
 from app.analysis.feature_extractor import extract_features
 from app.analysis.hint_engine import build_diagnostics
 from app.analysis.ml_engine import (
@@ -222,6 +222,30 @@ def _detect_for_spec(
     ]
 
 
+# Pairs of types that describe one mistake from two sides. `for (i = 0;
+# i > n; i++)` is both "the condition is false on entry" and "the counter
+# moves away from the bound"; two underlines on one condition would tell the
+# student about the same thing twice. The more confident finding stays.
+_SAME_SITE_GROUPS = (
+    {"CONSTANT_FALSE_LOOP_CONDITION", "LOOP_UPDATE_WRONG_DIRECTION"},
+)
+
+
+def _one_finding_per_site(findings: List[DetectionResult]) -> List[DetectionResult]:
+    kept: List[DetectionResult] = []
+    for finding in sorted(findings, key=lambda f: f.confidence, reverse=True):
+        group = next((g for g in _SAME_SITE_GROUPS if finding.error_type in g), None)
+        if group is not None and any(
+            other.error_type in group and other.error_type != finding.error_type
+            and other.line == finding.line and other.column == finding.column
+            for other in kept
+        ):
+            continue
+        kept.append(finding)
+    kept.sort(key=lambda f: findings.index(f))
+    return kept
+
+
 # 1. Parse Java safely.
 # 2. Reject crashed or very incomplete parse results.
 # 3. Extract features.
@@ -239,13 +263,16 @@ def analyze_code(code: str) -> List[Diagnostic]:
     if parse_result.health.completeness_score < MIN_FILE_COMPLETENESS:
         return []
 
-    # 2. extract features
-    feature_dict = extract_features(code)
-    # 3. predict issue types
-    predictions_by_error_type = {
-        prediction.error_type: prediction
-        for prediction in _safe_predict_issue_types(feature_dict)
-    }
+    # 2-3. whole-file features and the file-level gates - only for a type
+    # switched back to its legacy detector; every other type is decided per
+    # site, from the tree, and needs neither.
+    predictions_by_error_type: Dict[str, MLPrediction] = {}
+    if ml_gated_specs():
+        feature_dict = extract_features(code)
+        predictions_by_error_type = {
+            prediction.error_type: prediction
+            for prediction in _safe_predict_issue_types(feature_dict)
+        }
 
     # 4. detect and localize each catalog entry. Types switched to SHADOW
     # mode are still run (so their cost and output can be watched in the
@@ -261,6 +288,7 @@ def analyze_code(code: str) -> List[Diagnostic]:
                 logger.info("shadow %s: %d finding(s) withheld", spec.error_type, len(detected))
             continue
         findings.extend(detected)
+    findings = _one_finding_per_site(findings)
 
     # 5. build diagnostics with hints - all at once, not one finding at a
     # time, because a finding's id counts the identical mistakes above it.

@@ -34,6 +34,7 @@ from app.analysis.issue_locators import (
     locate_while_variables_not_updated,
 )
 from app.analysis.logic_candidates import PROPOSERS, ProposerFn, located
+from app.analysis.promoted_candidates import PROMOTED_PROPOSERS
 from app.models import DetectionResult, ParseResult
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
@@ -266,6 +267,44 @@ for _error_type, _title in _LOGIC_TITLES.items():
         candidate_ml_threshold=_chosen.get("threshold", 0.5),
     )
 
+# ── The thirteen moved onto per-site models ──
+# Five had a file-level gate in front of a rule, eight were rules alone. Each
+# now works like the logic errors above: proposer + its own model trained on
+# executed mutants. The definitions above are kept as LEGACY_SPECS - the
+# corpus builder scores them as the "before" baseline - and a type falls back
+# to its legacy detector when its model has not been trained, or when the
+# server lists it in LEGACY_DETECTORS (a switch for a model that misbehaves,
+# without a deploy).
+LEGACY_SPECS: dict[str, ErrorTypeSpec] = {}
+
+
+def _legacy_detector_names() -> set[str]:
+    try:
+        from app.core.config import get_settings
+
+        raw = get_settings().legacy_detectors or ""
+    except Exception:
+        raw = ""
+    return {item.strip().upper() for item in raw.split(",") if item.strip()}
+
+
+_FORCED_LEGACY = _legacy_detector_names()
+for _error_type, _proposer in PROMOTED_PROPOSERS.items():
+    _legacy = ERROR_CATALOG[_error_type]
+    LEGACY_SPECS[_error_type] = _legacy
+    _chosen = _LOGIC_CALIBRATION.get(_error_type)
+    if not _chosen or _error_type in _FORCED_LEGACY or not (MODELS_DIR / _chosen["model_file"]).exists():
+        continue
+    ERROR_CATALOG[_error_type] = ErrorTypeSpec(
+        error_type=_error_type,
+        title=_legacy.title,
+        detection_mode="candidate_ml",
+        locator=located(_proposer),
+        proposer=_proposer,
+        candidate_model_file=_chosen["model_file"],
+        candidate_ml_threshold=_chosen["threshold"],
+    )
+
 
 def title_for(error_type: str) -> str:
     spec = ERROR_CATALOG.get(error_type)
@@ -282,8 +321,9 @@ def shadow_error_types() -> set[str]:
     return {item.strip().upper() for item in raw.split(",") if item.strip()}
 
 
-# Called by ml_engine.predict_issue_types(): the only error types that need a
-# trained model loaded and scored. Currently 5 types (3 original + 2 promoted).
+# Called by ml_engine.predict_issue_types(): the error types still behind a
+# file-level gate. None, once the per-site models are trained - a type is only
+# here again if it has been switched back to its legacy detector.
 def ml_gated_specs() -> list[ErrorTypeSpec]:
     return [
         spec

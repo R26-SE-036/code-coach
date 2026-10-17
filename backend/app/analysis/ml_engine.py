@@ -29,8 +29,15 @@ from typing import Dict, List
 
 import joblib
 import pandas as pd
+from threadpoolctl import threadpool_limits
 
 from app.analysis.candidate_extractor import CANDIDATE_EXTRACTORS, CandidateSite
+
+# One OpenMP thread for prediction. The gradient-boosting models walk 300
+# trees per call and start a thread team for each - for the few sites in one
+# file that made a single prediction take a third of a second. Held for the
+# life of the process, which here only serves predictions.
+_OPENMP_LIMIT = threadpool_limits(limits=1, user_api="openmp")
 from app.analysis.error_catalog import MODELS_DIR, ErrorTypeSpec, ml_gated_specs
 from app.models import ParseResult
 
@@ -150,6 +157,12 @@ def _get_logic_model(spec: ErrorTypeSpec):
     if not model_path.exists():
         raise FileNotFoundError(f"Candidate model file not found: {model_path}")
     model = joblib.load(model_path)
+    # A random forest trained with n_jobs=-1 would start a pool of worker
+    # threads for every prediction - for the handful of sites in one file
+    # that costs far more than the prediction, and on the server's two
+    # cores it queued requests behind each other.
+    if hasattr(model, "n_jobs"):
+        model.n_jobs = 1
     _LOADED_MODELS[cache_key] = model
     return model
 

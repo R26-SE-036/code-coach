@@ -1,3 +1,163 @@
 file,line,error_type,probability,code,verdict
-data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9836,int highest = 0;,true find: a max search over marks starting at 0 - right here only because every mark is positive
-data/ml/raw_snippets/off_by_one/fixed/OffByOneFix006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9836,int highest = 0;,true find: a max search over marks starting at 0 - right here only because every mark is positive
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug001.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,System.out.println(arr[arr.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug002.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,System.out.println(names[names.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug003.java,7,ARRAY_LENGTH_INDEX_MISUSE,0.5766,System.out.println(values[index]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug004.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,int lastValue = numbers[numbers.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug005.java,7,ARRAY_LENGTH_INDEX_MISUSE,0.5766,System.out.println(grades[index]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug006.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,System.out.println(letters[letters.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug007.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,System.out.println(nums[nums.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug008.java,7,ARRAY_LENGTH_INDEX_MISUSE,0.5766,System.out.println(letters[index]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug009.java,6,ARRAY_LENGTH_INDEX_MISUSE,0.7821,if (flags[flags.length]) {,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug010.java,5,ARRAY_LENGTH_INDEX_MISUSE,0.7821,int oldest = ages[ages.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug011.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return scores[scores.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug012.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return words[words.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug013.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return prices[prices.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug014.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return flags[flags.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug015.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return letters[letters.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug016.java,4,ARRAY_LENGTH_INDEX_MISUSE,0.795,return copy[copy.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug017.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.7821,int last = marks[marks.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug018.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.75,values[values.length] = 99;,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug019.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return nums[nums.length] + nums[0];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug020.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.7821,System.out.println(data[data.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug021.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return scores[scores.length] > 0;,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug022.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return grid[0][grid[0].length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug023.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return table[table.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug024.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.7821,int picked = values[values.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug025.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.75,flags[flags.length] = false;,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug026.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.75,totals[totals.length] = totals[0] + 1;,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug027.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.7821,int selected = queue[queue.length];,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug028.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return Math.abs(nums[nums.length]);,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug029.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.9979,return arr.length > 0 ? arr[arr.length] : 0;,true_find
+data/ml/raw_snippets/array_length_index_misuse/buggy/ArrayIndexBug030.java,3,ARRAY_LENGTH_INDEX_MISUSE,0.795,return words[words.length];,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug001.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.5876,"if (isAdmin = role.equals(""ADMIN"")) {",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug002.java,7,INCORRECT_CONDITIONAL_OPERATOR,0.7634,if (active = true) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug003.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (passed = score >= 40) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug004.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (passed = score >= 50) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug005.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.5876,"if (hasAccess = role.equals(""ADMIN"")) {",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug006.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (isEven = (number % 2 == 0)) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug007.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (valid = age >= 18) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug008.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.5876,"if (matches = code.startsWith(""X"")) {",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug009.java,8,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (ready = tasks == 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug010.java,9,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (same = a == b) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug011.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6584,while (running = status != 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug012.java,5,INCORRECT_CONDITIONAL_OPERATOR,0.4262,if (count = 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug013.java,5,INCORRECT_CONDITIONAL_OPERATOR,0.4262,if (item = null) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug014.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.4915,if (active && (check = value > 0)) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug015.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,"return (pass = score >= 50) ? ""Pass"" : ""Fail"";",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug016.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (hot = temp > 37.5) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug017.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (overdrawn = balance < 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug018.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.5876,"if (allowed = user.equals(""root"")) {",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug019.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (full = size >= capacity) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug020.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (failed = retries > 3) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug021.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (divisible = n % 5 == 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug022.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.5876,if (longEnough = input.length() >= 8) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug023.java,7,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (prime = n % i == 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug024.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (result = flags[index]) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug025.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (eligible = points >= 100) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug026.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (timedOut = elapsed > limit) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug027.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.5876,"if (hasPrefix = text.startsWith(""https"")) {",true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug028.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (evenSum = (a + b) % 2 == 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug029.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.6468,if (available = stock > 0) {,true_find
+data/ml/raw_snippets/incorrect_conditional_operator/buggy/IncorrectConditionalBug030.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.5876,if (matched = a.equalsIgnoreCase(b)) {,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug001.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug002.java,11,MISSING_BREAK_IN_SWITCH,0.7488,case 'B':,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug003.java,7,MISSING_BREAK_IN_SWITCH,0.9315,case 1:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug004.java,13,MISSING_BREAK_IN_SWITCH,0.6517,"case ""January"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug005.java,10,MISSING_BREAK_IN_SWITCH,0.789,"case ""GREEN"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug007.java,13,MISSING_BREAK_IN_SWITCH,0.7488,case 3:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug008.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case '-':,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug008.java,16,DIVISION_BY_ZERO_LITERAL,0.9901,result = a / b;,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug009.java,11,MISSING_BREAK_IN_SWITCH,0.7488,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug010.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case 404:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug011.java,14,MISSING_BREAK_IN_SWITCH,0.9221,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug012.java,7,MISSING_BREAK_IN_SWITCH,0.7488,"case ""admin"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug013.java,13,MISSING_BREAK_IN_SWITCH,0.6517,"case ""scissors"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug014.java,9,MISSING_BREAK_IN_SWITCH,0.5796,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug015.java,9,MISSING_BREAK_IN_SWITCH,0.9315,case 20:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug018.java,7,MISSING_BREAK_IN_SWITCH,0.7488,"case ""gold"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug019.java,10,MISSING_BREAK_IN_SWITCH,0.8227,case 3:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug020.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case 1:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug021.java,9,MISSING_BREAK_IN_SWITCH,0.9009,"case ""start"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug022.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case 38:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug023.java,13,MISSING_BREAK_IN_SWITCH,0.789,"case ""often"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug025.java,14,MISSING_BREAK_IN_SWITCH,0.789,case 'C':,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug026.java,13,MISSING_BREAK_IN_SWITCH,0.7488,case 3:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug027.java,8,MISSING_BREAK_IN_SWITCH,0.7488,"case ""Sunday"":",true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug028.java,10,MISSING_BREAK_IN_SWITCH,0.9296,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug029.java,12,MISSING_BREAK_IN_SWITCH,0.6517,case 2:,true_find
+data/ml/raw_snippets/missing_break_in_switch/buggy/MissingBreakBug030.java,10,MISSING_BREAK_IN_SWITCH,0.7488,case 'n':,true_find
+data/ml/raw_snippets/missing_break_in_switch/fixed/MissingBreakFix008.java,17,DIVISION_BY_ZERO_LITERAL,0.9901,result = a / b;,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug001.java,7,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug002.java,7,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= numbers.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug003.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= values.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug004.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.9295,for (int i = 0; i <= data.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug005.java,7,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= word.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.3908,for (int i = 0; i <= marks.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9932,int highest = 0;,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug007.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= prices.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug008.java,7,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= colors.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug009.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.9295,for (int i = 0; i <= source.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug010.java,8,OFF_BY_ONE_LOOP_BOUNDARY,0.3908,for (int i = 0; i <= temps.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug013.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int r = 0; r <= matrix.length; r++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug014.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int c = 0; c <= matrix[0].length; c++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug015.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i += 2) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug016.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9669,for (int i = 1; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug017.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.3908,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug018.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9414,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug019.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= nums.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug020.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug021.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= factors.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug022.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= words.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug024.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= scores.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug024.java,9,DIVISION_BY_ZERO_LITERAL,0.9453,return total / scores.length;,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug025.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i += 2) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug026.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9295,for (int i = 0; i <= src.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug027.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.3908,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug028.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug029.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/buggy/OffByOneBug030.java,6,OFF_BY_ONE_LOOP_BOUNDARY,0.3908,for (int i = 0; i <= arr.length; i++) {,true_find
+data/ml/raw_snippets/off_by_one/fixed/OffByOneFix006.java,6,WRONG_EXTREME_INITIAL_VALUE,0.9932,int highest = 0;,true_find
+data/ml/raw_snippets/off_by_one/fixed/OffByOneFix024.java,9,DIVISION_BY_ZERO_LITERAL,0.9453,return total / scores.length;,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug001.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (count <= 5) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug002.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (seconds > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug003.java,7,WHILE_VARIABLE_NOT_UPDATED,0.9975,while (i <= n) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug004.java,7,WHILE_VARIABLE_NOT_UPDATED,0.9975,while (saved < goal) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug005.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (value > 1) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug006.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (number != 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug007.java,6,WHILE_VARIABLE_NOT_UPDATED,0.9906,while (index < values.length) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug008.java,8,WHILE_VARIABLE_NOT_UPDATED,0.9735,while (guess != secret) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug009.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (temperature > 25.0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug010.java,6,WHILE_VARIABLE_NOT_UPDATED,0.9735,while (power < limit) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug011.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (balance > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug012.java,7,WHILE_VARIABLE_NOT_UPDATED,0.7939,while (!found) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug013.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (row <= 4) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug014.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (n != 1) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug015.java,6,WHILE_VARIABLE_NOT_UPDATED,0.9933,while (padded.length() < width) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug016.java,7,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (battery > 20) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug017.java,6,WHILE_VARIABLE_NOT_UPDATED,0.9975,while (left < right) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug018.java,5,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (waiting > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug019.java,7,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (multiplier <= 12) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug020.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (countdown > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug021.java,7,WHILE_VARIABLE_NOT_UPDATED,0.9975,while (amount < principal * 2) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug023.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (stock > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug024.java,5,WHILE_VARIABLE_NOT_UPDATED,0.8707,while (b != 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug025.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (letter <= 'e') {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug026.java,6,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (health > 0) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug027.java,7,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (day <= 5) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug028.java,7,WHILE_VARIABLE_NOT_UPDATED,0.9975,while (i < count) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug029.java,8,WHILE_VARIABLE_NOT_UPDATED,0.8602,while (!done) {,true_find
+data/ml/raw_snippets/while_variable_not_updated/buggy/WhileNoUpdateBug030.java,6,WHILE_VARIABLE_NOT_UPDATED,0.8851,while (queue.size() > 0) {,true_find
+extension/code-coach-vscode/src/sample-java/AttendanceChecker.java,6,INCORRECT_CONDITIONAL_OPERATOR,0.7634,if (eligible = true) {,true_find
+extension/code-coach-vscode/src/sample-java/BankAccountSimulator.java,13,MISSING_BREAK_IN_SWITCH,0.8227,case 1:,true_find
+extension/code-coach-vscode/src/sample-java/BankAccountSimulator.java,15,MISSING_BREAK_IN_SWITCH,0.9296,case 2:,true_find
+extension/code-coach-vscode/src/sample-java/BankAccountSimulator.java,7,IGNORED_STRING_METHOD_RESULT,0.9899,owner.toUpperCase();,true_find
+extension/code-coach-vscode/src/sample-java/BankAccountSimulator.java,26,WHILE_VARIABLE_NOT_UPDATED,0.7961,while (emailsSent < 3) {,true_find
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,54,LOOP_UPDATE_WRONG_DIRECTION,0.9969,for (int i = 0; i < items.length; i--) {,true_find
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,31,EMPTY_CONDITIONAL_BODY,0.418,if (stock[i] < lowStockLimit); {,true_find
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,40,DIVISION_BY_ZERO_LITERAL,0.8879,"System.out.println(items[row % items.length] + "" : "" + stock[row % stock.length]);",plausible
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,40,DIVISION_BY_ZERO_LITERAL,0.8879,"System.out.println(items[row % items.length] + "" : "" + stock[row % stock.length]);",plausible
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,50,DIVISION_BY_ZERO_LITERAL,0.9441,return total / 0;,true_find
+extension/code-coach-vscode/src/sample-java/InventoryReportTool.java,39,CONSTANT_FALSE_LOOP_CONDITION,0.4782,for (int row = 10; row < 4; row++) {,true_find
+extension/code-coach-vscode/src/sample-java/LastItemPrinter.java,5,ARRAY_LENGTH_INDEX_MISUSE,0.7821,"System.out.println(""Last person: "" + queue[queue.length]);",true_find
+extension/code-coach-vscode/src/sample-java/StudentGradeManager.java,31,STRING_EQUALITY_WITH_OPERATOR,0.9473,"if (name == ""Chathura"") {",true_find
+extension/code-coach-vscode/src/sample-java/TotalMarksPrinter.java,5,OFF_BY_ONE_LOOP_BOUNDARY,0.9734,for (int i = 0; i <= marks.length; i++) {,true_find

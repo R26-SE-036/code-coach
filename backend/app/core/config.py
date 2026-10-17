@@ -131,6 +131,10 @@ class Settings(BaseSettings):
     # but left out of the response, so neither the editor nor Study Guider
     # sees them. The switch for a new detector that misbehaves in a class.
     shadow_error_types: str = ""
+    # Comma-separated error types to run with the detector they had before
+    # their per-site model (the rule, behind its file-level gate if it had
+    # one). Read once at startup.
+    legacy_detectors: str = ""
 
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"

@@ -26,7 +26,10 @@ import java.util.Random;
  * halts the JVM: an infinite loop is a behaviour too, and it cannot be
  * stopped from inside.
  *
- * Usage: java -cp <harness>;<classes> Fuzz <ClassName> [inputsPerMethod]
+ * Strings are always fresh objects, never the interned literal, so `a == b`
+ * on equal text gives what it gives in a student's program fed real input.
+ *
+ * Usage: java -cp <harness>;<classes> Fuzz <ClassName> [inputsPerMethod] [ints|decimals|hexStrings]
  */
 public final class Fuzz {
     private static final long CALL_TIMEOUT_MS = 400;
@@ -37,20 +40,39 @@ public final class Fuzz {
     };
 
     private static final List<Integer> CONSTANTS = new ArrayList<>();
+    private static final List<Double> DECIMALS = new ArrayList<>();
+    private static final List<String> TEXTS = new ArrayList<>();
 
     private Fuzz() {}
 
     public static void main(String[] args) throws Exception {
         Class<?> target = Class.forName(args[0]);
         int perMethod = args.length > 1 ? Integer.parseInt(args[1]) : 40;
-        // The program's own number literals ("50,75,90"): a threshold test
-        // like `score >= 90` is only exercised by inputs near 90.
+        // The program's own literals, "ints|decimals|hex strings": a threshold
+        // test like `score >= 90` is only exercised by inputs near 90, a
+        // tolerance check only by values near its 0.3, and `cmd.equals("quit")`
+        // only by "quit" itself.
         if (args.length > 2 && !args[2].isBlank()) {
-            for (String literal : args[2].split(",")) {
+            String[] parts = args[2].split("\\|", -1);
+            for (String literal : parts[0].split(",")) {
                 try {
                     CONSTANTS.add(Integer.parseInt(literal.trim()));
                 } catch (NumberFormatException ignored) {
                     // not an int literal - skip it
+                }
+            }
+            if (parts.length > 1) {
+                for (String literal : parts[1].split(",")) {
+                    try {
+                        if (!literal.isBlank()) DECIMALS.add(Double.parseDouble(literal.trim()));
+                    } catch (NumberFormatException ignored) {
+                        // not a decimal literal - skip it
+                    }
+                }
+            }
+            if (parts.length > 2) {
+                for (String hex : parts[2].split(",")) {
+                    if (!hex.isBlank()) TEXTS.add(unhex(hex.trim()));
                 }
             }
         }
@@ -90,7 +112,14 @@ public final class Fuzz {
     }
 
     private static long seed(String name, int k) {
-        return name.hashCode() * 1_000_003L + k;
+        // Mixed (SplitMix64) rather than used as is: java.util.Random's first
+        // outputs for consecutive seeds are strongly correlated, so seeds
+        // n, n+1, n+2 gave near-identical inputs - one switch case was never
+        // reached in 60 calls, and its missing break looked harmless.
+        long z = name.hashCode() * 1_000_003L + k + 0x9E3779B97F4A7C15L;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
     }
 
     private static String signature(Method method) {
@@ -190,17 +219,16 @@ public final class Fuzz {
         if (reference && k > 2 && random.nextInt(100) < 7) return null;
         if (type == int.class || type == Integer.class) return scalarInt(random, pool);
         if (type == long.class) return (long) scalarInt(random, pool);
-        if (type == double.class || type == Double.class) {
-            int whole = scalarInt(random, pool);
-            return random.nextInt(4) == 0 ? whole + 0.5 : (double) whole;
-        }
+        if (type == double.class || type == Double.class) return scalarDouble(random, pool);
         if (type == boolean.class) return random.nextBoolean();
         if (type == char.class) {
             if (!pool.chars.isEmpty() && random.nextInt(2) == 0) return pool.chars.get(random.nextInt(pool.chars.size()));
             return "aeiouxyzAB019 ".charAt(random.nextInt(14));
         }
         if (type == String.class) {
-            if (!pool.strings.isEmpty() && random.nextInt(5) < 2) return pool.strings.get(random.nextInt(pool.strings.size()));
+            // A COPY of a string already in the data: equal text in a
+            // different object, which is what `a == b` gets wrong.
+            if (!pool.strings.isEmpty() && random.nextInt(5) < 2) return fresh(pool.strings.get(random.nextInt(pool.strings.size())));
             return text(random);
         }
         int shape = random.nextInt(7);
@@ -254,13 +282,15 @@ public final class Fuzz {
             } else if (component == long.class) {
                 Array.set(array, i, (long) numbers[i]);
             } else if (component == double.class || component == Double.class) {
-                Array.set(array, i, random.nextInt(4) == 0 ? numbers[i] + 0.5 : (double) numbers[i]);
+                int roll = random.nextInt(8);
+                // Tenths as well as halves: 0.1 + 0.2 is where == on doubles fails.
+                Array.set(array, i, roll == 0 ? numbers[i] + 0.5 : roll == 1 ? numbers[i] + (1 + random.nextInt(9)) / 10.0 : (double) numbers[i]);
             } else if (component == char.class) {
                 Array.set(array, i, (char) ('a' + Math.floorMod(numbers[i], 5)));
             } else if (component == boolean.class) {
                 Array.set(array, i, numbers[i] % 2 == 0);
             } else if (component == String.class) {
-                Array.set(array, i, WORDS[Math.floorMod(numbers[i], WORDS.length)]);
+                Array.set(array, i, fresh(WORDS[Math.floorMod(numbers[i], WORDS.length)]));
             }
         }
         return array;
@@ -312,7 +342,46 @@ public final class Fuzz {
         return random.nextInt(40) - 5;
     }
 
+    private static double scalarDouble(Random random, Pool pool) {
+        // Either side of one of the program's own decimal literals, or the
+        // literal itself reached by arithmetic (0.1 + 0.2 is not 0.3).
+        if (!DECIMALS.isEmpty() && random.nextInt(4) == 0) {
+            double literal = DECIMALS.get(random.nextInt(DECIMALS.size()));
+            int roll = random.nextInt(4);
+            if (roll == 0) return literal;
+            if (roll == 1) return literal / 3.0 * 3.0 + 0.1 - 0.1;
+            return literal + (roll == 2 ? 0.1 : -0.1);
+        }
+        int whole = scalarInt(random, pool);
+        int roll = random.nextInt(8);
+        if (roll == 0) return whole + 0.5;
+        if (roll == 1) return whole + (1 + random.nextInt(9)) / 10.0;
+        return whole;
+    }
+
+    /** Equal text in a new object - never the interned literal itself. */
+    private static String fresh(String value) {
+        return value == null ? null : new String(value.toCharArray());
+    }
+
+    private static String unhex(String hex) {
+        byte[] bytes = new byte[hex.length() / 2];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(hex.substring(2 * i, 2 * i + 2), 16);
+        }
+        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     private static String text(Random random) {
+        // The program's own string literals, as the student would type them
+        // or slightly off: "quit", " quit ", "QUIT".
+        if (!TEXTS.isEmpty() && random.nextInt(4) == 0) {
+            String literal = TEXTS.get(random.nextInt(TEXTS.size()));
+            int roll = random.nextInt(5);
+            if (roll == 0) return fresh(" " + literal + " ");
+            if (roll == 1) return literal.toUpperCase();
+            return fresh(literal);
+        }
         int kind = random.nextInt(6);
         StringBuilder out = new StringBuilder();
         if (kind == 0) {
@@ -329,7 +398,7 @@ public final class Fuzz {
             String left = out.toString();
             return left + (random.nextBoolean() ? "x" : "") + new StringBuilder(left).reverse();
         }
-        return WORDS[random.nextInt(WORDS.length)];
+        return fresh(WORDS[random.nextInt(WORDS.length)]);
     }
 
     // ------------------------------------------------------------- output

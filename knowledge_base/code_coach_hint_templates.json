@@ -33,7 +33,10 @@
     "targeted": "`{call}` builds a new String, but nothing keeps it, so {target} is exactly the same afterwards. Where should the new String go?"
   },
   "DIVISION_BY_ZERO_LITERAL": {
-    "targeted": "`{expression}` divides by the literal 0, which stops the program every time this line runs. What should the divisor really be?"
+    "targeted": [
+      "`{expression}` divides by `{divisor}`, and nothing before this line rules out `{divisor}` being 0 - for an empty array, say, or when nothing was counted. What should happen in that case?",
+      "`{expression}` divides by the literal 0, which stops the program every time this line runs. What should the divisor really be?"
+    ]
   },
   "CONSTANT_FALSE_LOOP_CONDITION": {
     "targeted": "{variable} starts at {start}, and `{condition}` is already false for that value, so the loop body never runs at all. Which of the two numbers is not the one you meant?"

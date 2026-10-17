@@ -1,12 +1,25 @@
-error_type,family,threshold,precision_target_reached,test_rows,test_positives,model_precision,model_recall,model_f1,model_average_precision,rule_precision,rule_recall,rule_f1,proposer_precision
-ACCUMULATOR_RESET_INSIDE_LOOP,random_forest,0.2887,f0.5,192,153,0.9053,1.0,0.9503,0.941,0.9053,1.0,0.9503,0.7969
-EARLY_RETURN_IN_LOOP,logistic_regression,0.2354,f0.5,86,83,0.9647,0.988,0.9762,0.9434,0.9651,1.0,0.9822,0.9651
-INDEX_PLUS_ONE_OUT_OF_BOUNDS,random_forest,0.6255,f0.5,43,16,0.8421,1.0,0.9143,0.9803,1.0,0.5,0.6667,0.3721
-LOOP_COUNTER_CHANGED_IN_BODY,random_forest,0.3399,f0.5,247,196,0.8655,0.9847,0.9212,0.9162,0.8704,0.7194,0.7877,0.7935
-LOOP_SKIPS_LAST_ELEMENT,logistic_regression,0.6253,precision_0.95,156,128,0.9905,0.8125,0.8927,0.9902,0.8533,1.0,0.9209,0.8205
-MISLEADING_INDENTATION_NO_BRACES,logistic_regression,0.4317,precision_0.95,402,58,0.9153,0.931,0.9231,0.9619,1.0,0.9138,0.955,0.1443
-NESTED_LOOP_WRONG_COUNTER,gradient_boosting,0.0126,precision_0.95,55,52,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9455
-NON_SHORT_CIRCUIT_OPERATOR,random_forest,0.8097,precision_0.95,260,122,0.9292,0.8607,0.8936,0.931,0.4692,1.0,0.6387,0.4692
-UNREACHABLE_ELSE_IF_ORDER,random_forest,0.3782,precision_0.95,52,26,1.0,1.0,1.0,1.0,0.963,1.0,0.9811,0.5
-WRONG_EXTREME_INITIAL_VALUE,logistic_regression,0.339,precision_0.95,83,39,0.9512,1.0,0.975,0.9635,0.8298,1.0,0.907,0.4699
-WRONG_LOOP_VARIABLE_IN_INDEX,logistic_regression,0.5614,precision_0.95,60,39,0.9655,0.7179,0.8235,0.9369,0.9545,0.5385,0.6885,0.65
+error_type,family,threshold,precision_target_reached,test_rows,test_positives,model_precision,model_recall,model_f1,model_average_precision,baseline,rule_precision,rule_recall,rule_f1,proposer_precision
+ACCUMULATOR_RESET_INSIDE_LOOP,random_forest,0.3623,f0.5,268,219,0.8939,1.0,0.944,0.9444,hand-written rule,0.8939,1.0,0.944,0.8172
+ARRAY_LENGTH_INDEX_MISUSE,random_forest,0.0423,precision_0.95,45,16,1.0,1.0,1.0,1.0,previous detector,1.0,0.75,0.8571,0.3556
+CONSTANT_FALSE_LOOP_CONDITION,gradient_boosting,0.159,precision_0.95,347,330,0.951,1.0,0.9749,0.9515,previous detector,0.0,0.0,0.0,0.951
+DECIMAL_EQUALITY_COMPARISON,random_forest,0.2673,precision_0.95,47,28,0.9333,1.0,0.9655,0.9952,previous detector,0.9259,0.8929,0.9091,0.5957
+DIVISION_BY_ZERO_LITERAL,random_forest,0.7233,precision_0.95,28,10,1.0,1.0,1.0,1.0,previous detector,0.0,0.0,0.0,0.3571
+EARLY_RETURN_IN_LOOP,gradient_boosting,0.0223,precision_0.95,144,141,0.9792,1.0,0.9895,0.9973,hand-written rule,0.9792,1.0,0.9895,0.9792
+EMPTY_CONDITIONAL_BODY,random_forest,0.1454,f0.5,205,182,0.901,1.0,0.9479,0.9456,previous detector,0.8878,1.0,0.9406,0.8878
+IGNORED_STRING_METHOD_RESULT,logistic_regression,0.0137,precision_0.95,30,7,1.0,1.0,1.0,1.0,previous detector,1.0,1.0,1.0,0.2333
+INCORRECT_CONDITIONAL_OPERATOR,random_forest,0.018,f0.5,38,33,0.9706,1.0,0.9851,0.9715,previous detector,0.9429,1.0,0.9706,0.8684
+INDEX_PLUS_ONE_OUT_OF_BOUNDS,gradient_boosting,0.9021,precision_0.95,128,49,1.0,0.898,0.9462,0.994,hand-written rule,1.0,0.5306,0.6933,0.3828
+INTEGER_DIVISION_IN_DECIMAL_CONTEXT,logistic_regression,0.0817,f0.5,47,20,1.0,1.0,1.0,1.0,previous detector,1.0,0.05,0.0952,0.4255
+LOOP_COUNTER_CHANGED_IN_BODY,random_forest,0.3043,f0.5,367,296,0.853,1.0,0.9207,0.8794,hand-written rule,0.8588,0.7399,0.7949,0.8065
+LOOP_SKIPS_LAST_ELEMENT,random_forest,0.5371,precision_0.95,235,179,0.9344,0.9553,0.9448,0.9888,hand-written rule,0.8091,0.9944,0.8922,0.7617
+LOOP_UPDATE_WRONG_DIRECTION,random_forest,0.3788,precision_0.95,534,265,0.9925,1.0,0.9962,0.9986,previous detector,0.9925,1.0,0.9962,0.4963
+MISLEADING_INDENTATION_NO_BRACES,logistic_regression,0.5995,precision_0.95,645,96,1.0,0.9479,0.9733,0.9705,hand-written rule,1.0,0.8958,0.9451,0.1488
+MISSING_BREAK_IN_SWITCH,gradient_boosting,0.3649,f0.5,79,61,0.9355,0.9508,0.9431,0.9651,previous detector,0.791,0.8689,0.8281,0.7722
+NESTED_LOOP_WRONG_COUNTER,gradient_boosting,0.4271,precision_0.95,97,92,0.9787,1.0,0.9892,0.9981,hand-written rule,0.9787,1.0,0.9892,0.9485
+NON_SHORT_CIRCUIT_OPERATOR,random_forest,0.7388,precision_0.95,379,190,0.9832,0.9263,0.9539,0.9864,hand-written rule,0.5013,1.0,0.6678,0.5013
+OFF_BY_ONE_LOOP_BOUNDARY,random_forest,0.2039,precision_0.95,229,212,0.9507,1.0,0.9747,0.9878,previous detector,0.9315,0.6415,0.7598,0.9258
+STRING_EQUALITY_WITH_OPERATOR,logistic_regression,0.1837,precision_0.95,28,27,1.0,0.8148,0.898,0.9934,previous detector,0.9412,0.5926,0.7273,0.9643
+UNREACHABLE_ELSE_IF_ORDER,gradient_boosting,0.6324,precision_0.95,54,26,1.0,1.0,1.0,1.0,hand-written rule,0.963,1.0,0.9811,0.4815
+WHILE_VARIABLE_NOT_UPDATED,random_forest,0.6507,precision_0.95,164,80,0.9467,0.8875,0.9161,0.9612,previous detector,0.9048,0.2375,0.3762,0.4878
+WRONG_EXTREME_INITIAL_VALUE,random_forest,0.362,precision_0.95,83,39,0.9512,1.0,0.975,0.9393,hand-written rule,0.8298,1.0,0.907,0.4699
+WRONG_LOOP_VARIABLE_IN_INDEX,gradient_boosting,0.3894,precision_0.95,97,59,0.8667,0.8814,0.8739,0.9262,hand-written rule,0.9444,0.5763,0.7158,0.6082

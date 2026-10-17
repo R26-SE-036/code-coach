@@ -86,21 +86,38 @@ def compile_many(jobs: Iterable[Tuple[Path, Path]]) -> Dict[str, Optional[str]]:
 
 
 _INT_LITERAL = re.compile(r"(?<![\w.])\d+(?![\w.])")
+_DECIMAL_LITERAL = re.compile(r"(?<![\w.])\d+\.\d+(?![\w.])")
+_STRING_LITERAL = re.compile(r'"((?:[^"\\\n]|\\.){1,24})"')
 
 
 def literals(*sources: str) -> str:
-    """The small int literals in the source(s), for Fuzz to probe around.
+    """The program's own literals, for Fuzz to probe around:
+    "ints|decimals|strings", the strings hex-encoded so any text survives the
+    command line.
 
     Both versions of a comparison must see the same inputs, so callers pass
     every source being compared and get one shared list.
     """
-    found = []
+    ints, decimals, texts = [], [], []
     for source in sources:
-        for match in _INT_LITERAL.findall(source or ""):
+        source = source or ""
+        for match in _INT_LITERAL.findall(source):
             value = int(match)
-            if value <= 10_000 and value not in found:
-                found.append(value)
-    return ",".join(str(v) for v in sorted(found)[:16])
+            if value <= 10_000 and value not in ints:
+                ints.append(value)
+        for match in _DECIMAL_LITERAL.findall(source):
+            value = float(match)
+            if value <= 10_000 and value not in decimals:
+                decimals.append(value)
+        for match in _STRING_LITERAL.findall(source):
+            text = match.encode("utf-8").decode("unicode_escape", errors="ignore") if "\\" in match else match
+            if text.strip() and text not in texts:
+                texts.append(text)
+    return "|".join([
+        ",".join(str(v) for v in sorted(ints)[:16]),
+        ",".join(repr(v) for v in sorted(decimals)[:8]),
+        ",".join(t.encode("utf-8").hex() for t in texts[:12]),
+    ])
 
 
 def _behaviour(job: tuple, inputs: int) -> str:

@@ -113,6 +113,7 @@ rpds-py==0.30.0
 Send2Trash==2.1.0
 sentry-sdk==2.56.0
 scikit-learn==1.8.0
+threadpoolctl==3.6.0
 setuptools==80.10.2
 shellingham==1.5.4
 six==1.17.0
