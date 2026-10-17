@@ -288,6 +288,10 @@ def main() -> None:
                              m["precision"], m["recall"], m["f1"], m.get("average_precision", ""),
                              baseline, r["precision"], r["recall"], r["f1"], p["precision"]])
 
+    # The model cards read these results, so they are rebuilt with them.
+    from app.dev_tools.mutation.model_cards import write_cards
+    print(f"model cards -> {write_cards()}")
+
 
 if __name__ == "__main__":
     main()

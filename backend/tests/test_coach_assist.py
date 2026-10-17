@@ -68,6 +68,27 @@ def test_the_catalogue_is_public_and_names_all_thirty(client):
     assert sum(entry["detection_mode"] == "candidate_ml" for entry in entries) == 24
 
 
+def test_every_model_decided_type_has_a_public_model_card(client):
+    index = client.get("/api/v1/code-coach/model-cards")
+    assert index.status_code == 200
+    catalogue = client.get("/api/v1/code-coach/catalog").json()
+    model_types = {entry["error_type"] for entry in catalogue if entry["detection_mode"] == "candidate_ml"}
+    assert {entry["error_type"] for entry in index.json()} == model_types
+
+    for error_type in model_types:
+        card = client.get(f"/api/v1/code-coach/model-cards/{error_type}").json()
+        assert card["in_use"] is True
+        assert card["detects"] and card["considers"] and card["example"]["mistake"] and card["example"]["lookalike"]
+        assert card["unreliable_when"] and card["general_limitations"]
+        test = card["performance"]["test"]
+        assert 0 <= test["precision"] <= 1 and 0 <= test["recall"] <= 1
+        assert card["training_data"]["test_sites"] > 0
+
+
+def test_a_rule_has_no_model_card(client):
+    assert client.get("/api/v1/code-coach/model-cards/SELF_ASSIGNMENT").status_code == 404
+
+
 def test_the_help_routes_need_a_signed_in_student(client):
     assert explain(client, {}).status_code == 401
     assert client.post("/api/v1/code-coach/explain-compiler-error", json={"message": "x", "code": "", "line": 1}).status_code == 401

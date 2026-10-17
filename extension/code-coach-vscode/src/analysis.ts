@@ -34,6 +34,7 @@ import {
   explainInMyCode,
   muteErrorType,
   openCourseUnit,
+  showModelCard,
   showSimilarExample,
 } from "./assist";
 import { titleFor } from "./labels";
@@ -907,6 +908,11 @@ export function handleCoachPanelMessage(
     case "panelLearn": {
       const diagnostic = activeDiagnostic(state);
       if (diagnostic) { openCourseUnit(state, diagnostic); }
+      break;
+    }
+    case "panelModelCard": {
+      const diagnostic = activeDiagnostic(state);
+      if (diagnostic) { void showModelCard(state, diagnostic); }
       break;
     }
     case "panelMute": {

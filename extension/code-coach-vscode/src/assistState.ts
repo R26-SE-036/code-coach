@@ -16,6 +16,11 @@ export function exampleKey(diagnostic: DiagnosticItem): string {
   return `example:${diagnostic.diagnostic_id}`;
 }
 
+/** One per error type: every finding of a type shares its model's card. */
+export function cardKey(diagnostic: DiagnosticItem): string {
+  return `card:${diagnostic.error_type}`;
+}
+
 export function compilerKey(problem: CompilerProblem): string {
   return `compiler:${problem.line}:${problem.message}`;
 }

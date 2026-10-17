@@ -2,14 +2,15 @@
 
 All under /api/v1/code-coach next to /analyze. The three POST routes need a
 signed-in student, because the daily allowance is per student; the catalogue
-is public - it is the list of mistakes Code Coach knows, with their names.
+is public - it is the list of mistakes Code Coach knows, with their names - and
+so are the model cards, which say how each model was trained and tested.
 """
 
 from __future__ import annotations
 
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.dependencies import AuthContext, get_current_auth, get_storage
@@ -20,6 +21,7 @@ from app.services.explanation_service import (
     explain_diagnostic,
     similar_example,
 )
+from app.services.model_cards import model_card, model_card_index
 
 router = APIRouter(prefix="/api/v1/code-coach", tags=["code-coach"])
 
@@ -74,6 +76,19 @@ def _response(result) -> ExplanationResponse:
 @router.get("/catalog", response_model=List[CatalogueEntry])
 def list_catalogue() -> List[CatalogueEntry]:
     return [CatalogueEntry(**entry) for entry in catalogue()]
+
+
+@router.get("/model-cards")
+def list_model_cards() -> List[dict]:
+    return model_card_index()
+
+
+@router.get("/model-cards/{error_type}")
+def get_model_card(error_type: str) -> dict:
+    card = model_card(error_type.upper())
+    if card is None:
+        raise HTTPException(status_code=404, detail=f"{error_type} is decided by a rule, not a model, or is not a known error type.")
+    return card
 
 
 @router.post("/explain", response_model=ExplanationResponse)

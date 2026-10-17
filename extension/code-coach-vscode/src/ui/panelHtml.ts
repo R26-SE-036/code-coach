@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { compilerKey, compilerProblemsFor, exampleKey, explainKey } from "../assistState";
+import { cardKey, compilerKey, compilerProblemsFor, exampleKey, explainKey } from "../assistState";
 import { conceptName, confidenceWords, engineWords, inlineCodeHtml, titleFor } from "../labels";
-import { AssistEntry, CoachPanelState, DiagnosticItem, ExtensionState } from "../types";
+import { AssistEntry, CoachPanelState, DiagnosticItem, ExtensionState, ModelCard } from "../types";
 import { isSupportedDocument, formatDuration } from "./statusBar";
 
 const HINT_ORDER = ["concept", "guidance", "targeted"];
@@ -142,17 +142,78 @@ function compilerCard(state: ExtensionState, uriKey: string | undefined): string
     </div>`;
 }
 
-function decidedBlock(active: DiagnosticItem | undefined): string {
+function percent(value: number | undefined): string {
+  return value === undefined || value === null ? "—" : `${Math.round(value * 100)}%`;
+}
+
+function cardList(items: string[]): string {
+  return `<ul class="card-list">${items.map((item) => `<li>${inlineCodeHtml(item, escapeHtml)}</li>`).join("")}</ul>`;
+}
+
+/** The model card, in words a student can follow: what it looks for, how it learned, how it did, where it fails. */
+export function modelCardHtml(card: ModelCard): string {
+  const p = card.performance;
+  const row = (label: string, m: { precision?: number; recall?: number; f1?: number } | null | undefined) => m
+    ? `<tr><td>${escapeHtml(label)}</td><td>${percent(m.precision)}</td><td>${percent(m.recall)}</td><td>${m.f1 === undefined ? "—" : m.f1.toFixed(2)}</td></tr>`
+    : "";
+  const human = p.human_code.flags
+    ? `On code written by people it raised ${p.human_code.flags} flag${p.human_code.flags === 1 ? "" : "s"}: ${p.human_code.real} real, ${p.human_code.plausible} plausible, ${p.human_code.wrong} wrong.`
+    : "It raised no flags on the code written by people that it was checked on.";
+  const curated = p.curated
+    ? ` On ${p.curated.snippets} hand-labelled snippets it found ${Math.round(p.curated.recall * p.curated.mistakes)} of ${p.curated.mistakes} mistakes with ${p.curated.false_alarms} false alarm${p.curated.false_alarms === 1 ? "" : "s"}.`
+    : "";
+  return `<div class="model-card">
+      <div class="assist-title">📄 Model card: ${escapeHtml(card.title)}</div>
+      ${card.in_use ? "" : `<p class="muted">This model is switched off at the moment; the older detector is deciding this kind of finding.</p>`}
+      <p>${inlineCodeHtml(card.detects, escapeHtml)}</p>
+      <p class="muted">${inlineCodeHtml(card.considers, escapeHtml)}</p>
+      <div class="code-label bad">The mistake</div><pre class="code bad">${escapeHtml(card.example.mistake)}</pre>
+      <div class="code-label good">Looks similar, but correct</div><pre class="code good">${escapeHtml(card.example.lookalike)}</pre>
+      <h4>Model</h4>
+      <p>${escapeHtml(card.model.family_name)} over ${card.model.feature_count} facts about each place. It flags a place when its score reaches ${card.model.threshold.toFixed(2)}: ${escapeHtml(card.model.threshold_rule)}.</p>
+      <h4>Trained on</h4>
+      <p>${escapeHtml(card.training_data.description)}</p>
+      <p class="muted">${card.training_data.training_sites.toLocaleString()} places to learn from (${card.training_data.training_mistakes.toLocaleString()} mistakes); tested on ${card.training_data.test_sites.toLocaleString()} it never saw (${card.training_data.test_mistakes.toLocaleString()} mistakes). ${escapeHtml(card.training_data.split)}</p>
+      <h4>How well it does</h4>
+      <table class="card-table"><tr><th></th><th>Precision</th><th>Recall</th><th>F1</th></tr>
+        ${row("This model", p.test)}${row(p.previous.name.startsWith("the detector") ? "Before" : "A simple rule", p.previous)}${row("CodeBERT (offline)", p.codebert)}
+      </table>
+      <p class="muted">Precision: of the places it flags, how many are real mistakes. Recall: of the real mistakes, how many it flags.</p>
+      <p>${escapeHtml(human + curated)}</p>
+      <h4>When not to trust it</h4>
+      ${cardList(card.unreliable_when)}
+      <h4>Known limitations</h4>
+      ${cardList([...card.limitations, ...(card.general_limitations ?? [])])}
+    </div>`;
+}
+
+function modelCardBlock(entry: AssistEntry | undefined): string {
+  if (!entry) {
+    return `<button class="btn btn-ghost" data-command="panelModelCard" title="What this model looks for, what it learned from, how it was tested and where it can be wrong">📄 How this model was tested</button>`;
+  }
+  if (entry.loading) { return `<p class="muted"><span class="spinner"></span> Loading the model card…</p>`; }
+  if (entry.error || !entry.card) {
+    return `<div class="assist-card assist-error"><p>${escapeHtml(entry.error ?? "No model card for this one.")}</p></div>`;
+  }
+  return modelCardHtml(entry.card);
+}
+
+function decidedBlock(state: ExtensionState, active: DiagnosticItem | undefined): string {
   if (!active) { return ""; }
   const bars = [
     confidenceBar(active.detection_engine === "candidate_ml" ? "Model" : "ML gate", active.ml_probability),
     confidenceBar("Rule", active.locator_confidence),
   ].join("");
-  return `<details class="decided">
+  // Only a model has a card. Kept open once a card is asked for, because
+  // the panel is redrawn when it arrives.
+  const hasModel = active.detection_engine === "candidate_ml";
+  const card = hasModel ? state.assistByKey.get(cardKey(active)) : undefined;
+  return `<details class="decided"${card ? " open" : ""}>
       <summary>How Code Coach decided</summary>
       <p class="muted">${escapeHtml(engineWords(active.detection_engine))}.</p>
       ${bars.trim() ? `<div class="conf-block">${bars}</div>` : ""}
       <p class="mono muted">${escapeHtml(active.error_type)} · ${escapeHtml(active.concept_tag)} · ${escapeHtml(active.detection_engine)}</p>
+      ${hasModel ? modelCardBlock(card) : ""}
     </details>`;
 }
 
@@ -298,7 +359,7 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
             : `<button class="btn btn-ghost" data-command="panelDispute" title="Tell us this warning is wrong — it improves detection">🚩 Not a real bug?</button>`}
           <button class="btn btn-ghost" data-command="panelMute" title="Stop showing this kind of finding">🔕 Mute this kind</button>
         </div>
-        ${decidedBlock(active)}
+        ${decidedBlock(state, active)}
       </div>
       ${count > 1 ? `
       <div class="card list-card">
@@ -576,6 +637,15 @@ pre.code.bad{border-left-color:#f87171}pre.code.good{border-left-color:var(--vsc
 .decided summary{cursor:pointer;font-size:11px;font-weight:600;color:var(--vscode-descriptionForeground)}
 .decided[open] summary{margin-bottom:8px}
 .decided p{margin:4px 0}
+.model-card{display:flex;flex-direction:column;gap:4px;margin-top:8px;padding:10px 12px;border-radius:8px;
+  border:1px solid color-mix(in srgb,var(--vscode-panel-border) 45%,transparent);font-size:12px;line-height:1.45}
+.model-card h4{margin:8px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--vscode-descriptionForeground)}
+.card-table{border-collapse:collapse;font-size:11.5px;margin:2px 0}
+.card-table th,.card-table td{padding:3px 8px 3px 0;text-align:left}
+.card-table th{font-weight:600;color:var(--vscode-descriptionForeground)}
+.card-table tr:nth-child(2) td{font-weight:600}
+.card-list{margin:2px 0;padding-left:18px}
+.card-list li{margin:2px 0}
 
 /* ── Fixed it! ── */
 .fixed-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;

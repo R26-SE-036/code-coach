@@ -16,13 +16,14 @@ import * as vscode from "vscode";
 import { authorizedRequestJson } from "./api";
 import { trackLearningEvent } from "./auth";
 import { getPortalUrl } from "./browserAuth";
-import { compilerKey, exampleKey, explainKey, mutedErrorTypes, MUTED_SETTING } from "./assistState";
+import { cardKey, compilerKey, exampleKey, explainKey, mutedErrorTypes, MUTED_SETTING } from "./assistState";
 import { titleFor } from "./labels";
 import {
   CompilerProblem,
   DiagnosticItem,
   ExplanationResponse,
   ExtensionState,
+  ModelCard,
   SimilarExampleResponse,
 } from "./types";
 import { updateCoachPanel } from "./ui/panelHtml";
@@ -133,6 +134,24 @@ export async function explainCompilerError(state: ExtensionState, problem: Compi
     record(state, undefined, "compiler_error", { source: result.source, message: problem.message.slice(0, 160) });
   } catch (error) {
     state.assistByKey.set(key, { kind: "compiler", message: problem.message, line: problem.line, error: failureText(error) });
+  }
+  updateCoachPanel(state);
+}
+
+/** How the model behind this kind of finding was trained and tested. Fetched once per type. */
+export async function showModelCard(state: ExtensionState, diagnostic: DiagnosticItem): Promise<void> {
+  const key = cardKey(diagnostic);
+  if (state.assistByKey.get(key)?.card) { return; }
+  state.assistByKey.set(key, { kind: "card", loading: true });
+  updateCoachPanel(state);
+  try {
+    const card = await authorizedRequestJson<ModelCard>(
+      state, `/api/v1/code-coach/model-cards/${encodeURIComponent(diagnostic.error_type)}`, { method: "GET" },
+    );
+    state.assistByKey.set(key, { kind: "card", card });
+    record(state, diagnostic, "model_card", {});
+  } catch (error) {
+    state.assistByKey.set(key, { kind: "card", error: failureText(error) });
   }
   updateCoachPanel(state);
 }

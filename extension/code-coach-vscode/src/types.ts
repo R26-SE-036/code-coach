@@ -56,9 +56,40 @@ export type SimilarExampleResponse = {
   source: string;
 };
 
+type CardMetrics = { precision: number; recall: number; f1: number; average_precision?: number };
+
+/** How one error type's model was trained and tested (GET /model-cards/{type}). */
+export type ModelCard = {
+  error_type: string;
+  title: string;
+  detects: string;
+  considers: string;
+  example: { mistake: string; lookalike: string };
+  model: { family_name: string; threshold: number; threshold_rule: string; feature_count: number; top_features: string[] };
+  training_data: {
+    description: string;
+    split: string;
+    training_sites: number;
+    training_mistakes: number;
+    test_sites: number;
+    test_mistakes: number;
+  };
+  performance: {
+    test: CardMetrics;
+    previous: Partial<CardMetrics> & { name: string };
+    codebert: CardMetrics | null;
+    human_code: { flags: number; real: number; plausible: number; wrong: number };
+    curated: { snippets: number; mistakes: number; precision: number; recall: number; false_alarms: number } | null;
+  };
+  unreliable_when: string[];
+  limitations: string[];
+  general_limitations: string[];
+  in_use: boolean;
+};
+
 /** What the panel shows under a finding after the student asks for it. */
 export type AssistEntry = {
-  kind: "explanation" | "example" | "compiler";
+  kind: "explanation" | "example" | "compiler" | "card";
   loading?: boolean;
   text?: string;
   source?: string;
@@ -66,6 +97,7 @@ export type AssistEntry = {
   limit?: number;
   limitReached?: boolean;
   example?: SimilarExampleResponse;
+  card?: ModelCard;
   /** For a compiler error: its message and line. */
   message?: string;
   line?: number;
