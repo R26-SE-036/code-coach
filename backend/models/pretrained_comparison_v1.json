@@ -1,0 +1,1520 @@
+{
+  "ms_per_site": 197.5,
+  "benchmark_sites": 64,
+  "benchmark_threads": 8,
+  "model": "microsoft/codebert-base",
+  "results": {
+    "ACCUMULATOR_RESET_INSIDE_LOOP": {
+      "error_type": "ACCUMULATOR_RESET_INSIDE_LOOP",
+      "rows": 2016,
+      "test_rows": 268,
+      "test_positives": 219,
+      "hand_features_model": {
+        "precision": 0.8939,
+        "recall": 1.0,
+        "f1": 0.944,
+        "flagged": 245,
+        "positives": 219,
+        "rows": 268,
+        "average_precision": 0.9444
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.4094,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.9599,
+            "f1": 0.9555,
+            "flagged": 1434,
+            "positives": 1421,
+            "rows": 1748,
+            "average_precision": 0.9782
+          },
+          "test": {
+            "precision": 0.9633,
+            "recall": 0.9589,
+            "f1": 0.9611,
+            "flagged": 218,
+            "positives": 219,
+            "rows": 268,
+            "average_precision": 0.9963
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.4523,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9517,
+            "recall": 0.9564,
+            "f1": 0.954,
+            "flagged": 1428,
+            "positives": 1421,
+            "rows": 1748,
+            "average_precision": 0.979
+          },
+          "test": {
+            "precision": 0.9676,
+            "recall": 0.9543,
+            "f1": 0.9609,
+            "flagged": 216,
+            "positives": 219,
+            "rows": 268,
+            "average_precision": 0.9966
+          }
+        }
+      ]
+    },
+    "ARRAY_LENGTH_INDEX_MISUSE": {
+      "error_type": "ARRAY_LENGTH_INDEX_MISUSE",
+      "rows": 282,
+      "test_rows": 45,
+      "test_positives": 16,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "flagged": 16,
+        "positives": 16,
+        "rows": 45,
+        "average_precision": 1.0
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.1678,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 80,
+            "positives": 80,
+            "rows": 237,
+            "average_precision": 1.0
+          },
+          "test": {
+            "precision": 0.9412,
+            "recall": 1.0,
+            "f1": 0.9697,
+            "flagged": 17,
+            "positives": 16,
+            "rows": 45,
+            "average_precision": 1.0
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.1423,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9877,
+            "recall": 1.0,
+            "f1": 0.9938,
+            "flagged": 81,
+            "positives": 80,
+            "rows": 237,
+            "average_precision": 1.0
+          },
+          "test": {
+            "precision": 0.9412,
+            "recall": 1.0,
+            "f1": 0.9697,
+            "flagged": 17,
+            "positives": 16,
+            "rows": 45,
+            "average_precision": 1.0
+          }
+        }
+      ]
+    },
+    "CONSTANT_FALSE_LOOP_CONDITION": {
+      "error_type": "CONSTANT_FALSE_LOOP_CONDITION",
+      "rows": 2580,
+      "test_rows": 347,
+      "test_positives": 330,
+      "hand_features_model": {
+        "precision": 0.951,
+        "recall": 1.0,
+        "f1": 0.9749,
+        "flagged": 347,
+        "positives": 330,
+        "rows": 347,
+        "average_precision": 0.9515
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.008,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9583,
+            "recall": 1.0,
+            "f1": 0.9787,
+            "flagged": 2228,
+            "positives": 2135,
+            "rows": 2233,
+            "average_precision": 0.9828
+          },
+          "test": {
+            "precision": 0.951,
+            "recall": 1.0,
+            "f1": 0.9749,
+            "flagged": 347,
+            "positives": 330,
+            "rows": 347,
+            "average_precision": 0.9936
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0108,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9583,
+            "recall": 1.0,
+            "f1": 0.9787,
+            "flagged": 2228,
+            "positives": 2135,
+            "rows": 2233,
+            "average_precision": 0.9821
+          },
+          "test": {
+            "precision": 0.9509,
+            "recall": 0.997,
+            "f1": 0.9734,
+            "flagged": 346,
+            "positives": 330,
+            "rows": 347,
+            "average_precision": 0.9937
+          }
+        }
+      ]
+    },
+    "DECIMAL_EQUALITY_COMPARISON": {
+      "error_type": "DECIMAL_EQUALITY_COMPARISON",
+      "rows": 297,
+      "test_rows": 47,
+      "test_positives": 28,
+      "hand_features_model": {
+        "precision": 0.9333,
+        "recall": 1.0,
+        "f1": 0.9655,
+        "flagged": 30,
+        "positives": 28,
+        "rows": 47,
+        "average_precision": 0.9952
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.3443,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.993,
+            "recall": 1.0,
+            "f1": 0.9965,
+            "flagged": 143,
+            "positives": 142,
+            "rows": 250,
+            "average_precision": 0.9995
+          },
+          "test": {
+            "precision": 0.9333,
+            "recall": 1.0,
+            "f1": 0.9655,
+            "flagged": 30,
+            "positives": 28,
+            "rows": 47,
+            "average_precision": 0.9892
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.1744,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.993,
+            "recall": 1.0,
+            "f1": 0.9965,
+            "flagged": 143,
+            "positives": 142,
+            "rows": 250,
+            "average_precision": 0.9994
+          },
+          "test": {
+            "precision": 0.9333,
+            "recall": 1.0,
+            "f1": 0.9655,
+            "flagged": 30,
+            "positives": 28,
+            "rows": 47,
+            "average_precision": 0.9892
+          }
+        }
+      ]
+    },
+    "DIVISION_BY_ZERO_LITERAL": {
+      "error_type": "DIVISION_BY_ZERO_LITERAL",
+      "rows": 152,
+      "test_rows": 28,
+      "test_positives": 10,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "flagged": 10,
+        "positives": 10,
+        "rows": 28,
+        "average_precision": 1.0
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.9095,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 1.0,
+            "recall": 0.6923,
+            "f1": 0.8182,
+            "flagged": 36,
+            "positives": 52,
+            "rows": 124,
+            "average_precision": 0.9247
+          },
+          "test": {
+            "precision": 0.9,
+            "recall": 0.9,
+            "f1": 0.9,
+            "flagged": 10,
+            "positives": 10,
+            "rows": 28,
+            "average_precision": 0.9063
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.7761,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9524,
+            "recall": 0.7692,
+            "f1": 0.8511,
+            "flagged": 42,
+            "positives": 52,
+            "rows": 124,
+            "average_precision": 0.9352
+          },
+          "test": {
+            "precision": 0.9,
+            "recall": 0.9,
+            "f1": 0.9,
+            "flagged": 10,
+            "positives": 10,
+            "rows": 28,
+            "average_precision": 0.9573
+          }
+        }
+      ]
+    },
+    "EARLY_RETURN_IN_LOOP": {
+      "error_type": "EARLY_RETURN_IN_LOOP",
+      "rows": 1064,
+      "test_rows": 144,
+      "test_positives": 141,
+      "hand_features_model": {
+        "precision": 0.9792,
+        "recall": 1.0,
+        "f1": 0.9895,
+        "flagged": 144,
+        "positives": 141,
+        "rows": 144,
+        "average_precision": 0.9973
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.021,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9783,
+            "recall": 1.0,
+            "f1": 0.989,
+            "flagged": 920,
+            "positives": 900,
+            "rows": 920,
+            "average_precision": 0.9984
+          },
+          "test": {
+            "precision": 0.9792,
+            "recall": 1.0,
+            "f1": 0.9895,
+            "flagged": 144,
+            "positives": 141,
+            "rows": 144,
+            "average_precision": 0.9983
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0344,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9804,
+            "recall": 0.9989,
+            "f1": 0.9895,
+            "flagged": 917,
+            "positives": 900,
+            "rows": 920,
+            "average_precision": 0.9984
+          },
+          "test": {
+            "precision": 0.9792,
+            "recall": 1.0,
+            "f1": 0.9895,
+            "flagged": 144,
+            "positives": 141,
+            "rows": 144,
+            "average_precision": 0.9982
+          }
+        }
+      ]
+    },
+    "EMPTY_CONDITIONAL_BODY": {
+      "error_type": "EMPTY_CONDITIONAL_BODY",
+      "rows": 1412,
+      "test_rows": 205,
+      "test_positives": 182,
+      "hand_features_model": {
+        "precision": 0.901,
+        "recall": 1.0,
+        "f1": 0.9479,
+        "flagged": 202,
+        "positives": 182,
+        "rows": 205,
+        "average_precision": 0.9456
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.0632,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9588,
+            "recall": 0.9981,
+            "f1": 0.9781,
+            "flagged": 1117,
+            "positives": 1073,
+            "rows": 1207,
+            "average_precision": 0.9835
+          },
+          "test": {
+            "precision": 0.9785,
+            "recall": 1.0,
+            "f1": 0.9891,
+            "flagged": 186,
+            "positives": 182,
+            "rows": 205,
+            "average_precision": 0.9931
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0444,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.9991,
+            "f1": 0.9745,
+            "flagged": 1127,
+            "positives": 1073,
+            "rows": 1207,
+            "average_precision": 0.9847
+          },
+          "test": {
+            "precision": 0.9681,
+            "recall": 1.0,
+            "f1": 0.9838,
+            "flagged": 188,
+            "positives": 182,
+            "rows": 205,
+            "average_precision": 0.9934
+          }
+        }
+      ]
+    },
+    "IGNORED_STRING_METHOD_RESULT": {
+      "error_type": "IGNORED_STRING_METHOD_RESULT",
+      "rows": 208,
+      "test_rows": 30,
+      "test_positives": 7,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "flagged": 7,
+        "positives": 7,
+        "rows": 30,
+        "average_precision": 1.0
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.0597,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9744,
+            "recall": 0.987,
+            "f1": 0.9806,
+            "flagged": 78,
+            "positives": 77,
+            "rows": 178,
+            "average_precision": 0.9982
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 7,
+            "positives": 7,
+            "rows": 30,
+            "average_precision": 1.0
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0803,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9744,
+            "recall": 0.987,
+            "f1": 0.9806,
+            "flagged": 78,
+            "positives": 77,
+            "rows": 178,
+            "average_precision": 0.9989
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 7,
+            "positives": 7,
+            "rows": 30,
+            "average_precision": 1.0
+          }
+        }
+      ]
+    },
+    "INCORRECT_CONDITIONAL_OPERATOR": {
+      "error_type": "INCORRECT_CONDITIONAL_OPERATOR",
+      "rows": 215,
+      "test_rows": 38,
+      "test_positives": 33,
+      "hand_features_model": {
+        "precision": 0.9706,
+        "recall": 1.0,
+        "f1": 0.9851,
+        "flagged": 34,
+        "positives": 33,
+        "rows": 38,
+        "average_precision": 0.9715
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.7974,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.952,
+            "recall": 0.9225,
+            "f1": 0.937,
+            "flagged": 125,
+            "positives": 129,
+            "rows": 177,
+            "average_precision": 0.9879
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 0.8182,
+            "f1": 0.9,
+            "flagged": 27,
+            "positives": 33,
+            "rows": 38,
+            "average_precision": 0.9973
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.7927,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.952,
+            "recall": 0.9225,
+            "f1": 0.937,
+            "flagged": 125,
+            "positives": 129,
+            "rows": 177,
+            "average_precision": 0.9881
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 0.8182,
+            "f1": 0.9,
+            "flagged": 27,
+            "positives": 33,
+            "rows": 38,
+            "average_precision": 0.9991
+          }
+        }
+      ]
+    },
+    "INDEX_PLUS_ONE_OUT_OF_BOUNDS": {
+      "error_type": "INDEX_PLUS_ONE_OUT_OF_BOUNDS",
+      "rows": 832,
+      "test_rows": 128,
+      "test_positives": 49,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 0.898,
+        "f1": 0.9462,
+        "flagged": 44,
+        "positives": 49,
+        "rows": 128,
+        "average_precision": 0.994
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.7196,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.8864,
+            "recall": 0.6915,
+            "f1": 0.7769,
+            "flagged": 220,
+            "positives": 282,
+            "rows": 704,
+            "average_precision": 0.8707
+          },
+          "test": {
+            "precision": 0.8889,
+            "recall": 0.4898,
+            "f1": 0.6316,
+            "flagged": 27,
+            "positives": 49,
+            "rows": 128,
+            "average_precision": 0.7718
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.8049,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.8298,
+            "f1": 0.8864,
+            "flagged": 246,
+            "positives": 282,
+            "rows": 704,
+            "average_precision": 0.9533
+          },
+          "test": {
+            "precision": 0.9643,
+            "recall": 0.551,
+            "f1": 0.7013,
+            "flagged": 28,
+            "positives": 49,
+            "rows": 128,
+            "average_precision": 0.9439
+          }
+        }
+      ]
+    },
+    "INTEGER_DIVISION_IN_DECIMAL_CONTEXT": {
+      "error_type": "INTEGER_DIVISION_IN_DECIMAL_CONTEXT",
+      "rows": 336,
+      "test_rows": 47,
+      "test_positives": 20,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "flagged": 20,
+        "positives": 20,
+        "rows": 47,
+        "average_precision": 1.0
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.4823,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9688,
+            "recall": 0.9894,
+            "f1": 0.9789,
+            "flagged": 96,
+            "positives": 94,
+            "rows": 289,
+            "average_precision": 0.9966
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 0.95,
+            "f1": 0.9744,
+            "flagged": 19,
+            "positives": 20,
+            "rows": 47,
+            "average_precision": 0.9976
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.4619,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9789,
+            "recall": 0.9894,
+            "f1": 0.9841,
+            "flagged": 95,
+            "positives": 94,
+            "rows": 289,
+            "average_precision": 0.9977
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 0.95,
+            "f1": 0.9744,
+            "flagged": 19,
+            "positives": 20,
+            "rows": 47,
+            "average_precision": 0.9976
+          }
+        }
+      ]
+    },
+    "LOOP_COUNTER_CHANGED_IN_BODY": {
+      "error_type": "LOOP_COUNTER_CHANGED_IN_BODY",
+      "rows": 2774,
+      "test_rows": 367,
+      "test_positives": 296,
+      "hand_features_model": {
+        "precision": 0.853,
+        "recall": 1.0,
+        "f1": 0.9207,
+        "flagged": 347,
+        "positives": 296,
+        "rows": 367,
+        "average_precision": 0.8794
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.2217,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.9225,
+            "recall": 0.9625,
+            "f1": 0.9421,
+            "flagged": 2143,
+            "positives": 2054,
+            "rows": 2407,
+            "average_precision": 0.9531
+          },
+          "test": {
+            "precision": 0.9013,
+            "recall": 0.9257,
+            "f1": 0.9133,
+            "flagged": 304,
+            "positives": 296,
+            "rows": 367,
+            "average_precision": 0.9561
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.2169,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.923,
+            "recall": 0.9635,
+            "f1": 0.9428,
+            "flagged": 2144,
+            "positives": 2054,
+            "rows": 2407,
+            "average_precision": 0.9547
+          },
+          "test": {
+            "precision": 0.9052,
+            "recall": 0.9358,
+            "f1": 0.9203,
+            "flagged": 306,
+            "positives": 296,
+            "rows": 367,
+            "average_precision": 0.9605
+          }
+        }
+      ]
+    },
+    "LOOP_SKIPS_LAST_ELEMENT": {
+      "error_type": "LOOP_SKIPS_LAST_ELEMENT",
+      "rows": 1730,
+      "test_rows": 235,
+      "test_positives": 179,
+      "hand_features_model": {
+        "precision": 0.9344,
+        "recall": 0.9553,
+        "f1": 0.9448,
+        "flagged": 183,
+        "positives": 179,
+        "rows": 235,
+        "average_precision": 0.9888
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.7156,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9513,
+            "recall": 0.8691,
+            "f1": 0.9084,
+            "flagged": 1089,
+            "positives": 1192,
+            "rows": 1495,
+            "average_precision": 0.9696
+          },
+          "test": {
+            "precision": 0.9804,
+            "recall": 0.838,
+            "f1": 0.9036,
+            "flagged": 153,
+            "positives": 179,
+            "rows": 235,
+            "average_precision": 0.9762
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.4861,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9516,
+            "recall": 0.9572,
+            "f1": 0.9544,
+            "flagged": 1199,
+            "positives": 1192,
+            "rows": 1495,
+            "average_precision": 0.9728
+          },
+          "test": {
+            "precision": 0.9538,
+            "recall": 0.9218,
+            "f1": 0.9375,
+            "flagged": 173,
+            "positives": 179,
+            "rows": 235,
+            "average_precision": 0.9911
+          }
+        }
+      ]
+    },
+    "LOOP_UPDATE_WRONG_DIRECTION": {
+      "error_type": "LOOP_UPDATE_WRONG_DIRECTION",
+      "rows": 3930,
+      "test_rows": 534,
+      "test_positives": 265,
+      "hand_features_model": {
+        "precision": 0.9925,
+        "recall": 1.0,
+        "f1": 0.9962,
+        "flagged": 267,
+        "positives": 265,
+        "rows": 534,
+        "average_precision": 0.9986
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.1243,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9501,
+            "recall": 0.9947,
+            "f1": 0.9719,
+            "flagged": 1764,
+            "positives": 1685,
+            "rows": 3396,
+            "average_precision": 0.992
+          },
+          "test": {
+            "precision": 0.9599,
+            "recall": 0.9925,
+            "f1": 0.9759,
+            "flagged": 274,
+            "positives": 265,
+            "rows": 534,
+            "average_precision": 0.9965
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0919,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9606,
+            "recall": 0.9976,
+            "f1": 0.9787,
+            "flagged": 1750,
+            "positives": 1685,
+            "rows": 3396,
+            "average_precision": 0.9941
+          },
+          "test": {
+            "precision": 0.967,
+            "recall": 0.9962,
+            "f1": 0.9814,
+            "flagged": 273,
+            "positives": 265,
+            "rows": 534,
+            "average_precision": 0.9963
+          }
+        }
+      ]
+    },
+    "MISLEADING_INDENTATION_NO_BRACES": {
+      "error_type": "MISLEADING_INDENTATION_NO_BRACES",
+      "rows": 4251,
+      "test_rows": 645,
+      "test_positives": 96,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 0.9479,
+        "f1": 0.9733,
+        "flagged": 91,
+        "positives": 96,
+        "rows": 645,
+        "average_precision": 0.9705
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.3619,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9553,
+            "recall": 0.9938,
+            "f1": 0.9742,
+            "flagged": 671,
+            "positives": 645,
+            "rows": 3606,
+            "average_precision": 0.9982
+          },
+          "test": {
+            "precision": 0.932,
+            "recall": 1.0,
+            "f1": 0.9648,
+            "flagged": 103,
+            "positives": 96,
+            "rows": 645,
+            "average_precision": 0.9999
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.4045,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9757,
+            "recall": 0.9969,
+            "f1": 0.9862,
+            "flagged": 659,
+            "positives": 645,
+            "rows": 3606,
+            "average_precision": 0.999
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 96,
+            "positives": 96,
+            "rows": 645,
+            "average_precision": 1.0
+          }
+        }
+      ]
+    },
+    "MISSING_BREAK_IN_SWITCH": {
+      "error_type": "MISSING_BREAK_IN_SWITCH",
+      "rows": 480,
+      "test_rows": 79,
+      "test_positives": 61,
+      "hand_features_model": {
+        "precision": 0.9355,
+        "recall": 0.9508,
+        "f1": 0.9431,
+        "flagged": 62,
+        "positives": 61,
+        "rows": 79,
+        "average_precision": 0.9651
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.6121,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.9307,
+            "recall": 0.8979,
+            "f1": 0.914,
+            "flagged": 274,
+            "positives": 284,
+            "rows": 401,
+            "average_precision": 0.9274
+          },
+          "test": {
+            "precision": 0.9608,
+            "recall": 0.8033,
+            "f1": 0.875,
+            "flagged": 51,
+            "positives": 61,
+            "rows": 79,
+            "average_precision": 0.9671
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.6023,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.9319,
+            "recall": 0.9155,
+            "f1": 0.9236,
+            "flagged": 279,
+            "positives": 284,
+            "rows": 401,
+            "average_precision": 0.9289
+          },
+          "test": {
+            "precision": 0.9608,
+            "recall": 0.8033,
+            "f1": 0.875,
+            "flagged": 51,
+            "positives": 61,
+            "rows": 79,
+            "average_precision": 0.9703
+          }
+        }
+      ]
+    },
+    "NESTED_LOOP_WRONG_COUNTER": {
+      "error_type": "NESTED_LOOP_WRONG_COUNTER",
+      "rows": 744,
+      "test_rows": 97,
+      "test_positives": 92,
+      "hand_features_model": {
+        "precision": 0.9787,
+        "recall": 1.0,
+        "f1": 0.9892,
+        "flagged": 94,
+        "positives": 92,
+        "rows": 97,
+        "average_precision": 0.9981
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.004,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9888,
+            "recall": 1.0,
+            "f1": 0.9944,
+            "flagged": 626,
+            "positives": 619,
+            "rows": 647,
+            "average_precision": 0.9989
+          },
+          "test": {
+            "precision": 0.9787,
+            "recall": 1.0,
+            "f1": 0.9892,
+            "flagged": 94,
+            "positives": 92,
+            "rows": 97,
+            "average_precision": 0.9955
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0037,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9888,
+            "recall": 1.0,
+            "f1": 0.9944,
+            "flagged": 626,
+            "positives": 619,
+            "rows": 647,
+            "average_precision": 0.9989
+          },
+          "test": {
+            "precision": 0.9787,
+            "recall": 1.0,
+            "f1": 0.9892,
+            "flagged": 94,
+            "positives": 92,
+            "rows": 97,
+            "average_precision": 0.9958
+          }
+        }
+      ]
+    },
+    "NON_SHORT_CIRCUIT_OPERATOR": {
+      "error_type": "NON_SHORT_CIRCUIT_OPERATOR",
+      "rows": 2553,
+      "test_rows": 379,
+      "test_positives": 190,
+      "hand_features_model": {
+        "precision": 0.9832,
+        "recall": 0.9263,
+        "f1": 0.9539,
+        "flagged": 179,
+        "positives": 190,
+        "rows": 379,
+        "average_precision": 0.9864
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.4143,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9512,
+            "recall": 0.9758,
+            "f1": 0.9634,
+            "flagged": 1189,
+            "positives": 1159,
+            "rows": 2174,
+            "average_precision": 0.9775
+          },
+          "test": {
+            "precision": 0.9779,
+            "recall": 0.9316,
+            "f1": 0.9542,
+            "flagged": 181,
+            "positives": 190,
+            "rows": 379,
+            "average_precision": 0.9513
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.3974,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9504,
+            "recall": 0.9758,
+            "f1": 0.963,
+            "flagged": 1190,
+            "positives": 1159,
+            "rows": 2174,
+            "average_precision": 0.9779
+          },
+          "test": {
+            "precision": 0.9835,
+            "recall": 0.9421,
+            "f1": 0.9624,
+            "flagged": 182,
+            "positives": 190,
+            "rows": 379,
+            "average_precision": 0.9569
+          }
+        }
+      ]
+    },
+    "OFF_BY_ONE_LOOP_BOUNDARY": {
+      "error_type": "OFF_BY_ONE_LOOP_BOUNDARY",
+      "rows": 1709,
+      "test_rows": 229,
+      "test_positives": 212,
+      "hand_features_model": {
+        "precision": 0.9507,
+        "recall": 1.0,
+        "f1": 0.9747,
+        "flagged": 223,
+        "positives": 212,
+        "rows": 229,
+        "average_precision": 0.9878
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.0355,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9558,
+            "recall": 0.997,
+            "f1": 0.976,
+            "flagged": 1402,
+            "positives": 1344,
+            "rows": 1480,
+            "average_precision": 0.9955
+          },
+          "test": {
+            "precision": 0.9593,
+            "recall": 1.0,
+            "f1": 0.9792,
+            "flagged": 221,
+            "positives": 212,
+            "rows": 229,
+            "average_precision": 0.9851
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.039,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9544,
+            "recall": 0.9963,
+            "f1": 0.9749,
+            "flagged": 1403,
+            "positives": 1344,
+            "rows": 1480,
+            "average_precision": 0.9954
+          },
+          "test": {
+            "precision": 0.9593,
+            "recall": 1.0,
+            "f1": 0.9792,
+            "flagged": 221,
+            "positives": 212,
+            "rows": 229,
+            "average_precision": 0.9895
+          }
+        }
+      ]
+    },
+    "STRING_EQUALITY_WITH_OPERATOR": {
+      "error_type": "STRING_EQUALITY_WITH_OPERATOR",
+      "rows": 189,
+      "test_rows": 28,
+      "test_positives": 27,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 0.8148,
+        "f1": 0.898,
+        "flagged": 22,
+        "positives": 27,
+        "rows": 28,
+        "average_precision": 0.9934
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.0047,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 149,
+            "positives": 149,
+            "rows": 161,
+            "average_precision": 1.0
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 27,
+            "positives": 27,
+            "rows": 28,
+            "average_precision": 1.0
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.0046,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 149,
+            "positives": 149,
+            "rows": 161,
+            "average_precision": 1.0
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "flagged": 27,
+            "positives": 27,
+            "rows": 28,
+            "average_precision": 1.0
+          }
+        }
+      ]
+    },
+    "UNREACHABLE_ELSE_IF_ORDER": {
+      "error_type": "UNREACHABLE_ELSE_IF_ORDER",
+      "rows": 609,
+      "test_rows": 54,
+      "test_positives": 26,
+      "hand_features_model": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "flagged": 26,
+        "positives": 26,
+        "rows": 54,
+        "average_precision": 1.0
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.5419,
+          "threshold_rule": "f0.5",
+          "oof": {
+            "precision": 0.769,
+            "recall": 0.8497,
+            "f1": 0.8073,
+            "flagged": 316,
+            "positives": 286,
+            "rows": 555,
+            "average_precision": 0.8155
+          },
+          "test": {
+            "precision": 0.6765,
+            "recall": 0.8846,
+            "f1": 0.7667,
+            "flagged": 34,
+            "positives": 26,
+            "rows": 54,
+            "average_precision": 0.6472
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.3302,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9582,
+            "recall": 0.9615,
+            "f1": 0.9599,
+            "flagged": 287,
+            "positives": 286,
+            "rows": 555,
+            "average_precision": 0.9837
+          },
+          "test": {
+            "precision": 0.8966,
+            "recall": 1.0,
+            "f1": 0.9455,
+            "flagged": 29,
+            "positives": 26,
+            "rows": 54,
+            "average_precision": 0.9971
+          }
+        }
+      ]
+    },
+    "WHILE_VARIABLE_NOT_UPDATED": {
+      "error_type": "WHILE_VARIABLE_NOT_UPDATED",
+      "rows": 1227,
+      "test_rows": 164,
+      "test_positives": 80,
+      "hand_features_model": {
+        "precision": 0.9467,
+        "recall": 0.8875,
+        "f1": 0.9161,
+        "flagged": 75,
+        "positives": 80,
+        "rows": 164,
+        "average_precision": 0.9612
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.7553,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9536,
+            "recall": 0.8504,
+            "f1": 0.8991,
+            "flagged": 453,
+            "positives": 508,
+            "rows": 1063,
+            "average_precision": 0.9597
+          },
+          "test": {
+            "precision": 0.9859,
+            "recall": 0.875,
+            "f1": 0.9272,
+            "flagged": 71,
+            "positives": 80,
+            "rows": 164,
+            "average_precision": 0.9942
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.6428,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9505,
+            "recall": 0.9075,
+            "f1": 0.9285,
+            "flagged": 485,
+            "positives": 508,
+            "rows": 1063,
+            "average_precision": 0.9651
+          },
+          "test": {
+            "precision": 1.0,
+            "recall": 0.95,
+            "f1": 0.9744,
+            "flagged": 76,
+            "positives": 80,
+            "rows": 164,
+            "average_precision": 0.9992
+          }
+        }
+      ]
+    },
+    "WRONG_EXTREME_INITIAL_VALUE": {
+      "error_type": "WRONG_EXTREME_INITIAL_VALUE",
+      "rows": 566,
+      "test_rows": 83,
+      "test_positives": 39,
+      "hand_features_model": {
+        "precision": 0.9512,
+        "recall": 1.0,
+        "f1": 0.975,
+        "flagged": 41,
+        "positives": 39,
+        "rows": 83,
+        "average_precision": 0.9393
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.5624,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9614,
+            "recall": 0.9567,
+            "f1": 0.959,
+            "flagged": 207,
+            "positives": 208,
+            "rows": 483,
+            "average_precision": 0.9898
+          },
+          "test": {
+            "precision": 0.8571,
+            "recall": 0.9231,
+            "f1": 0.8889,
+            "flagged": 42,
+            "positives": 39,
+            "rows": 83,
+            "average_precision": 0.972
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.3427,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9763,
+            "recall": 0.9904,
+            "f1": 0.9833,
+            "flagged": 211,
+            "positives": 208,
+            "rows": 483,
+            "average_precision": 0.9987
+          },
+          "test": {
+            "precision": 0.907,
+            "recall": 1.0,
+            "f1": 0.9512,
+            "flagged": 43,
+            "positives": 39,
+            "rows": 83,
+            "average_precision": 0.9825
+          }
+        }
+      ]
+    },
+    "WRONG_LOOP_VARIABLE_IN_INDEX": {
+      "error_type": "WRONG_LOOP_VARIABLE_IN_INDEX",
+      "rows": 672,
+      "test_rows": 97,
+      "test_positives": 59,
+      "hand_features_model": {
+        "precision": 0.8667,
+        "recall": 0.8814,
+        "f1": 0.8739,
+        "flagged": 60,
+        "positives": 59,
+        "rows": 97,
+        "average_precision": 0.9262
+      },
+      "variants": [
+        {
+          "variant": "pretrained",
+          "threshold": 0.4584,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9507,
+            "recall": 0.9689,
+            "f1": 0.9597,
+            "flagged": 426,
+            "positives": 418,
+            "rows": 575,
+            "average_precision": 0.9867
+          },
+          "test": {
+            "precision": 0.8615,
+            "recall": 0.9492,
+            "f1": 0.9032,
+            "flagged": 65,
+            "positives": 59,
+            "rows": 97,
+            "average_precision": 0.9441
+          }
+        },
+        {
+          "variant": "pretrained+features",
+          "threshold": 0.4436,
+          "threshold_rule": "precision_0.95",
+          "oof": {
+            "precision": 0.9529,
+            "recall": 0.9689,
+            "f1": 0.9609,
+            "flagged": 425,
+            "positives": 418,
+            "rows": 575,
+            "average_precision": 0.9906
+          },
+          "test": {
+            "precision": 0.8676,
+            "recall": 1.0,
+            "f1": 0.9291,
+            "flagged": 68,
+            "positives": 59,
+            "rows": 97,
+            "average_precision": 0.9576
+          }
+        }
+      ]
+    }
+  }
+}
