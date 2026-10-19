@@ -15,6 +15,7 @@ import csv
 import json
 import re
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
@@ -25,6 +26,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from app.dev_tools.mutation.candidate_sites import with_site
 from app.dev_tools.mutation.java_runner import PROJECT_ROOT
 
 # Arrows and "≈" are not in the built-in PDF fonts; Arial has them.
@@ -109,7 +111,7 @@ def main() -> None:
                            ("bert_ap", bert.get("average_precision", 0)), ("both_f1", both["f1"])):
             sums[key] += float(value or 0)
         rows.append([
-            Paragraph(titles.get(error_type, error_type), cell),
+            Paragraph(escape(with_site(error_type, titles.get(error_type, error_type))), cell),
             f"{record['test_rows']} ({record['test_positives']})",
             f"{_f(before['f1'])}{'†' if previous else '‡'}",
             f"{_f(ours['precision'])} / {_f(ours['recall'])} / {_f(ours['f1'])}",
@@ -124,7 +126,7 @@ def main() -> None:
     rows.append([Paragraph("<b>Mean over the %d types</b> · Result = ours / tie / CodeBERT" % n, cell), "", "", f"F1 {sums['ours_f1'] / n:.3f}", f"{sums['ours_ap'] / n:.3f}",
                  f"F1 {sums['bert_f1'] / n:.3f}", f"{sums['bert_ap'] / n:.3f}", f"{sums['both_f1'] / n:.3f}", f"{wins} / {ties} / {losses}"])
 
-    widths = [62 * mm, 20 * mm, 15 * mm, 34 * mm, 14 * mm, 34 * mm, 17 * mm, 20 * mm, 19 * mm]
+    widths = [94 * mm, 19 * mm, 14 * mm, 30 * mm, 13 * mm, 30 * mm, 16 * mm, 18 * mm, 17 * mm]
     table = Table(rows, colWidths=widths, repeatRows=1)
     style = [
         ("BACKGROUND", (0, 0), (-1, 0), HEAD), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
