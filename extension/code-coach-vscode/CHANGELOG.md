@@ -6,6 +6,16 @@ listed is published as a GitHub Release tagged `extension-v<version>`, with its
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-19
+
+- **A finding you reported is no longer hidden without a word.** After you
+  click *Not a real bug?*, Code Coach still leaves the finding out, but the
+  panel now says "1 finding hidden because you reported it" instead of
+  "All clear!", and the status bar says *hidden* instead of *Clean*.
+- **Undo report.** The same card has an *Undo report* button: the finding
+  comes back, and counts again, as the same finding it was before.
+- A hidden finding is no longer counted as one you fixed.
+
 ## [0.3.0] - 2026-10-18
 
 - **30 kinds of mistake, up from 19.** Eleven new logic errors: a loop that

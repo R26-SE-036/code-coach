@@ -3,7 +3,7 @@
   "publisher": "codeguru-sliit",
   "displayName": "Code Guru: Code Coach",
   "description": "Finds 30 kinds of beginner Java logic mistakes as you type, and coaches you to fix them yourself",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "icon": "media/logo.png",
   "repository": {
