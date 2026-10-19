@@ -1,164 +1,96 @@
 # Code Coach
 
-Code Coach is a beginner-focused programming support tool for Java learners. It runs as a VS Code extension backed by a local FastAPI service, detects selected beginner mistakes without executing the program, and turns diagnostics into scaffolded hints that help students self-correct.
+Code Coach finds beginner logic mistakes in Java while the student types, and
+explains them with hints that start general and get more specific only when
+asked. It is a VS Code extension backed by a FastAPI service, and it is also
+the Code Guru platform's identity provider: every other component signs
+students in through it.
 
-The current research prototype intentionally focuses on three error types:
+It catches **30 error types** - mistakes that compile and run but give the
+wrong answer, such as a loop that stops one element early, `==` on strings, an
+accumulator reset inside its loop, or a `switch` case without `break`. The
+full list, with each type's concept tag and hints, is
+[`knowledge_base/code_coach_errors.json`](knowledge_base/code_coach_errors.json).
 
-- `OFF_BY_ONE_LOOP_BOUNDARY`
-- `INCORRECT_CONDITIONAL_OPERATOR`
-- `ARRAY_LENGTH_INDEX_MISUSE`
-
-## Detection Pipeline
-
-Code Coach now uses an ML-led hybrid pipeline:
+## How a mistake is found
 
 ```text
-Java code
-  -> Tree-sitter AST parsing
-  -> AST feature extraction
-  -> scikit-learn classifiers predict the 3 target error types
-  -> AST locators find line/column only for ML-positive predictions
-  -> hint engine returns beginner-friendly feedback
+Java source
+  -> Tree-sitter parse (the code does not have to compile)
+  -> candidate sites: each loop, comparison, condition, assignment ... that
+     could hold one of the error types
+  -> a model per error type scores each candidate site
+     (a few older types use a file-level classifier gate, or an AST rule)
+  -> locator: exact line and column, and the code it quotes
+  -> hint engine: concept -> guidance -> targeted hint about THIS code
 ```
 
-The ML engine decides whether a target error type is likely present. The AST locator does not independently create diagnostics; it only finds the exact source location after the ML model crosses its confidence threshold.
+The program is never executed. Diagnostics carry the error type, line, a
+confidence, the concept tag shared with the rest of Code Guru, and a stable
+`diagnostic_id` so a student can report a false positive once and not see it
+again.
 
-Diagnostics include:
+## Repository layout
 
-- `detection_engine`
-- `ml_probability`
-- `locator_confidence`
-- `diagnostic_id`
-- `severity`
-- `confidence`
-- `concept_tag`
-- `explanation_key`
-- tiered hints
+| Path | What it is |
+|---|---|
+| `extension/code-coach-vscode/` | The VS Code extension (TypeScript). Its own [README](extension/code-coach-vscode/README.md) and [CHANGELOG](extension/code-coach-vscode/CHANGELOG.md). |
+| `backend/` | The FastAPI service: analysis, accounts, learning signals, billing. See [backend/README.md](backend/README.md). |
+| `knowledge_base/` | Error catalogue, hint templates, lessons, game catalogue and worked examples shared with the other components. |
+| `data/ml/` | Labelled Java snippets, extracted features and dataset splits. |
+| `integration/` | The cross-component API contract ([API_CONTRACT.md](integration/API_CONTRACT.md), `openapi.json`) and the platform setup guide. |
+| `Dockerfile` | The production image of the backend. |
 
-## Features
+## Running it
 
-- Real-time VS Code feedback for Java files using debounced editor-change analysis.
-- Local FastAPI backend with Tree-sitter Java parsing.
-- ML-gated detection for the three current research categories.
-- AST-based line/column localization after ML detection.
-- Beginner-friendly hint levels:
-  - Concept hint
-  - Guidance hint
-  - Targeted hint
-- Optional local anonymized evaluation logging for research use.
-
-## Current Error Categories
-
-| # | Error type | What it catches |
-|---|---|---|
-| 1 | `OFF_BY_ONE_LOOP_BOUNDARY` | Loop conditions that include `array.length` as a valid index boundary. |
-| 2 | `INCORRECT_CONDITIONAL_OPERATOR` | Assignment used inside `if` or `while` conditions. |
-| 3 | `ARRAY_LENGTH_INDEX_MISUSE` | Direct use of `array.length` as an array index. |
-
-## Project Structure
-
-- `extension/code-coach-vscode/` - VS Code extension written in TypeScript.
-- `backend/` - Python FastAPI backend.
-  - `app/main.py` - API entry point.
-  - `app/analyzer.py` - ML-led analysis pipeline.
-  - `app/ml_engine.py` - scikit-learn model loading and prediction.
-  - `app/feature_extractor.py` - AST-based feature extraction.
-  - `app/issue_locators.py` - AST line/column locators for the 3 target errors.
-  - `app/hint_engine.py` - Diagnostic-to-hint mapping.
-  - `app/evaluation_logger.py` - Optional anonymized local logging.
-  - `app/dev_tools/` - ML dataset, split, and baseline training scripts.
-  - `models/` - Trained baseline `.joblib` models and metrics.
-- `knowledge_base/code_coach_errors.json` - Concept tags, explanation keys, and tiered hint templates for the 3 target errors.
-- `data/ml/` - Curated Java snippets, extracted features, splits, and metadata.
-- `docs/proposal_traceability.md` - Requirement-by-requirement comparison with the proposal.
-- `logs/` - Runtime evaluation logs when explicitly enabled.
-
-## Backend Setup
-
-From the `backend` directory:
+The backend needs a MongoDB Atlas connection string and a JWT secret in
+`backend/.env` (see [backend/README.md](backend/README.md)).
 
 ```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+cd backend
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python -m uvicorn app.main:app --reload    # http://127.0.0.1:8000
 ```
 
-The backend starts at `http://127.0.0.1:8000`.
-
-Useful endpoints:
-
-- `GET /health`
-- `POST /analyze`
-- `POST /debug-ast`
-
-## Extension Setup
-
-From `extension/code-coach-vscode`:
+The extension:
 
 ```bash
+cd extension/code-coach-vscode
 npm install
 npm run compile
 ```
 
-Open `extension/code-coach-vscode` in VS Code and press `F5` to launch an Extension Development Host.
+Open that folder in VS Code and press `F5`. Point the `codeCoach.backendUrl`
+setting at `http://127.0.0.1:8000` to use the local backend; the default is the
+live server. Students install the published extension from the Marketplace or
+from a `.vsix` on the GitHub release instead.
 
-Commands:
+The whole platform can also run as one Docker Compose stack from
+`codeguru-web/deploy` - see that repository.
 
-- `Code Coach: Start`
-- `Code Coach: Analyze Current File`
-- `Code Coach: Previous Hint`
-- `Code Coach: Next Hint`
-
-Settings:
-
-- `codeCoach.backendUrl` - Code Coach's API, default `http://localhost:8090` (the compose stack's edge). Set it to `http://127.0.0.1:8000` when running the backend on its own.
-- `codeCoach.portalUrl` - the web app sign-in opens, default `http://localhost:8090`. Set it to `http://localhost:4200` when running the web app with `npm run dev`.
-- `codeCoach.enableEvaluationLogging` - sends anonymized diagnostic events to the local backend when enabled.
-
-## ML Pipeline
-
-The ML pipeline trains baseline classifiers for the three current categories:
-
-- `has_off_by_one`
-- `has_incorrect_conditional`
-- `has_array_length_index_misuse`
-
-Run from the `backend` directory:
+## Tests
 
 ```bash
-py -m app.dev_tools.build_dataset
-py -m app.dev_tools.split_dataset
-py -m app.dev_tools.train_baselines
+cd backend && .venv/Scripts/python -m pytest
+cd extension/code-coach-vscode && npm test
 ```
 
-Current outputs:
+## Releases and deployment
 
-- `data/ml/extracted/features_v1.csv`
-- `data/ml/splits/train_v1.csv`
-- `data/ml/splits/val_v1.csv`
-- `data/ml/splits/test_v1.csv`
-- `backend/models/*.joblib`
-- `backend/models/baseline_metrics_v1.csv`
+- **Backend:** a push to `main` runs the tests, builds the image, pushes it to
+  ECR and deploys it to the AWS server (`.github/workflows/deploy.yml`).
+- **Extension:** a push to `main` with a new `version` in its `package.json`
+  publishes a GitHub release `extension-v<version>` with the `.vsix`, using the
+  matching CHANGELOG section as the notes (`.github/workflows/extension-release.yml`).
+  It is published to the Marketplace as well when the `VSCE_PAT` secret is set.
 
-## Verification
+## Evaluation tools
 
-Backend regression tests:
-
-```bash
-cd backend
-python -m unittest discover -s tests
-```
-
-Extension checks:
-
-```bash
-cd extension/code-coach-vscode
-npm run compile
-npm run lint
-```
-
-## Proposal Status
-
-See `docs/proposal_traceability.md` for the detailed comparison between the proposal requirements and the current implementation. The main remaining academic work is improving and evaluating the dataset/model quality for these three categories, benchmarking response time and resource usage, expert hint review, novice user testing, and comparison against compiler/linter feedback.
-
-## Proposal Status
-Test Teams Worklow 3
+Everything used to build, train and measure the models is in
+`backend/app/dev_tools/`: dataset builders, training and threshold calibration,
+the mutation-based comparison against CodeBERT, model cards, and the
+per-source evaluation. Some of them connect to the live database
+(`dispute_report.py`, `derive_concept_prerequisites.py`,
+`export_code_snapshots.py`), and `seed_student.py` creates an account through
+a running API, so read a script before running it.

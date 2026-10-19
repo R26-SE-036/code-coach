@@ -948,6 +948,54 @@
         ]
       }
     },
+    "/api/v1/code-coach/disputes/{diagnostic_id}": {
+      "delete": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Withdraw My Dispute",
+        "description": "The undo for \"Not a real bug?\": the finding is shown and counted again.",
+        "operationId": "withdraw_my_dispute_api_v1_code_coach_disputes__diagnostic_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "diagnostic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Diagnostic Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisputeWithdrawnResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/code-coach/catalog": {
       "get": {
         "tags": [
@@ -966,6 +1014,76 @@
                   },
                   "type": "array",
                   "title": "Response List Catalogue Api V1 Code Coach Catalog Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/code-coach/model-cards": {
+      "get": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "List Model Cards",
+        "operationId": "list_model_cards_api_v1_code_coach_model_cards_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response List Model Cards Api V1 Code Coach Model Cards Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/code-coach/model-cards/{error_type}": {
+      "get": {
+        "tags": [
+          "code-coach"
+        ],
+        "summary": "Get Model Card",
+        "operationId": "get_model_card_api_v1_code_coach_model_cards__error_type__get",
+        "parameters": [
+          {
+            "name": "error_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Error Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Model Card Api V1 Code Coach Model Cards  Error Type  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -2541,6 +2659,13 @@
             },
             "type": "array",
             "title": "Diagnostics"
+          },
+          "hidden_by_report": {
+            "items": {
+              "$ref": "#/components/schemas/HiddenFinding"
+            },
+            "type": "array",
+            "title": "Hidden By Report"
           }
         },
         "type": "object",
@@ -4186,6 +4311,24 @@
         ],
         "title": "DiagnosticSummaryResponse"
       },
+      "DisputeWithdrawnResponse": {
+        "properties": {
+          "diagnostic_id": {
+            "type": "string",
+            "title": "Diagnostic Id"
+          },
+          "withdrawn": {
+            "type": "boolean",
+            "title": "Withdrawn"
+          }
+        },
+        "type": "object",
+        "required": [
+          "diagnostic_id",
+          "withdrawn"
+        ],
+        "title": "DisputeWithdrawnResponse"
+      },
       "ErrorTypeSummaryView": {
         "properties": {
           "error_type": {
@@ -4789,6 +4932,40 @@
           "expires_in"
         ],
         "title": "HandoffResponse"
+      },
+      "HiddenFinding": {
+        "properties": {
+          "diagnostic_id": {
+            "type": "string",
+            "title": "Diagnostic Id"
+          },
+          "error_type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          }
+        },
+        "type": "object",
+        "required": [
+          "diagnostic_id",
+          "error_type",
+          "line"
+        ],
+        "title": "HiddenFinding"
       },
       "HintSet": {
         "properties": {

@@ -325,6 +325,81 @@ Response `200`:
 
 ---
 
+## Sign-in handoff (Website · VS Code extension)
+
+Signing the extension in through the website: the signed-in website asks for a one-time code, and the extension redeems it for its own tokens.
+
+### `POST /api/v1/auth/handoff`
+
+Create Handoff Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "client_name": "code-coach-vscode"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "code": "string",
+  "expires_in": 0
+}
+```
+
+### `POST /api/v1/auth/handoff/redeem`
+
+Redeem Handoff Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "code": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string",
+  "user": {
+    "user_id": "string",
+    "full_name": "string",
+    "email": "student@example.com",
+    "status": "string",
+    "created_at": "2026-07-12T10:22:41Z",
+    "recovery_email": "student@example.com"
+  },
+  "auth_session": {
+    "auth_session_id": "string",
+    "client_name": "string",
+    "status": "string",
+    "created_at": "2026-07-12T10:22:41Z",
+    "last_seen_at": "2026-07-12T10:22:41Z",
+    "expires_at": "2026-07-12T10:22:41Z"
+  },
+  "tokens": {
+    "token_type": "Bearer",
+    "access_token": "string",
+    "refresh_token": "string",
+    "expires_in": 0
+  }
+}
+```
+
+---
+
 ## Research consent (Website)
 
 Whether the Java files Code Coach checks may be kept for research. Nothing is kept unless the student agreed to the current wording AND the deployment has collection switched on; declining deletes what was kept.
@@ -1169,6 +1244,239 @@ Response `200`:
 }
 ```
 
+### `POST /api/v1/collaboration/me/pair-session-results`
+
+Record My Pair Session Result
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "learningSessionId": "string",
+  "pair_session_id": "string",
+  "task_id": "string",
+  "concept_tags": [
+    "string"
+  ],
+  "error_type": "string",
+  "difficulty_level": "string",
+  "solved": false,
+  "run_count": 0,
+  "correct_run_count": 0,
+  "seconds_to_solve": 0,
+  "duration_seconds": 0,
+  "review_score_percent": 0,
+  "occurred_at": "2026-07-12T10:22:41Z"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "status": "string",
+  "message": "string",
+  "already_recorded": false,
+  "created_event_types": [
+    "string"
+  ],
+  "mastery": [
+    {
+      "concept_tag": "...",
+      "mastery_score": "...",
+      "struggle_score": "...",
+      "mastery_level": "...",
+      "update_source": "...",
+      "last_learning_session_id": "...",
+      "last_error_type": "...",
+      "last_trigger_id": "...",
+      "last_quiz_id": "...",
+      "last_quiz_score_percent": "...",
+      "last_quiz_passed": "...",
+      "last_game_id": "...",
+      "last_game_type": "...",
+      "last_game_score_percent": "...",
+      "last_game_difficulty_level": "...",
+      "last_updated_at": "..."
+    }
+  ],
+  "trigger_ids": [
+    "string"
+  ]
+}
+```
+
+---
+
+## Service to service (PairPath)
+
+Called by another service's server with X-Internal-Key, not by a browser. Runs the detector only and records nothing.
+
+### `POST /api/v1/internal/concepts`
+
+Concepts In Code
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "code": "string"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "concept_tags": [
+    "string"
+  ],
+  "error_types": [
+    "string"
+  ]
+}
+```
+
+---
+
+## Subscription (Website)
+
+The Free and Pro plans: the student's plan, PayHere checkout and its notify callback, cancel, resume and downgrade, Free-plan lesson unlocks, and the demo payment and reset used when PayHere is not set up.
+
+### `GET /api/v1/billing/me`
+
+My Plan
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/checkout`
+
+Start Checkout
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "interval": "month",
+  "phone": "string",
+  "city": "string"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/payhere/notify`
+
+Payhere Notify
+
+Auth: `Authorization: Bearer <access_token>`
+
+### `POST /api/v1/billing/me/demo-payment`
+
+Demo Payment
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "interval": "month"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/cancel`
+
+Cancel Subscription
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/resume`
+
+Resume Subscription
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/downgrade`
+
+Downgrade Now
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/reset`
+
+Reset To Free
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
+### `POST /api/v1/billing/me/lesson-unlocks`
+
+Unlock Lesson
+
+Auth: `Authorization: Bearer <access_token>`
+
+Request body:
+
+```json
+{
+  "trigger_id": "string",
+  "error_type": "string",
+  "concept_tag": "string"
+}
+```
+
+Response `200`:
+
+```json
+{}
+```
+
 ---
 
 ## Dashboard (Website)
@@ -1395,6 +1703,14 @@ Response `200`:
       "end_line": "...",
       "end_column": "..."
     }
+  ],
+  "hidden_by_report": [
+    {
+      "diagnostic_id": "...",
+      "error_type": "...",
+      "title": "...",
+      "line": "..."
+    }
   ]
 }
 ```
@@ -1501,6 +1817,47 @@ Response `200`:
 {}
 ```
 
+### `DELETE /api/v1/code-coach/disputes/{diagnostic_id}`
+
+Withdraw My Dispute
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{
+  "diagnostic_id": "string",
+  "withdrawn": false
+}
+```
+
+### `GET /api/v1/code-coach/model-cards`
+
+List Model Cards
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+[
+  {}
+]
+```
+
+### `GET /api/v1/code-coach/model-cards/{error_type}`
+
+Get Model Card
+
+Auth: `Authorization: Bearer <access_token>`
+
+Response `200`:
+
+```json
+{}
+```
+
 ---
 
 ## Service health
@@ -1520,297 +1877,3 @@ Response `200`:
 ```
 
 ---
-
-## Other endpoints
-
-Not yet grouped — ask before relying on these.
-
-### `POST /api/v1/auth/handoff`
-
-Create Handoff Code
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "client_name": "code-coach-vscode"
-}
-```
-
-Response `200`:
-
-```json
-{
-  "status": "string",
-  "code": "string",
-  "expires_in": 0
-}
-```
-
-### `POST /api/v1/auth/handoff/redeem`
-
-Redeem Handoff Code
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "code": "string"
-}
-```
-
-Response `200`:
-
-```json
-{
-  "status": "string",
-  "message": "string",
-  "user": {
-    "user_id": "string",
-    "full_name": "string",
-    "email": "student@example.com",
-    "status": "string",
-    "created_at": "2026-07-12T10:22:41Z",
-    "recovery_email": "student@example.com"
-  },
-  "auth_session": {
-    "auth_session_id": "string",
-    "client_name": "string",
-    "status": "string",
-    "created_at": "2026-07-12T10:22:41Z",
-    "last_seen_at": "2026-07-12T10:22:41Z",
-    "expires_at": "2026-07-12T10:22:41Z"
-  },
-  "tokens": {
-    "token_type": "Bearer",
-    "access_token": "string",
-    "refresh_token": "string",
-    "expires_in": 0
-  }
-}
-```
-
-### `GET /api/v1/billing/me`
-
-My Plan
-
-Auth: `Authorization: Bearer <access_token>`
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/cancel`
-
-Cancel Subscription
-
-Auth: `Authorization: Bearer <access_token>`
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/checkout`
-
-Start Checkout
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "interval": "month",
-  "phone": "string",
-  "city": "string"
-}
-```
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/demo-payment`
-
-Demo Payment
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "interval": "month"
-}
-```
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/downgrade`
-
-Downgrade Now
-
-Auth: `Authorization: Bearer <access_token>`
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/lesson-unlocks`
-
-Unlock Lesson
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "trigger_id": "string",
-  "error_type": "string",
-  "concept_tag": "string"
-}
-```
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/reset`
-
-Reset To Free
-
-Auth: `Authorization: Bearer <access_token>`
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/me/resume`
-
-Resume Subscription
-
-Auth: `Authorization: Bearer <access_token>`
-
-Response `200`:
-
-```json
-{}
-```
-
-### `POST /api/v1/billing/payhere/notify`
-
-Payhere Notify
-
-Auth: `Authorization: Bearer <access_token>`
-
-### `POST /api/v1/collaboration/me/pair-session-results`
-
-Record My Pair Session Result
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "learningSessionId": "string",
-  "pair_session_id": "string",
-  "task_id": "string",
-  "concept_tags": [
-    "string"
-  ],
-  "error_type": "string",
-  "difficulty_level": "string",
-  "solved": false,
-  "run_count": 0,
-  "correct_run_count": 0,
-  "seconds_to_solve": 0,
-  "duration_seconds": 0,
-  "review_score_percent": 0,
-  "occurred_at": "2026-07-12T10:22:41Z"
-}
-```
-
-Response `200`:
-
-```json
-{
-  "status": "string",
-  "message": "string",
-  "already_recorded": false,
-  "created_event_types": [
-    "string"
-  ],
-  "mastery": [
-    {
-      "concept_tag": "...",
-      "mastery_score": "...",
-      "struggle_score": "...",
-      "mastery_level": "...",
-      "update_source": "...",
-      "last_learning_session_id": "...",
-      "last_error_type": "...",
-      "last_trigger_id": "...",
-      "last_quiz_id": "...",
-      "last_quiz_score_percent": "...",
-      "last_quiz_passed": "...",
-      "last_game_id": "...",
-      "last_game_type": "...",
-      "last_game_score_percent": "...",
-      "last_game_difficulty_level": "...",
-      "last_updated_at": "..."
-    }
-  ],
-  "trigger_ids": [
-    "string"
-  ]
-}
-```
-
-### `POST /api/v1/internal/concepts`
-
-Concepts In Code
-
-Auth: `Authorization: Bearer <access_token>`
-
-Request body:
-
-```json
-{
-  "code": "string"
-}
-```
-
-Response `200`:
-
-```json
-{
-  "concept_tags": [
-    "string"
-  ],
-  "error_types": [
-    "string"
-  ]
-}
-```

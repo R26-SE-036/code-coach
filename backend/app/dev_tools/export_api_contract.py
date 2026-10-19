@@ -38,6 +38,10 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "Links go to the website with the token in the URL fragment.",
      ["/api/v1/auth/password/forgot", "/api/v1/auth/password/reset",
       "/api/v1/auth/me/recovery-email", "/api/v1/auth/recovery-email/confirm"]),
+    ("Sign-in handoff (Website · VS Code extension)",
+     "Signing the extension in through the website: the signed-in website asks for a "
+     "one-time code, and the extension redeems it for its own tokens.",
+     ["/api/v1/auth/handoff", "/api/v1/auth/handoff/redeem"]),
     ("Research consent (Website)",
      "Whether the Java files Code Coach checks may be kept for research. Nothing is kept "
      "unless the student agreed to the current wording AND the deployment has collection "
@@ -67,7 +71,19 @@ GROUPS: list[tuple[str, str, list[str]]] = [
     ("Collaboration (PairPath)",
      "Pairing prompts derived from struggle signals, plus session and peer-review records.",
      ["/api/v1/collaboration/me/prompts", "/api/v1/collaboration/me/prompts/shown",
-      "/api/v1/collaboration/me/pair-sessions", "/api/v1/collaboration/me/peer-reviews"]),
+      "/api/v1/collaboration/me/pair-sessions", "/api/v1/collaboration/me/peer-reviews",
+      "/api/v1/collaboration/me/pair-session-results"]),
+    ("Service to service (PairPath)",
+     "Called by another service's server with X-Internal-Key, not by a browser. Runs the "
+     "detector only and records nothing.",
+     ["/api/v1/internal/concepts"]),
+    ("Subscription (Website)",
+     "The Free and Pro plans: the student's plan, PayHere checkout and its notify "
+     "callback, cancel, resume and downgrade, Free-plan lesson unlocks, and the demo payment and reset used when PayHere is not set up.",
+     ["/api/v1/billing/me", "/api/v1/billing/me/checkout", "/api/v1/billing/payhere/notify",
+      "/api/v1/billing/me/demo-payment", "/api/v1/billing/me/cancel",
+      "/api/v1/billing/me/resume", "/api/v1/billing/me/downgrade",
+      "/api/v1/billing/me/reset", "/api/v1/billing/me/lesson-unlocks"]),
     ("Dashboard (Website)",
      "Pre-aggregated views for the student home page.",
      ["/api/v1/dashboard/me/overview", "/api/v1/dashboard/me/timeline"]),
@@ -82,7 +98,8 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "optional fields (title, end_line, end_column); nothing was removed or renamed.",
      ["/api/v1/code-coach/analyze", "/api/v1/code-coach/catalog", "/api/v1/code-coach/explain",
       "/api/v1/code-coach/explain-compiler-error", "/api/v1/code-coach/similar-example",
-      "/api/v1/code-coach/disputes/{diagnostic_id}"]),
+      "/api/v1/code-coach/disputes/{diagnostic_id}", "/api/v1/code-coach/model-cards",
+      "/api/v1/code-coach/model-cards/{error_type}"]),
     ("Service health",
      "No authentication required.",
      ["/health"]),
