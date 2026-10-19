@@ -85,6 +85,16 @@ export function updateAnalysisStatusBar(
     return;
   }
 
+  const hiddenCount = snapshot.hiddenByReport?.length ?? 0;
+  if (snapshot.diagnosticsCount === 0 && hiddenCount > 0) {
+    // Not "Clean": the reported finding is still in the file.
+    state.analysisStatusBar.text = `$(eye-closed) Code Coach ${hiddenCount} hidden`;
+    state.analysisStatusBar.tooltip = `${hiddenCount === 1 ? "1 finding is" : `${hiddenCount} findings are`} hidden because you reported ${hiddenCount === 1 ? "it" : "them"} as not a real bug. Open the coach panel to undo.`;
+    state.analysisStatusBar.show();
+    updateCoachPanel(state);
+    return;
+  }
+
   if (snapshot.diagnosticsCount === 0) {
     state.analysisStatusBar.text = state.fixedThisSession
       ? `$(check) Code Coach Clean · ${state.fixedThisSession} fixed`

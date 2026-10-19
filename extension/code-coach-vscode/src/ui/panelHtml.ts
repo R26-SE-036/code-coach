@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { cardKey, compilerKey, compilerProblemsFor, exampleKey, explainKey } from "../assistState";
 import { conceptName, confidenceWords, engineWords, inlineCodeHtml, titleFor } from "../labels";
-import { AssistEntry, CoachPanelState, DiagnosticItem, ExtensionState, ModelCard } from "../types";
+import { AssistEntry, CoachPanelState, DiagnosticItem, ExtensionState, HiddenFinding, ModelCard } from "../types";
 import { isSupportedDocument, formatDuration } from "./statusBar";
 
 const HINT_ORDER = ["concept", "guidance", "targeted"];
@@ -142,6 +142,26 @@ function compilerCard(state: ExtensionState, uriKey: string | undefined): string
     </div>`;
 }
 
+/**
+ * The findings this analysis left out because the student reported them as
+ * not a real bug. Without this the panel said "All clear!" over a mistake that
+ * was still there, and the student had no way to get it back.
+ */
+function hiddenCard(hidden: HiddenFinding[]): string {
+  if (hidden.length === 0) { return ""; }
+  const rows = hidden.slice(0, 5).map((finding, index) => `<div class="hidden-row">
+        <span class="row-line">L${finding.line}</span>
+        <span class="hidden-title">${escapeHtml(titleFor({ title: finding.title ?? undefined, error_type: finding.error_type }))}</span>
+        <button class="btn btn-secondary btn-undo" data-command="undoReport" data-index="${index}" title="Show and count this finding again">Undo report</button>
+      </div>`).join("");
+  const what = hidden.length === 1 ? "1 finding hidden" : `${hidden.length} findings hidden`;
+  return `<div class="card hidden-card">
+      <div class="list-title">🚩 ${what} because you reported ${hidden.length === 1 ? "it" : "them"}</div>
+      <p class="muted">You marked ${hidden.length === 1 ? "it" : "them"} as not a real bug, so Code Coach does not show or count ${hidden.length === 1 ? "it" : "them"} here. Changed your mind? Undo the report.</p>
+      ${rows}
+    </div>`;
+}
+
 function percent(value: number | undefined): string {
   return value === undefined || value === null ? "—" : `${Math.round(value * 100)}%`;
 }
@@ -224,6 +244,7 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
   const has = count > 0;
   const idx = has ? `${s.activeIndex + 1} / ${count}` : "0 / 0";
   const sess = s.learningSessionId ?? s.snapshot?.learningSessionId ?? "—";
+  const hidden = s.signedIn && s.isSupportedFile ? s.snapshot?.hiddenByReport ?? [] : [];
 
   let content: string;
 
@@ -259,10 +280,12 @@ export function buildCoachPanelHtml(state: ExtensionState): string {
       </div>`;
   } else if (count === 0) {
     content = `
-      <div class="card clean-card">
+      <div class="card clean-card${hidden.length ? " clean-partial" : ""}">
         <div class="clean-badge">✓</div>
-        <h2>All clear!</h2>
-        <p class="muted">None of the 30 logic mistakes Code Coach looks for were found in this file.</p>
+        <h2>${hidden.length ? "Nothing else found" : "All clear!"}</h2>
+        <p class="muted">${hidden.length
+          ? `Apart from what you reported (below), none of the 30 logic mistakes Code Coach looks for were found in this file.`
+          : "None of the 30 logic mistakes Code Coach looks for were found in this file."}</p>
         <div class="stat-row">
           <div class="stat"><span class="stat-label">Checked in</span><span class="stat-value">${escapeHtml(formatDuration(s.snapshot.analysisDurationMs))}</span></div>
           <div class="stat"><span class="stat-label">Fixed this session</span><span class="stat-value">${state.fixedThisSession}</span></div>
@@ -659,6 +682,12 @@ pre.code.bad{border-left-color:#f87171}pre.code.good{border-left-color:var(--vsc
 @keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
 
 /* ── Compiler errors ── */
+.clean-partial{border-color:var(--vscode-panel-border)}
+.clean-partial .clean-badge{display:none}
+.hidden-card{border-color:color-mix(in srgb,var(--vscode-editorWarning-foreground) 30%,var(--vscode-panel-border) 70%)}
+.hidden-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--vscode-panel-border) 25%,transparent)}
+.hidden-title{flex:1;font-size:12px;min-width:0}
+.btn-undo{padding:4px 10px;font-size:11px;flex-shrink:0}
 .compiler-card{border-color:color-mix(in srgb,var(--vscode-errorForeground) 35%,var(--vscode-panel-border) 65%)}
 .compiler-row{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--vscode-panel-border) 25%,transparent)}
 .compiler-msg{font-size:12px;line-height:1.45;font-family:var(--vscode-editor-font-family)}
@@ -723,6 +752,7 @@ pre.code.bad{border-left-color:#f87171}pre.code.good{border-left-color:var(--vsc
     ${fixedBanner}
     ${s.signedIn && s.isSupportedFile ? compilerCard(state, s.fileUriKey) : ""}
     ${content}
+    ${hiddenCard(hidden)}
     <div class="footer">
       <span class="dot${state.backendOffline ? " offline" : ""}"></span>
       <span>${state.backendOffline ? "Offline - Code Coach could not reach its server" : s.snapshot ? `Checked ${escapeHtml(formatTime(s.snapshot.analyzedAt))} in ${escapeHtml(formatDuration(s.snapshot.analysisDurationMs))}` : "Ready"}${state.fixedThisSession ? ` · ${state.fixedThisSession} fixed this session` : ""}</span>

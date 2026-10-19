@@ -314,10 +314,27 @@ class InMemoryStorage(
                 and document["diagnosticId"] == diagnostic_id
                 and document["status"] != DISPUTED_STATUS
             ):
+                document["statusBeforeDispute"] = document["status"]
                 document["status"] = DISPUTED_STATUS
                 document["disputedAt"] = disputed_at
                 marked += 1
         return marked
+
+    def delete_diagnostic_dispute(self, user_id: str, diagnostic_id: str) -> bool:
+        return self.diagnostic_disputes.pop(f"{user_id}:{diagnostic_id}", None) is not None
+
+    def restore_disputed_diagnostics(self, user_id: str, diagnostic_id: str) -> int:
+        restored = 0
+        for document in self.code_diagnostics.values():
+            if (
+                document["userId"] == user_id
+                and document["diagnosticId"] == diagnostic_id
+                and document["status"] == DISPUTED_STATUS
+            ):
+                document["status"] = document.pop("statusBeforeDispute", None) or "active"
+                document.pop("disputedAt", None)
+                restored += 1
+        return restored
 
     def list_disputed_diagnostic_ids(self, user_id: str) -> list[str]:
         return [
@@ -875,7 +892,24 @@ class MongoStorage(
                 "diagnosticId": diagnostic_id,
                 "status": {"$ne": DISPUTED_STATUS},
             },
-            {"$set": {"status": DISPUTED_STATUS, "disputedAt": disputed_at}},
+            # A pipeline update, so the status it had can be kept for an undo.
+            [{"$set": {"statusBeforeDispute": "$status", "status": DISPUTED_STATUS, "disputedAt": disputed_at}}],
+        )
+        return result.modified_count
+
+    def delete_diagnostic_dispute(self, user_id: str, diagnostic_id: str) -> bool:
+        result = self.db.diagnosticDisputes.delete_one({"userId": user_id, "diagnosticId": diagnostic_id})
+        return result.deleted_count > 0
+
+    def restore_disputed_diagnostics(self, user_id: str, diagnostic_id: str) -> int:
+        # Records disputed before statusBeforeDispute was kept go back to active:
+        # the next analysis resolves them if the mistake is gone.
+        result = self.db.codeDiagnostics.update_many(
+            {"userId": user_id, "diagnosticId": diagnostic_id, "status": DISPUTED_STATUS},
+            [
+                {"$set": {"status": {"$ifNull": ["$statusBeforeDispute", "active"]}}},
+                {"$unset": ["statusBeforeDispute", "disputedAt"]},
+            ],
         )
         return result.modified_count
 

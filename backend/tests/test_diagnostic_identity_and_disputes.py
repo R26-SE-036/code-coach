@@ -220,6 +220,68 @@ class ThroughTheApiTests(unittest.TestCase):
         ).json()["learning_session_id"]
         self.assertEqual([], self.analyze(headers, other_session, LOGIN))
 
+    def test_a_hidden_finding_is_named_so_the_editor_does_not_say_all_clear(self) -> None:
+        headers, session_id = self.student("hidden@example.com")
+        [finding] = self.analyze(headers, session_id, LOGIN)
+        self.dispute(headers, session_id, {"diagnostic_id": finding["diagnostic_id"]})
+
+        response = self.client.post(
+            "/api/v1/code-coach/analyze",
+            json={"language": "java", "code": LOGIN, "learning_session_id": session_id, "enable_logging": False},
+            headers=headers,
+        ).json()
+        self.assertEqual([], response["diagnostics"])
+        [hidden] = response["hidden_by_report"]
+        self.assertEqual(finding["diagnostic_id"], hidden["diagnostic_id"])
+        self.assertEqual(finding["error_type"], hidden["error_type"])
+        self.assertEqual(finding["line"], hidden["line"])
+
+    def test_nothing_is_named_as_hidden_without_a_report(self) -> None:
+        headers, session_id = self.student("nothing-hidden@example.com")
+        response = self.client.post(
+            "/api/v1/code-coach/analyze",
+            json={"language": "java", "code": LOGIN, "learning_session_id": session_id, "enable_logging": False},
+            headers=headers,
+        ).json()
+        self.assertEqual(1, len(response["diagnostics"]))
+        self.assertEqual([], response["hidden_by_report"])
+
+    def withdraw(self, headers: dict, diagnostic_id: str) -> bool:
+        response = self.client.delete(f"/api/v1/code-coach/disputes/{diagnostic_id}", headers=headers)
+        self.assertEqual(200, response.status_code)
+        return response.json()["withdrawn"]
+
+    def test_taking_a_report_back_shows_and_counts_the_finding_again(self) -> None:
+        headers, session_id = self.student("undo@example.com")
+        [finding] = self.analyze(headers, session_id, LOGIN)
+        self.dispute(headers, session_id, {"diagnostic_id": finding["diagnostic_id"]})
+        self.assertEqual([], self.analyze(headers, session_id, LOGIN))
+        self.assertEqual(0, self.total_diagnostics(headers))
+
+        self.assertTrue(self.withdraw(headers, finding["diagnostic_id"]))
+
+        self.assertEqual([finding["diagnostic_id"]], [d["diagnostic_id"] for d in self.analyze(headers, session_id, LOGIN)])
+        # The same record as before the report, not a second finding.
+        self.assertEqual(1, self.total_diagnostics(headers))
+        self.assertEqual(1, self.events(headers, "code_diagnostic_detected"))
+        self.assertEqual(0, self.events(headers, "diagnostic_resolved"))
+
+    def test_taking_back_a_report_that_was_never_made_changes_nothing(self) -> None:
+        headers, session_id = self.student("no-report@example.com")
+        [finding] = self.analyze(headers, session_id, LOGIN)
+
+        self.assertFalse(self.withdraw(headers, finding["diagnostic_id"]))
+        self.assertEqual(1, len(self.analyze(headers, session_id, LOGIN)))
+
+    def test_one_student_cannot_take_back_another_students_report(self) -> None:
+        first, first_session = self.student("reporter@example.com")
+        [finding] = self.analyze(first, first_session, LOGIN)
+        self.dispute(first, first_session, {"diagnostic_id": finding["diagnostic_id"]})
+
+        second, _ = self.student("other@example.com")
+        self.assertFalse(self.withdraw(second, finding["diagnostic_id"]))
+        self.assertEqual([], self.analyze(first, first_session, LOGIN))
+
     def test_a_dispute_that_names_no_finding_changes_nothing(self) -> None:
         headers, session_id = self.student("empty-dispute@example.com")
         self.analyze(headers, session_id, LOGIN)

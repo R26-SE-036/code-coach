@@ -12,7 +12,10 @@ A dispute is now kept per student and diagnostic id, and:
   * every stored record of that finding is marked "disputed", which
     list_diagnostics_for_user leaves out, so no count sees it;
   * later analyses leave it out of the response and out of storage, in every
-    session - the id no longer changes when the rest of the file does.
+    session - the id no longer changes when the rest of the file does;
+  * but each analysis names what it left out (hidden_by_report), so the
+    editor says "hidden because you reported it" instead of "All clear",
+    and the student can take the report back (withdraw_dispute).
 
 It is the student's word, not a verdict on the detector. An evaluation that
 wants a false-positive rate reads the disputes themselves.
@@ -92,5 +95,21 @@ def record_dispute(
         }
     )
     storage.mark_diagnostics_disputed(user_id, diagnostic_id, disputed_at=disputed_at)
+    _DISPUTED_IDS.invalidate(user_id)
+    return True
+
+
+def withdraw_dispute(storage: Any, *, user_id: str, diagnostic_id: str) -> bool:
+    """Undo a student's report: the finding is shown and counted again.
+
+    The dispute record is deleted rather than flagged, because a report the
+    student took back is not evidence that the detector was wrong. The stored
+    records of the finding get back the status they had when it was reported.
+    False if this student had not reported that finding.
+    """
+    diagnostic_id = _text(diagnostic_id) or ""
+    if not diagnostic_id or not storage.delete_diagnostic_dispute(user_id, diagnostic_id):
+        return False
+    storage.restore_disputed_diagnostics(user_id, diagnostic_id)
     _DISPUTED_IDS.invalidate(user_id)
     return True

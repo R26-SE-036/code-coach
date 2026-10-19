@@ -118,6 +118,15 @@ export type AnalyzeResponse = {
   analysis_duration_ms: number;
   learning_session_id?: string;
   diagnostics: DiagnosticItem[];
+  /** Found, but left out of diagnostics because this student reported it. Older servers omit it. */
+  hidden_by_report?: HiddenFinding[];
+};
+
+export type HiddenFinding = {
+  diagnostic_id: string;
+  error_type: string;
+  title?: string | null;
+  line: number;
 };
 
 export type AuthUser = {
@@ -197,6 +206,8 @@ export type AnalysisSnapshot = {
   learningSessionId?: string;
   /** document.version at analysis time — lets tab switches reuse cached results. */
   documentVersion?: number;
+  /** Findings left out because the student reported them - shown as a note with an undo. */
+  hiddenByReport?: HiddenFinding[];
 };
 
 export type CoachPanelState = {

@@ -81,7 +81,8 @@ GROUPS: list[tuple[str, str, list[str]]] = [
      "that wants to name a mistake the way the editor does. Diagnostics gained three "
      "optional fields (title, end_line, end_column); nothing was removed or renamed.",
      ["/api/v1/code-coach/analyze", "/api/v1/code-coach/catalog", "/api/v1/code-coach/explain",
-      "/api/v1/code-coach/explain-compiler-error", "/api/v1/code-coach/similar-example"]),
+      "/api/v1/code-coach/explain-compiler-error", "/api/v1/code-coach/similar-example",
+      "/api/v1/code-coach/disputes/{diagnostic_id}"]),
     ("Service health",
      "No authentication required.",
      ["/health"]),

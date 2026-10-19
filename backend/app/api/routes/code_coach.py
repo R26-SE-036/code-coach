@@ -7,13 +7,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.core.cache import TTLCache
 from app.core.dependencies import AuthContext, get_current_auth, get_storage
-from app.models import AnalyzeRequest, AnalyzeResponse
+from app.models import AnalyzeRequest, AnalyzeResponse, DisputeWithdrawnResponse
 from app.services.code_coach_service import (
     build_analyze_response,
     build_diagnostic_records,
     run_analysis,
 )
-from app.services.dispute_service import disputed_ids_for
+from app.services.dispute_service import disputed_ids_for, withdraw_dispute
 from app.services.evaluation_logger import log_analysis_event
 from app.services.research_collection import collect_code_snapshot
 from app.services.learning_signal_service import build_code_coach_learning_events
@@ -121,6 +121,7 @@ def analyze_for_authenticated_user(
     # detector found, because it is a record of the detector.
     disputed = disputed_ids_for(storage, auth.user_id)
     diagnostics = [item for item in detected if item.diagnostic_id not in disputed]
+    hidden_by_report = [item for item in detected if item.diagnostic_id in disputed]
 
     diagnostic_documents = build_diagnostic_records(
         auth.user_id,
@@ -162,4 +163,16 @@ def analyze_for_authenticated_user(
         diagnostics,
         analysis_duration_ms,
         learning_session_id=learning_session_id,
+        hidden_by_report=hidden_by_report,
     )
+
+
+@router.delete("/disputes/{diagnostic_id}", response_model=DisputeWithdrawnResponse)
+def withdraw_my_dispute(
+    diagnostic_id: str,
+    auth: AuthContext = Depends(get_current_auth),
+    storage: Any = Depends(get_storage),
+) -> DisputeWithdrawnResponse:
+    """The undo for "Not a real bug?": the finding is shown and counted again."""
+    withdrawn = withdraw_dispute(storage, user_id=auth.user_id, diagnostic_id=diagnostic_id)
+    return DisputeWithdrawnResponse(diagnostic_id=diagnostic_id, withdrawn=withdrawn)
