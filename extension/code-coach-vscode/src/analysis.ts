@@ -177,10 +177,11 @@ function applyEditorFeedback(
  * the panel and the status bar - the moment the student gets it right is
  * worth marking, and until now it passed without a word.
  */
-function noteFixes(state: ExtensionState, uriKey: string, next: DiagnosticItem[]): void {
+function noteFixes(state: ExtensionState, uriKey: string, next: DiagnosticItem[], hiddenIds: string[] = []): void {
   const before = state.lastDiagnosticsByUri.get(uriKey) ?? [];
   if (before.length === 0) { return; }
-  const still = new Set(next.map((item) => item.diagnostic_id));
+  // A finding hidden because the student reported it is still in the code: not a fix.
+  const still = new Set([...next.map((item) => item.diagnostic_id), ...hiddenIds]);
   const fixed = before.filter((item) => !still.has(item.diagnostic_id) && !state.disputedDiagnosticIds.has(item.diagnostic_id));
   if (fixed.length === 0) { return; }
   state.fixedThisSession += fixed.length;
@@ -472,7 +473,8 @@ export async function runAnalysisForEditor(
       progress?.report({ message: "Processing results…", increment: 40 });
       state.backendOffline = false;
       result = { ...result, diagnostics: visibleDiagnostics(result.diagnostics) };
-      noteFixes(state, document.uri.toString(), result.diagnostics);
+      const hiddenByReport = result.hidden_by_report ?? [];
+      noteFixes(state, document.uri.toString(), result.diagnostics, hiddenByReport.map((item) => item.diagnostic_id));
 
       state.lastAnalysisSnapshotByUri.set(document.uri.toString(), {
         diagnosticsCount: result.diagnostics.length,
@@ -482,6 +484,7 @@ export async function runAnalysisForEditor(
         firstLine: result.diagnostics[0]?.line,
         learningSessionId: result.learning_session_id ?? learningSessionId,
         documentVersion,
+        hiddenByReport,
       });
 
       if (options.showOutput) { writeAnalysisOutput(state, result); state.outputChannel.show(true); }
@@ -801,6 +804,34 @@ export function findDiagnosticById(state: ExtensionState, diagnosticId: string):
   return [...state.lastDiagnosticsByUri.values()].flat().find((item) => item.diagnostic_id === diagnosticId);
 }
 
+/**
+ * The undo for a report: the server forgets the dispute, so the finding is
+ * shown and counted again, and the file is re-checked to bring it back.
+ */
+async function undoReport(state: ExtensionState, index: number | undefined): Promise<void> {
+  const uriKey = resolvePanelUriKey(state);
+  const hidden = uriKey ? state.lastAnalysisSnapshotByUri.get(uriKey)?.hiddenByReport ?? [] : [];
+  const finding = typeof index === "number" ? hidden[index] : undefined;
+  if (!uriKey || !finding) { return; }
+  try {
+    await authorizedRequestJson<{ diagnostic_id: string; withdrawn: boolean }>(
+      state, `/api/v1/code-coach/disputes/${encodeURIComponent(finding.diagnostic_id)}`, { method: "DELETE" },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error occurred.";
+    void vscode.window.showErrorMessage(`Code Coach could not undo the report: ${message}`);
+    return;
+  }
+  state.disputedDiagnosticIds.delete(finding.diagnostic_id);
+  const editor = findVisibleEditorForUri(uriKey);
+  if (editor) {
+    await runAnalysisForEditor(state, editor, { showPopup: false, showOutput: false });
+  } else {
+    updateCoachPanel(state);
+  }
+  void vscode.window.setStatusBarMessage("$(eye) Code Coach: showing it again", 4000);
+}
+
 function disputeActiveDiagnostic(state: ExtensionState): void {
   const uriKey = resolvePanelUriKey(state);
   if (!uriKey) { return; }
@@ -885,6 +916,9 @@ export function handleCoachPanelMessage(
       break;
     case "panelDispute":
       disputeActiveDiagnostic(state);
+      break;
+    case "undoReport":
+      void undoReport(state, message.index);
       break;
     case "panelRevealHint":
       revealActiveHint(state);

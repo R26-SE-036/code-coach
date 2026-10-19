@@ -81,6 +81,16 @@ class Diagnostic(BaseModel):
     end_column: Optional[int] = None
 
 
+# A finding this analysis found but left out of `diagnostics` because the
+# student reported it as not a real bug. Sent so the editor can say so (and
+# offer to undo the report) instead of looking like "nothing found".
+class HiddenFinding(BaseModel):
+    diagnostic_id: str
+    error_type: str
+    title: Optional[str] = None
+    line: int
+
+
 class AnalyzeResponse(BaseModel):
     status: str
     message: str
@@ -88,6 +98,12 @@ class AnalyzeResponse(BaseModel):
     analysis_duration_ms: float
     learning_session_id: Optional[str] = None
     diagnostics: List[Diagnostic]
+    hidden_by_report: List[HiddenFinding] = Field(default_factory=list)
+
+
+class DisputeWithdrawnResponse(BaseModel):
+    diagnostic_id: str
+    withdrawn: bool
 
 # Auth models
 class RegisterRequest(BaseModel):

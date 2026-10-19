@@ -7,7 +7,7 @@ from typing import Iterable
 
 from app.analysis.analyzer import analyze_code
 from app.core.common import generate_prefixed_id, utcnow
-from app.models import AnalyzeRequest, AnalyzeResponse, Diagnostic
+from app.models import AnalyzeRequest, AnalyzeResponse, Diagnostic, HiddenFinding
 
 # it calls analysis/analyzer.py
 def run_analysis(payload: AnalyzeRequest) -> tuple[list[Diagnostic], float]:
@@ -34,6 +34,7 @@ def build_analyze_response(
     *,
     message: str = "Analysis completed.",
     learning_session_id: str | None = None,
+    hidden_by_report: list[Diagnostic] | None = None,
 ) -> AnalyzeResponse:
     return AnalyzeResponse(
         status="ok",
@@ -42,6 +43,10 @@ def build_analyze_response(
         analysis_duration_ms=analysis_duration_ms,
         learning_session_id=learning_session_id,
         diagnostics=diagnostics,
+        hidden_by_report=[
+            HiddenFinding(diagnostic_id=item.diagnostic_id, error_type=item.error_type, title=item.title, line=item.line)
+            for item in hidden_by_report or []
+        ],
     )
 
 

@@ -12,6 +12,10 @@ import argparse
 import json
 from pathlib import Path
 from xml.sax.saxutils import escape
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from candidate_sites import with_site  # noqa: E402
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -123,11 +127,11 @@ def _human_sentence(perf: dict) -> str:
 
 def overview(cards: dict, generated: str) -> list:
     rows = [["Error type", "Model", "Test sites (mistakes)", "Precision", "Recall", "F1", "Before or rule F1", "CodeBERT F1"]]
-    for card in sorted(cards.values(), key=lambda c: c["title"].lower()):
+    for error_type, card in sorted(cards.items(), key=lambda c: c[1]["title"].lower()):
         perf, data = card["performance"], card["training_data"]
         family = {"random_forest": "Random forest", "gradient_boosting": "Gradient boosting",
                   "logistic_regression": "Logistic regression"}.get(card["model"]["family"], card["model"]["family_name"])
-        rows.append([escape(card["title"]), family,
+        rows.append([escape(with_site(error_type, card["title"])), family,
                      f"{data['test_sites']} ({data['test_mistakes']})", _pct(perf["test"]["precision"]), _pct(perf["test"]["recall"]),
                      f"<b>{_f1(perf['test']['f1'])}</b>", _f1(perf["previous"].get("f1")), _f1((perf.get("codebert") or {}).get("f1"))])
     first = next(iter(cards.values()))
